@@ -2,22 +2,22 @@
 let currentScreen = 0;
 const screens = [
     { 
-        image: "url('assets/images/idea.png')", 
+        image: "url('assets/images/paredeNorte_0.png')", 
         left: 3, 
         right: 1 
     },
     { 
-        image: "url('assets/images/Sprite-0004.png')", 
+        image: "url('assets/images/paredeLest_0.png')", 
         left: 0, 
         right: 2 
     },
     { 
-        image: "url('assets/images/CapaNO.png')", 
+        image: "url('assets/images/paredeSul_0.png')", 
         left: 1, 
         right: 3 
     },
     { 
-        image: "url('assets/images/Sprite-02.png')", 
+        image: "url('assets/images/paredeOeste_0.png')", 
         left: 2, 
         right: 0 
     }

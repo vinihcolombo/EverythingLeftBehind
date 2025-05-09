@@ -15,11 +15,55 @@ body {
 }
 
 .game-container {
-    display: flex;
+    display: grid;
+    grid-template-columns: 90% 10%;
     width: 100vw;
     height: 100vh;
     background: #2c3e50;
+    position: relative;
 }
+
+.game-screen {
+    position: relative;
+    overflow: hidden;
+    height: 100%; 
+}
+
+.image-container{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: contain; 
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.inventory {
+    height: 100vh;
+    background: #1a1a1a;
+    display: grid;
+    grid-auto-rows: minmax(auto , auto);
+    padding: 10px; 
+    gap: 10px;
+    border-left: 2px solid #555;  
+    overflow-y: auto;
+    align-content: start;
+    right: 0;
+    top: 0;
+}
+
+.inventory-item {
+    padding: 1.5px;
+    height: 121.2px;
+    background: #d8c59e;
+    border: 1px solid #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+}   
 
 .pixel-scene {
     width: auto;
@@ -32,37 +76,7 @@ body {
     transform-origin: top left;
 }
 
-.game-screen {
-    flex: 1; 
-    background: #34495e; 
-    position: relative;
-    overflow: hidden;
-}
 
-.inventory {
-    width: 10%;
-    height: 100%;
-    background: #1a1a1a;
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-auto-rows: minmax(60px, auto);
-    padding: 10px; 
-    gap: 10px;
-    border-left: 2px solid #555;  
-    overflow-y: auto;
-    align-content: start;
-}
-
-.inventory-item {
-    padding: 1.5px;
-    height: 80px;
-    background: #d8c59e;
-    border: 1px solid #fff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 4px;
-}
 
 .room {
     position: absolute;
@@ -97,3 +111,21 @@ body {
 #arrow-right {
     right: 10px;
 }   
+
+.vinheta {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 90%;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 10;
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+        height: 100%;
+        background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.66) 70%);
+    pointer-events: none;
+}
