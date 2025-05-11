@@ -8,30 +8,36 @@
 </head>
 <body style="margin: 0;">
     <div class="game-container">
-        <div class="vinheta game-screen" style="width: 90%; height: 100vh;"></div>
-        <div class="game-screen scene-container">
-            
-            <!-- Telas -->
-            <div class="room pixel-scene image-container" id="room0"></div>
-            <div class="room pixel-scene image-container" id="room1"></div>
-            <div class="room pixel-scene image-container" id="room2"></div>
-            <div class="room pixel-scene image-container" id="room3"></div>
-            
-            <!-- Setas -->
-            <img src="assets/images/Seta_Esquerda.png" class="arrow pixel-scene" id="arrow-left">
-            <img src="assets/images/Seta_Direita.png" class="arrow pixel-scene" id="arrow-right">
-        </div>
-        <div class="inventory">
-            <div class="inventory-item"></div>
-            <div class="inventory-item"></div>
-            <div class="inventory-item"></div>
-            <div class="inventory-item"></div>
-            <div class="inventory-item"></div>
-            <div class="inventory-item"></div>
-            <div class="inventory-item"></div>
-            <div class="inventory-item"></div>
-            <div class="inventory-item"></div>
-            <div class="inventory-item"></div>
+        <div class="game-screen">
+            <div class="vinheta"></div>
+                <div class="scene-container">
+                    
+                    <!-- Telas -->
+                    <div class="room pixel-scene image-container" id="room0"></div>
+                    <div class="room pixel-scene image-container" id="room1"></div>
+                    <div class="room pixel-scene image-container" id="room2"></div>
+                    <div class="room pixel-scene image-container" id="room3"></div>
+                    
+                    <!-- Setas -->    
+                    <img src="assets/images/Seta_Esquerda.png" class="arrow" id="arrow-left">
+                    <img src="assets/images/Seta_Direita.png" class="arrow" id="arrow-right">
+                
+                </div>
+
+                <div class="inventory-toggle" id="inventory-toggle">I</div>
+
+                <div class="inventory-overlay" id="inventory">
+                    <div class="inventory-item"></div>
+                    <div class="inventory-item"></div>
+                    <div class="inventory-item"></div>
+                    <div class="inventory-item"></div>
+                    <div class="inventory-item"></div>
+                    <div class="inventory-item"></div>
+                    <div class="inventory-item"></div>
+                    <div class="inventory-item"></div>
+                    <div class="inventory-item"></div>
+                    <div class="inventory-item"></div>
+                </div>
         </div>
     </div>
     

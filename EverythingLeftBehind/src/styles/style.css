@@ -15,12 +15,11 @@ body {
 }
 
 .game-container {
-    display: grid;
-    grid-template-columns: 90% 10%;
     width: 100vw;
     height: 100vh;
     background: #2c3e50;
     position: relative;
+    overflow: hidden;
 }
 
 .game-screen {
@@ -40,6 +39,48 @@ body {
     background-position: center;
 }
 
+.inventory-toggle{
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 50px;
+    height: 50px;
+    background: #1a1a1a;
+    border: 2px solid #d8c59e;
+    border-radius: 50%;
+    color: #d8c59e;
+    font-size: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 100;
+}
+
+.inventory-overlay{
+    opacity: 0;
+    position: absolute;
+    right: -300px;
+    top: 0;
+    width: 300px;
+    height: 100%;
+    background: #1a1a1a;
+    border-left: 2px solid #555;
+    transition: right 0.3s ease;
+    z-index: 50;
+    display: grid;
+    grid-template-rows: repeat(autofill, minmax(60px, 1fr));
+    padding: 20px;
+    gap: 15px;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.inventory-overlay.open{
+    right: 0;
+    opacity: 1;
+}
+
 .inventory {
     height: 100vh;
     background: #1a1a1a;
@@ -55,14 +96,13 @@ body {
 }
 
 .inventory-item {
-    padding: 1.5px;
-    height: 121.2px;
     background: #d8c59e;
     border: 1px solid #fff;
+    border-radius: 4px;
+    aspect-ratio: 1/1;
     display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 4px;
 }   
 
 .pixel-scene {
@@ -110,6 +150,7 @@ body {
     width: 50px;
     height: 50px;
     opacity: 0.5;
+    z-index: 20;
 }
 
 .arrow:hover {
@@ -117,11 +158,11 @@ body {
 }
 
 #arrow-left {
-    left: 10px;
+    left: calc(50% - (var(--image-width) / 2) + 25px);
 }
 
 #arrow-right {
-    right: 10px;
+    right: calc(50% - (var(--image-width) / 2) + 25px);
 }   
 
 .vinheta {
