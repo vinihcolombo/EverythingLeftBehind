@@ -22,6 +22,10 @@ body {
     overflow: hidden;
 }
 
+.game-container.hidden {
+    display: none;
+}
+
 .game-screen {
     position: relative;
     overflow: hidden;

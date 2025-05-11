@@ -5,8 +5,37 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Everything Left Behind</title>
         <link rel="stylesheet" href="../src/styles/style.css">
+        <link rel="stylesheet" href="../src/styles/menu.css">
 </head>
 <body style="margin: 0;">
+
+    <div class="menu-container" id="menu-container">
+        <div class="menu">
+            <h1 class="menu-title">Everything Left Behind</h1>
+            <div class="menu-options">
+                <button class="menu-button" id="start-game">Iniciar Jogo</button>
+                <button class="menu-button" id="settings">Configurações</button>
+                <button class="menu-button" id="exit">Sair</button>
+            </div>
+        </div>
+        
+        <!-- Adicione esta div para o menu de configurações -->
+        <div class="settings-menu" id="settings-menu">
+            <h2>Configurações</h2>
+            <div class="setting-option">
+                <label for="volume">Volume:</label>
+                <input type="range" id="volume" min="0" max="1" step="0.1" value="1">
+            </div>
+            <div class="setting-option">
+                <label for="fullscreen">Tela Cheia:</label>
+                <input type="checkbox" id="fullscreen">
+            </div>
+            <button class="menu-button" id="back-to-menu">Voltar</button>
+        </div>
+    </div>
+    
+    
+
     <div class="game-container">
         <div class="game-screen">
             <div class="vinheta"></div>
@@ -19,8 +48,8 @@
                     <div class="room pixel-scene image-container" id="room3"></div>
                     
                     <!-- Setas -->    
-                    <img src="assets/images/Seta_Esquerda.png" class="arrow" id="arrow-left">
-                    <img src="assets/images/Seta_Direita.png" class="arrow" id="arrow-right">
+                    <img src="assets/images/Seta_Esquerda.png" class="pixel-scene arrow" id="arrow-left">
+                    <img src="assets/images/Seta_Direita.png" class="pixel-scene arrow" id="arrow-right">
                 
                 </div>
 
@@ -41,6 +70,7 @@
         </div>
     </div>
     
+    <script src="../src/scripts/menu.js"></script>
     <script src="../src/scripts/salas.js"></script>
     
 </body>

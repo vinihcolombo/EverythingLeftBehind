@@ -37,7 +37,7 @@ function preloadImages() {
 // Posiciona todos os elementos de UI relativos à imagem
 function positionElements() {
     const activeRoom = document.querySelector('.room.active');
-    if (!activeRoom) return;
+    if (!activeRoom || document.querySelector('.game-container').classList.contains('hidden ')) return;
 
     const img = new Image();
     img.src = window.getComputedStyle(activeRoom).backgroundImage.slice(5, -2);
@@ -85,6 +85,10 @@ function positionElements() {
             inventory.style.top = `${offsetY}px`;
             inventory.style.height = `${renderedHeight}px`;
         }
+        document.getElementById('arrow-left').style.left = `${offsetX + 25}px`;
+        document.getElementById('arrow-right').style.right = `${offsetX + 25}px`;
+        document.getElementById('arrow-left').style.display = 'block';
+        document.getElementById('arrow-right').style.display = 'block';
     };
 }
 
@@ -125,7 +129,11 @@ function setupControls() {
 }
 
 // Inicialização do jogo
+// Em salas.js, substitua a função init() por esta:
 function init() {
+    // Esconde o jogo inicialmente
+    document.querySelector('.game-container').classList.add('hidden');
+    
     preloadImages();
     screens.forEach((screen, index) => {
         document.getElementById(`room${index}`).style.backgroundImage = screen.image;
@@ -133,11 +141,11 @@ function init() {
     
     setupControls();
     setupInventory();
+    setupMenu(); // Adiciona o menu
     updateScreen();
     
-    // Redimensiona elementos quando a janela muda de tamanho
     window.addEventListener('resize', positionElements);
 }
 
 // Inicia o jogo
-init();
+init(); 
