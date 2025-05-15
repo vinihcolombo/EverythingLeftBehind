@@ -3,7 +3,6 @@ window.setupMenu = function() {
     const menuContainer = document.getElementById('menu-container');
     const startButton = document.getElementById('start-game');
     const settingsButton = document.getElementById('settings');
-    const exitButton = document.getElementById('exit');
     const settingsMenu = document.getElementById('settings-menu');
     const backToMenuButton = document.getElementById('back-to-menu');
     
@@ -27,13 +26,6 @@ window.setupMenu = function() {
         setTimeout(() =>{
             positionElements();
         }, 50);
-    });
-    
-    // Sair do jogo (funciona apenas se o jogo estiver em uma janela)
-    exitButton.addEventListener('click', () => {
-        if (confirm('Deseja realmente sair do jogo?')) {
-            window.close();
-        }
     });
     
     // Configurações de volume
