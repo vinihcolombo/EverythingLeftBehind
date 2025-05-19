@@ -8,14 +8,14 @@ window.setupMenu = function() {
     
     // Mostrar menu de configurações
     settingsButton.addEventListener('click', () => {
-        document.querySelector('.menu').classList.add('hidden');
-        settingsMenu.classList.remove('hidden');
+        document.querySelector('.menu').style.display = 'none';
+        settingsMenu.style.display = 'block';
     });
     
     // Voltar ao menu principal
     backToMenuButton.addEventListener('click', () => {
-        settingsMenu.classList.add('hidden');
-        document.querySelector('.menu').classList.remove('hidden');
+        settingsMenu.style.display = 'none';
+        document.querySelector('.menu').style.display = 'block';
     });
     
     // Iniciar o jogo
