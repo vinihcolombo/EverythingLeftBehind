@@ -6,20 +6,30 @@ window.setupMenu = function() {
     const settingsMenu = document.getElementById('settings-menu');
     const backToMenuButton = document.getElementById('back-to-menu');
     
+    const menuClickSound = new Audio('assets/SFX/Button.wav');
+    
+    function playMenuSound() {
+        menuClickSound.currentTime = 0; 
+        menuClickSound.play();
+    }
+
     // Mostrar menu de configurações
     settingsButton.addEventListener('click', () => {
+        playMenuSound();
         document.querySelector('.menu').style.display = 'none';
         settingsMenu.style.display = 'block';
     });
     
     // Voltar ao menu principal
     backToMenuButton.addEventListener('click', () => {
+        playMenuSound();
         settingsMenu.style.display = 'none';
         document.querySelector('.menu').style.display = 'block';
     });
     
     // Iniciar o jogo
     startButton.addEventListener('click', () => {
+        playMenuSound();
         menuContainer.classList.add('hidden');
         document.querySelector('.game-container').classList.remove('hidden');
 

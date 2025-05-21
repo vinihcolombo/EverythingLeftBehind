@@ -9,6 +9,20 @@ body {
     max-width: 100vw;  
 }
 
+.geo-regular {
+  font-family: "Geo", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  font-size: large;
+}
+
+.geo-regular-italic {
+  font-family: "Geo", sans-serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: larger;
+}
+
 .elemento-interno {
     max-height: 100%;  
     overflow: auto;    
@@ -59,6 +73,26 @@ body {
     align-items: center;
     cursor: pointer;
     z-index: 100;
+    display: flex;
+}
+
+.inventory-icon {
+    width: 82px;
+    height: 82px;
+    object-fit: contain;
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0); 
+    image-rendering: -webkit-optimize-contrast; 
+    image-rendering: crisp-edges; 
+}
+
+.inventory-toggle:hover {
+    transform: scale(1.05);
+}
+
+.inventory-toggle:hover .inventory-icon {
+    transform: scale(1.1);
 }
 
 .inventory-overlay{
@@ -172,7 +206,53 @@ body {
 
 #arrow-right {
     right: calc(50% - (var(--image-width) / 2) + 25px);
-}   
+}
+
+.game-notification {
+    position: fixed;
+    top: 100px;
+    left: 225px;
+    background-color: rgba(20, 20, 20, 0.95);
+    color: #d8c59e;
+    padding: 20px 30px; /* Aumentei o padding */
+    border-radius: 10px;
+    min-width: 350px; /* Largura mínima maior */
+    max-width: 80vw;
+    width: auto;
+    display: inline-block;
+    z-index: 1001;
+    font-family: 'Geo', sans-serif;
+    font-size: 1.4rem; /* Tamanho de fonte aumentado (~22px) */
+    line-height: 1.5; /* Espaçamento entre linhas */
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.6);
+    border: 2px solid #d8c59e; /* Borda mais espessa */
+    animation: notificationFadeIn 0.4s ease-out;
+    text-align: left;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+/* Efeito de animação suave */
+@keyframes notificationFadeIn {
+    from { 
+        opacity: 0;
+        transform: translateY(-20px) scale(0.95);
+    }
+    to { 
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.object-hitbox {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    /* Estilo visual opcional para debug */
+    background-color: rgba(29, 139, 134, 0.637);
+    border: 2px dashed white;
+}
 
 .vinheta {
     
