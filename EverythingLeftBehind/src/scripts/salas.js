@@ -1,5 +1,15 @@
 // Configuração inicial
 let currentScreen = 0;
+let navigationHistory = [];
+let isInPuzzleView = false;
+
+const puzzleScreens = {
+    'pintura': {
+        image: "url('assets/images/CaixaPOV.png')",
+        hitboxes: []
+    }
+};
+
 const screens = [
     { 
         image: "url('assets/images/paredeNorte_0.png')", 
@@ -74,20 +84,23 @@ function positionElements() {
         let renderedWidth, renderedHeight, offsetX, offsetY;
 
         if (containerRatio > imgRatio) {
-            // Container mais largo que a imagem (margens laterais)
             renderedHeight = containerHeight;
             renderedWidth = containerHeight * imgRatio;
             offsetX = (containerWidth - renderedWidth) / 2;
             offsetY = 0;
         } else {
-            // Container mais alto que a imagem (margens verticais)
             renderedWidth = containerWidth;
             renderedHeight = containerWidth / imgRatio;
             offsetX = 0;
             offsetY = (containerHeight - renderedHeight) / 2;
         }
 
-        // Armazena essas informações para uso posterior
+        // Posiciona setas nas bordas da imagem
+        document.getElementById('arrow-left').style.left = `${offsetX + 10}px`; // 10px da borda esquerda
+        document.getElementById('arrow-right').style.right = `${offsetX + 10}px`; // 10px da borda direita
+        document.getElementById('arrow-left').style.top = document.getElementById('arrow-right').style.top = `${offsetY + (renderedHeight / 2) - 25}px`; // Centralizado verticalmente
+
+        // Armazena informações de posição para as hitboxes
         activeRoom._imagePosition = {
             originalWidth: this.width,
             originalHeight: this.height,
@@ -97,14 +110,7 @@ function positionElements() {
             offsetY
         };
 
-        // Atualiza posição das hitboxes
         updateHitboxesPosition();
-        
-        // Restante do seu código de posicionamento...
-        document.getElementById('arrow-left').style.left = `${offsetX + 25}px`;
-        document.getElementById('arrow-right').style.right = `${offsetX + 25}px`;
-        document.getElementById('arrow-left').style.display = 'block';
-        document.getElementById('arrow-right').style.display = 'block';
     };
 }
 
@@ -116,35 +122,25 @@ function updateHitboxesPosition() {
     const scaleX = pos.renderedWidth / pos.originalWidth;
     const scaleY = pos.renderedHeight / pos.originalHeight;
 
-    // Atualiza todas as hitboxes da sala atual
     const currentRoom = screens[currentScreen];
     const allHitboxes = [...currentRoom.hitboxes, ...currentRoom.persistentHitboxes];
-    
+
     allHitboxes.forEach(hitbox => {
-        const originalX = parseFloat(hitbox.dataset.originalX || hitbox.style.left);
-        const originalY = parseFloat(hitbox.dataset.originalY || hitbox.style.top);
-        const originalWidth = parseFloat(hitbox.dataset.originalWidth || hitbox.style.width);
-        const originalHeight = parseFloat(hitbox.dataset.originalHeight || hitbox.style.height);
+        const originalX = parseFloat(hitbox.dataset.originalX);
+        const originalY = parseFloat(hitbox.dataset.originalY);
+        const originalWidth = parseFloat(hitbox.dataset.originalWidth);
+        const originalHeight = parseFloat(hitbox.dataset.originalHeight);
 
-        // Armazena os valores originais se não estiverem guardados
-        if (!hitbox.dataset.originalX) {
-            hitbox.dataset.originalX = originalX;
-            hitbox.dataset.originalY = originalY;
-            hitbox.dataset.originalWidth = originalWidth;
-            hitbox.dataset.originalHeight = originalHeight;
-        }
-
-        // Calcula novas posições e tamanhos
         const newX = pos.offsetX + (originalX * scaleX);
         const newY = pos.offsetY + (originalY * scaleY);
         const newWidth = originalWidth * scaleX;
         const newHeight = originalHeight * scaleY;
 
-        // Aplica as novas posições
         hitbox.style.left = `${newX}px`;
         hitbox.style.top = `${newY}px`;
         hitbox.style.width = `${newWidth}px`;
         hitbox.style.height = `${newHeight}px`;
+        hitbox.style.display = hitbox.dataset.collected === "true" ? "none" : "block";
     });
 }
 
@@ -169,31 +165,33 @@ function setupInventory() {
 
 // Atualiza a tela atual
 function updateScreen() {
-    document.querySelectorAll('.object-hitbox').forEach(hitbox => {
-        hitbox.remove();
-    });
-
+    // Esconde todas as salas
     document.querySelectorAll('.room').forEach(room => {
         room.classList.remove('active');
+        room.style.display = 'none';
     });
-    document.getElementById(`room${currentScreen}`).classList.add('active');
-
-    // Adiciona hitboxes da nova sala
-    const currentRoom = screens[currentScreen];
     
-    // Hitboxes normais (resetam ao reentrar)
-    currentRoom.hitboxes.forEach(hitbox => {
-        if (hitbox.dataset.collected !== "true") {
-            document.querySelector('.scene-container').appendChild(hitbox);
+    // Mostra a sala atual
+    const activeRoom = document.getElementById(`room${currentScreen}`);
+    activeRoom.classList.add('active');
+    activeRoom.style.display = 'block';
+    
+    // Remove hitboxes antigas
+    document.querySelectorAll('.object-hitbox').forEach(hb => hb.remove());
+    
+    // Adiciona novas hitboxes
+    const currentRoom = screens[currentScreen];
+    currentRoom.hitboxes.forEach(hb => {
+        if (hb.dataset.collected !== "true") {
+            document.querySelector('.scene-container').appendChild(hb);
         }
     });
-    
-    // Hitboxes persistentes (mantêm estado)
-    currentRoom.persistentHitboxes.forEach(hitbox => {
-        document.querySelector('.scene-container').appendChild(hitbox);
+    currentRoom.persistentHitboxes.forEach(hb => {
+        document.querySelector('.scene-container').appendChild(hb);
     });
-
-    positionElements(); // Isso vai posicionar corretamente as hitboxes
+    
+    isInPuzzleView = false;
+    positionElements();
 }
 
 // Controles de navegação
@@ -227,20 +225,117 @@ function initGameObjects() {
 function addHitboxToRoom(roomIndex, options) {
     const hitbox = createHitboxElement(options);
     
+    if (options.puzzleScreen) {
+        hitbox.addEventListener('click', () => {
+            // Remove todas as hitboxes antes de ir para o puzzle
+            document.querySelectorAll('.object-hitbox').forEach(hb => hb.remove());
+            clickSound.currentTime = 0;
+            clickSound.play();
+            navigateToPuzzle(options.puzzleScreen);
+        });
+    }
+    
     if (options.persistent) {
         screens[roomIndex].persistentHitboxes.push(hitbox);
     } else {
         screens[roomIndex].hitboxes.push(hitbox);
     }
     
-    if (currentScreen === roomIndex) {
+    if (currentScreen === roomIndex && !isInPuzzleView) {
         document.querySelector('.scene-container').appendChild(hitbox);
     }
     
     return hitbox;
 }
 
-function createHitboxElement({ x, y, width, height, message, id, collectable }) {
+function navigateToPuzzle(puzzleKey) {
+    if (!puzzleScreens[puzzleKey]) return;
+    
+    // Salva o estado atual no histórico
+    navigationHistory.push({
+        type: 'puzzle',
+        puzzleKey: puzzleKey,
+        screenIndex: currentScreen
+    });
+    
+    showPuzzleScreen(puzzleKey);
+}
+
+
+function showPuzzleScreen(puzzleKey) {
+    const puzzle = puzzleScreens[puzzleKey];
+    const container = document.querySelector('.scene-container');
+    
+    // Remove todas as hitboxes existentes
+    document.querySelectorAll('.object-hitbox').forEach(hb => hb.remove());
+    
+    // Esconde todas as salas
+    document.querySelectorAll('.room').forEach(room => {
+        room.classList.remove('active');
+        room.style.display = 'none';
+    });
+    
+    // Cria a tela do puzzle
+    const puzzleView = document.createElement('div');
+    puzzleView.className = 'puzzle-view active';
+    puzzleView.style.backgroundImage = puzzle.image;
+    container.appendChild(puzzleView);
+    
+    // Adiciona hitboxes específicas do puzzle (se houver)
+    puzzle.hitboxes.forEach(hb => container.appendChild(hb));
+    
+    // Adiciona botão de voltar
+    addBackButton();
+    
+    isInPuzzleView = true;
+    positionElements();
+}
+
+function addBackButton() {
+    // Remove botão existente
+    const existing = document.querySelector('.back-button');
+    if (existing) existing.remove();
+    
+    const backButton = document.createElement('div');
+    backButton.className = 'back-button';
+    backButton.textContent = 'Voltar';
+    backButton.addEventListener('click', goBack);
+    document.querySelector('.scene-container').appendChild(backButton);
+}
+
+function goBack() {
+    if (navigationHistory.length === 0) return;
+    
+    const previous = navigationHistory.pop();
+    const container = document.querySelector('.scene-container');
+    
+    // Remove todos os elementos do puzzle
+    container.querySelectorAll('.puzzle-view, .back-button').forEach(el => el.remove());
+    
+    // Remove quaisquer hitboxes remanescentes
+    document.querySelectorAll('.object-hitbox').forEach(hb => hb.remove());
+    
+    if (previous.type === 'puzzle') {
+        isInPuzzleView = false;
+        currentScreen = previous.screenIndex;
+        
+        // Mostra a sala novamente
+        const room = document.getElementById(`room${currentScreen}`);
+        room.classList.add('active');
+        room.style.display = 'block';
+        
+        // Restaura apenas as hitboxes da sala atual
+        const currentRoom = screens[currentScreen];
+        currentRoom.hitboxes.forEach(hb => {
+            if (hb.dataset.collected !== "true") container.appendChild(hb);
+        });
+        currentRoom.persistentHitboxes.forEach(hb => container.appendChild(hb));
+        
+        positionElements();
+    }
+}
+
+function createHitboxElement({ x, y, width, height, message, id, collectable, puzzleScreen }) {
     const hitbox = document.createElement('div');
     hitbox.className = 'object-hitbox';
     
@@ -250,7 +345,8 @@ function createHitboxElement({ x, y, width, height, message, id, collectable }) 
     hitbox.dataset.originalWidth = width;
     hitbox.dataset.originalHeight = height;
     
-    // Posição inicial será atualizada em updateHitboxesPosition()
+    // Configuração inicial (será ajustada em updateHitboxesPosition)
+    hitbox.style.position = 'absolute';
     hitbox.style.left = '0';
     hitbox.style.top = '0';
     hitbox.style.width = '0';
@@ -262,6 +358,14 @@ function createHitboxElement({ x, y, width, height, message, id, collectable }) 
     if (collectable) {
         hitbox.dataset.collected = "false";
         hitbox.classList.add('collectable');
+    }
+    
+    if (puzzleScreen) {
+        hitbox.addEventListener('click', () => {
+            clickSound.currentTime = 0;
+            clickSound.play();
+            navigateToPuzzle(puzzleScreen);
+        });
     }
     
     return hitbox;
@@ -381,7 +485,8 @@ function init() {
         width: 45,
         height: 60,
         message: "Uma pintura antiga na parede...",
-        persistent: true
+        persistent: true,
+        puzzleScreen: 'pintura'
     })
 
     addHitboxToRoom(2, {
