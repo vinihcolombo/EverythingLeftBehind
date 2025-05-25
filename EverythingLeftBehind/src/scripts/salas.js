@@ -57,7 +57,7 @@ function createObject(x, y, message) {
 // Posiciona todos os elementos de UI relativos à imagem
 function positionElements() {
     const activeRoom = document.querySelector('.room.active');
-    if (!activeRoom || document.querySelector('.game-container').classList.contains('hidden ')) return;
+    if (!activeRoom || document.querySelector('.game-container').classList.contains('hidden')) return;
 
     const img = new Image();
     img.src = window.getComputedStyle(activeRoom).backgroundImage.slice(5, -2);
@@ -87,29 +87,65 @@ function positionElements() {
             offsetY = (containerHeight - renderedHeight) / 2;
         }
 
-        // Posiciona setas
-        document.getElementById('arrow-left').style.left = `${offsetX + 25}px`;
-        document.getElementById('arrow-right').style.right = `${offsetX + 25}px`;
+        // Armazena essas informações para uso posterior
+        activeRoom._imagePosition = {
+            originalWidth: this.width,
+            originalHeight: this.height,
+            renderedWidth,
+            renderedHeight,
+            offsetX,
+            offsetY
+        };
 
-        // Posiciona o botão do inventário
-        const toggleBtn = document.getElementById('inventory-toggle');
-        if (toggleBtn) {
-            toggleBtn.style.right = `${offsetX + 20}px`;
-            toggleBtn.style.top = `${offsetY + 20}px`;
-        }
-
-        // Posiciona o inventário
-        const inventory = document.getElementById('inventory');
-        if (inventory) {
-            inventory.style.right = inventoryOpen ? `${offsetX}px` : `${offsetX - inventory.offsetWidth}px`;
-            inventory.style.top = `${offsetY}px`;
-            inventory.style.height = `${renderedHeight}px`;
-        }
+        // Atualiza posição das hitboxes
+        updateHitboxesPosition();
+        
+        // Restante do seu código de posicionamento...
         document.getElementById('arrow-left').style.left = `${offsetX + 25}px`;
         document.getElementById('arrow-right').style.right = `${offsetX + 25}px`;
         document.getElementById('arrow-left').style.display = 'block';
         document.getElementById('arrow-right').style.display = 'block';
     };
+}
+
+function updateHitboxesPosition() {
+    const activeRoom = document.querySelector('.room.active');
+    if (!activeRoom || !activeRoom._imagePosition) return;
+
+    const pos = activeRoom._imagePosition;
+    const scaleX = pos.renderedWidth / pos.originalWidth;
+    const scaleY = pos.renderedHeight / pos.originalHeight;
+
+    // Atualiza todas as hitboxes da sala atual
+    const currentRoom = screens[currentScreen];
+    const allHitboxes = [...currentRoom.hitboxes, ...currentRoom.persistentHitboxes];
+    
+    allHitboxes.forEach(hitbox => {
+        const originalX = parseFloat(hitbox.dataset.originalX || hitbox.style.left);
+        const originalY = parseFloat(hitbox.dataset.originalY || hitbox.style.top);
+        const originalWidth = parseFloat(hitbox.dataset.originalWidth || hitbox.style.width);
+        const originalHeight = parseFloat(hitbox.dataset.originalHeight || hitbox.style.height);
+
+        // Armazena os valores originais se não estiverem guardados
+        if (!hitbox.dataset.originalX) {
+            hitbox.dataset.originalX = originalX;
+            hitbox.dataset.originalY = originalY;
+            hitbox.dataset.originalWidth = originalWidth;
+            hitbox.dataset.originalHeight = originalHeight;
+        }
+
+        // Calcula novas posições e tamanhos
+        const newX = pos.offsetX + (originalX * scaleX);
+        const newY = pos.offsetY + (originalY * scaleY);
+        const newWidth = originalWidth * scaleX;
+        const newHeight = originalHeight * scaleY;
+
+        // Aplica as novas posições
+        hitbox.style.left = `${newX}px`;
+        hitbox.style.top = `${newY}px`;
+        hitbox.style.width = `${newWidth}px`;
+        hitbox.style.height = `${newHeight}px`;
+    });
 }
 
 // Controle do inventário
@@ -133,50 +169,31 @@ function setupInventory() {
 
 // Atualiza a tela atual
 function updateScreen() {
-    const rooms = document.querySelectorAll('.room');
-    const nextRoom = document.getElementById(`room${currentScreen}`);
-    const activeRoom = document.querySelector('.room.active');
+    document.querySelectorAll('.object-hitbox').forEach(hitbox => {
+        hitbox.remove();
+    });
 
-    // Função para carregar os hitboxes após a troca de tela
-    const loadHitboxes = () => {
-        // Remove hitboxes antigos
-        document.querySelectorAll('.object-hitbox').forEach(hitbox => {
-            hitbox.remove();
-        });
+    document.querySelectorAll('.room').forEach(room => {
+        room.classList.remove('active');
+    });
+    document.getElementById(`room${currentScreen}`).classList.add('active');
 
-        // Adiciona hitboxes da nova sala
-        const currentRoom = screens[currentScreen];
-
-        // Hitboxes normais (resetam ao reentrar)
-        currentRoom.hitboxes.forEach(hitbox => {
-            if (hitbox.dataset.collected !== "true") {
-                document.querySelector('.scene-container').appendChild(hitbox);
-            }
-        });
-
-        // Hitboxes persistentes (mantêm estado)
-        currentRoom.persistentHitboxes.forEach(hitbox => {
+    // Adiciona hitboxes da nova sala
+    const currentRoom = screens[currentScreen];
+    
+    // Hitboxes normais (resetam ao reentrar)
+    currentRoom.hitboxes.forEach(hitbox => {
+        if (hitbox.dataset.collected !== "true") {
             document.querySelector('.scene-container').appendChild(hitbox);
-        });
+        }
+    });
+    
+    // Hitboxes persistentes (mantêm estado)
+    currentRoom.persistentHitboxes.forEach(hitbox => {
+        document.querySelector('.scene-container').appendChild(hitbox);
+    });
 
-        positionElements();
-    };
-
-    if (activeRoom) {
-        activeRoom.classList.remove('fade-in');
-        activeRoom.classList.add('fade-out');
-
-        // Espera o fade-out terminar antes de trocar
-        setTimeout(() => {
-            rooms.forEach(room => room.classList.remove('active', 'fade-in', 'fade-out'));
-            nextRoom.classList.add('active', 'fade-in');
-            loadHitboxes();
-        }, 200); // tempo igual ao da animação
-    } else {
-        // Primeira vez: só mostra
-        nextRoom.classList.add('active', 'fade-in');
-        loadHitboxes();
-    }
+    positionElements(); // Isso vai posicionar corretamente as hitboxes
 }
 
 // Controles de navegação
@@ -226,10 +243,19 @@ function addHitboxToRoom(roomIndex, options) {
 function createHitboxElement({ x, y, width, height, message, id, collectable }) {
     const hitbox = document.createElement('div');
     hitbox.className = 'object-hitbox';
-    hitbox.style.left = `${x}px`;
-    hitbox.style.top = `${y}px`;
-    hitbox.style.width = `${width}px`;
-    hitbox.style.height = `${height}px`;
+    
+    // Armazena as coordenadas originais (relativas à imagem)
+    hitbox.dataset.originalX = x;
+    hitbox.dataset.originalY = y;
+    hitbox.dataset.originalWidth = width;
+    hitbox.dataset.originalHeight = height;
+    
+    // Posição inicial será atualizada em updateHitboxesPosition()
+    hitbox.style.left = '0';
+    hitbox.style.top = '0';
+    hitbox.style.width = '0';
+    hitbox.style.height = '0';
+    
     hitbox.dataset.notification = message;
     hitbox.dataset.id = id || `hitbox-${Math.random().toString(36).substr(2, 9)}`;
     
@@ -310,6 +336,7 @@ function init() {
     setupHitboxes();
 
     //TESTE DE HITBOXES
+    /*
     addHitboxToRoom(0, {
         x: 100,
         y: 150,
@@ -319,18 +346,77 @@ function init() {
         id: "key-1",
         collectable: true
     });
+    */
     
+    addHitboxToRoom(0, {
+        x: 300,
+        y: 140,
+        width: 60,
+        height: 60,
+        message: "Caixa da Helena",
+        persistent: true
+    })
+
     addHitboxToRoom(1, {
-        x: 200,
-        y: 300,
-        width: 80,
-        height: 40,
-        message: "Uma pintura antiga na parede...",
+        x: 95,
+        y: 40,
+        width: 100,
+        height: 60,
+        message: "Mapa-mundi",
+        persistent: true
+    })
+
+    addHitboxToRoom(1, {
+        x: 35,
+        y: 130,
+        width: 150,
+        height: 20,
+        message: "Gaveta trancada",
         persistent: true
     });
 
+    addHitboxToRoom(2, {
+        x: 290,
+        y: 85,
+        width: 45,
+        height: 60,
+        message: "Uma pintura antiga na parede...",
+        persistent: true
+    })
+
+    addHitboxToRoom(2, {
+        x: 40,
+        y: 175,
+        width: 55,
+        height: 40,
+        message: "Caixa do Rafael",
+        persistent: true
+    })
+
+    addHitboxToRoom(3, {
+        x: 60,
+        y: 40,
+        width: 120,
+        height: 170,
+        message: "Armário Velho",
+        persistent: true
+    })
+
+    addHitboxToRoom(3, {
+        x: 335,
+        y: 140,
+        width: 60,
+        height: 60,
+        message: "Caixa da Clara",
+        persistent: true
+    })
+
     window.addEventListener('resize', positionElements);
 }
+
+window.addEventListener('resize', () => {
+    positionElements(); // Isso vai chamar updateHitboxesPosition() indiretamente
+});
 
 // Inicia o jogo
 init();

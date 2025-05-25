@@ -291,3 +291,9 @@ body {
     pointer-events: none;
 }
 
+.object-hitbox {
+    background-color: rgba(255, 0, 0, 0.3);
+    position: absolute;
+    z-index: 10;
+    /* remova qualquer width/height fixo se existir */
+}
