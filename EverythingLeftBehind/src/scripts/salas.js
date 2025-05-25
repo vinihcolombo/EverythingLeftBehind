@@ -133,31 +133,50 @@ function setupInventory() {
 
 // Atualiza a tela atual
 function updateScreen() {
-    document.querySelectorAll('.object-hitbox').forEach(hitbox => {
-        hitbox.remove();
-    });
+    const rooms = document.querySelectorAll('.room');
+    const nextRoom = document.getElementById(`room${currentScreen}`);
+    const activeRoom = document.querySelector('.room.active');
 
-    document.querySelectorAll('.room').forEach(room => {
-        room.classList.remove('active');
-    });
-    document.getElementById(`room${currentScreen}`).classList.add('active');
+    // Função para carregar os hitboxes após a troca de tela
+    const loadHitboxes = () => {
+        // Remove hitboxes antigos
+        document.querySelectorAll('.object-hitbox').forEach(hitbox => {
+            hitbox.remove();
+        });
 
-    // Adiciona hitboxes da nova sala
-    const currentRoom = screens[currentScreen];
-    
-    // Hitboxes normais (resetam ao reentrar)
-    currentRoom.hitboxes.forEach(hitbox => {
-        if (hitbox.dataset.collected !== "true") {
+        // Adiciona hitboxes da nova sala
+        const currentRoom = screens[currentScreen];
+
+        // Hitboxes normais (resetam ao reentrar)
+        currentRoom.hitboxes.forEach(hitbox => {
+            if (hitbox.dataset.collected !== "true") {
+                document.querySelector('.scene-container').appendChild(hitbox);
+            }
+        });
+
+        // Hitboxes persistentes (mantêm estado)
+        currentRoom.persistentHitboxes.forEach(hitbox => {
             document.querySelector('.scene-container').appendChild(hitbox);
-        }
-    });
-    
-    // Hitboxes persistentes (mantêm estado)
-    currentRoom.persistentHitboxes.forEach(hitbox => {
-        document.querySelector('.scene-container').appendChild(hitbox);
-    });
+        });
 
-    positionElements();
+        positionElements();
+    };
+
+    if (activeRoom) {
+        activeRoom.classList.remove('fade-in');
+        activeRoom.classList.add('fade-out');
+
+        // Espera o fade-out terminar antes de trocar
+        setTimeout(() => {
+            rooms.forEach(room => room.classList.remove('active', 'fade-in', 'fade-out'));
+            nextRoom.classList.add('active', 'fade-in');
+            loadHitboxes();
+        }, 200); // tempo igual ao da animação
+    } else {
+        // Primeira vez: só mostra
+        nextRoom.classList.add('active', 'fade-in');
+        loadHitboxes();
+    }
 }
 
 // Controles de navegação
