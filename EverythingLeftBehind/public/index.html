@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Geo:ital@0;1&display=swap" rel="stylesheet">
+
         <link rel="website icon" type="png" href="./assets/images/Logo.png">
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,13 +50,28 @@
                     <div class="room pixel-scene image-container" id="room2"></div>
                     <div class="room pixel-scene image-container" id="room3"></div>
                     
+
+                    <!-- TESTE PARA HITBOXES
+                    <div class="object-hitbox key" 
+                         data-notification="Parece azul..."
+                         style="left: 300px; top: 300px; color: aqua; width: 50px; height: 50px;">
+                    </div>
+
+                    <div class="object-hitbox key" 
+                         data-notification="Nada interessante..."
+                         style="left: 750px; top: 300px; color: rgb(40, 143, 143); width: 50px; height: 50px;">
+                    </div>
+                    -->
+
                     <!-- Setas -->    
                     <img src="assets/images/Seta_Esquerda.png" class="pixel-scene arrow" id="arrow-left">
                     <img src="assets/images/Seta_Direita.png" class="pixel-scene arrow" id="arrow-right">
                 
                 </div>
 
-                <div class="inventory-toggle" id="inventory-toggle">I</div>
+                <div class="inventory-toggle" id="inventory-toggle">
+                    <img src="assets/images/Backpack.png" class="inventory-icon" alt="Inventário">
+                </div>
 
                 <div class="inventory-overlay" id="inventory">
                     <div class="inventory-item"></div>
@@ -68,6 +87,7 @@
                 </div>
         </div>
     </div>
+    <div id="game-notification" class="game-notification" style="display: none;"></div>
     
     <script src="../src/scripts/menu.js"></script>
     <script src="../src/scripts/salas.js"></script>
