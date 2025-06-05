@@ -20,7 +20,7 @@ class RoomManager {
     loadRoom(roomNumber) {
         this.currentRoom = roomNumber;
 
-        // Limpa as zonas interativas anteriores
+        // Limpa as zonas interativas e objetos customizados anteriores
         this.clearPreviousZones();
 
         // Atualiza a cena
@@ -31,7 +31,7 @@ class RoomManager {
         this.scene.updateArrowsVisibility();
     }
 
-    playSound(){
+    playSound() {
         clickSound.currentTime = 0;
         clickSound.play();
     }
@@ -39,6 +39,10 @@ class RoomManager {
     clearPreviousZones() {
         this.interactiveZones.forEach(zone => zone.destroy());
         this.interactiveZones = [];
+        // Chama o método da cena para limpar objetos visuais específicos de mapas customizados
+        if (this.scene && typeof this.scene.clearCustomMapObjects === 'function') {
+            this.scene.clearCustomMapObjects();
+        }
     }
 
     nextRoom() {
@@ -70,6 +74,7 @@ class GameScene extends Phaser.Scene {
         this.standardRooms = ['mapa1', 'mapa2', 'mapa3', 'mapa4'];
         this.currentMapKey = null;
         this.inspectionScreen = null;
+        this.notebookSprite = null; // <--- ADICIONADO: Referência para o sprite do caderno
     }
 
     preload() {
@@ -88,10 +93,11 @@ class GameScene extends Phaser.Scene {
         this.load.json('caixaclara', './maps/caixaclara.json');
 
         // Carrega ícone de seta
-        this.load.image('seta', './/assets/ui/seta.png');
+        this.load.image('seta', './assets/ui/seta.png'); // Corrigido o caminho (removido .//)
 
         //Itens de Inventários
         this.load.image('notebookOpen', './assets/images/objects/notebookOpen.png');
+        this.load.image('caderno', './assets/images/objects/Notebook_Item.png');
 
 
         //Inventário
@@ -113,7 +119,7 @@ class GameScene extends Phaser.Scene {
         // Cria as setas de navegação
         this.createNavigationArrows();
 
-        this.inventory = new Inventory(this);
+        this.inventory = new Inventory(this); // Mantido como no seu código original
 
         // Configura o tooltip
         this.tooltip = this.add.text(0, 0, '', {
@@ -121,7 +127,7 @@ class GameScene extends Phaser.Scene {
             fontSize: '8px',
             color: '#fff',
             padding: { x: 5, y: 2 },
-            resolution: 3, // Dobra a resolução do texto
+            resolution: 3,
         }).setDepth(100).setVisible(false);
         // Carrega o primeiro quarto (com pequeno delay para garantir inicialização)
         this.time.delayedCall(100, () => {
@@ -142,7 +148,7 @@ class GameScene extends Phaser.Scene {
             wordWrap: { width: sizes.width - 20 }
         })
             .setDepth(101)
-            .setVisible(true);
+            .setVisible(true); // Mantido como no seu código original
 
 
         // Botões na ESQUERDA
@@ -181,54 +187,59 @@ class GameScene extends Phaser.Scene {
             .setDepth(101)
             .setVisible(false);
 
-        //TESTE ITEM DE INVENTÁRIO
-        //this.inventory.addItem('notebookOpen', () => {
-        //    Função que item irá executar ao ser clicado
-        //    this.inventory.removeItem('notebookOpen');
-        //});
-
         this.setInteractionsEnabled(true);
     }
 
     setInteractionsEnabled(state) {
-        // Ativa/desativa todas as zonas interativas
         this.roomManager.interactiveZones.forEach(zone => {
-            zone.input.enabled = state;
+            if (zone && zone.input) { // Verificação para zona válida
+                zone.input.enabled = state;
+            }
         });
-        
-        // Ativa/desativa as setas
-        this.arrows.left.setInteractive({ enabled: state });
-        this.arrows.right.setInteractive({ enabled: state });
-        
-        // Tooltip só aparece se interações estiverem ativas
+
+        // No Phaser 3, a interatividade é habilitada/desabilitada diretamente no objeto de input
+        if (this.arrows.left) this.arrows.left.input.enabled = state;
+        if (this.arrows.right) this.arrows.right.input.enabled = state;
+
         this.tooltip.setVisible(false);
     }
 
-    loadCustomMap(mapKey, bgKey) {
-        // Limpa zonas interativas anteriores
-        this.roomManager.clearPreviousZones();
+    // <--- ADICIONADO: Método para limpar objetos específicos de mapas customizados
+    clearCustomMapObjects() {
+        if (this.notebookSprite) {
+            this.notebookSprite.destroy();
+            this.notebookSprite = null;
+        }
+        // Adicione aqui a destruição de outros objetos visuais específicos, se necessário.
+    }
 
-        // Atualiza o fundo, se quiser um fundo específico para o POV
+    loadCustomMap(mapKey, bgKey) {
+        // Limpa zonas interativas anteriores e objetos customizados (como o caderno)
+        this.roomManager.clearPreviousZones(); // Esta chamada agora também limpa o notebookSprite
+
         if (bgKey) {
             this.updateBackground(bgKey);
         }
 
-        // Carrega objetos do mapa customizado
-        this.loadMapObjects(mapKey);
-
+        this.loadMapObjects(mapKey); // Isso recriará o caderno se mapKey for 'caixaclara'
         this.currentMapKey = mapKey;
 
         // Esconde setas (se não quiser navegar no POV)
-        this.arrows.left.setVisible(false);
-        this.arrows.right.setVisible(false);
+        // A visibilidade das setas também é tratada em updateArrowsVisibility,
+        // mas aqui garantimos que em mapas customizados elas iniciem escondidas se necessário.
+        if (this.isStandardRoom()) {
+            this.updateArrowsVisibility();
+        } else {
+            this.arrows.left.setVisible(false);
+            this.arrows.right.setVisible(false);
+        }
     }
 
-    isStandardRoom() { // Verificação se é um quarto padrão para as setas aparecerem 
+    isStandardRoom() {
         return this.standardRooms.includes(this.currentMapKey);
     }
 
     createNavigationArrows() {
-        // Seta esquerda
         this.arrows.left = this.add.image(20, this.scale.height / 2, 'seta')
             .setOrigin(0.5)
             .setDisplaySize(25, 25)
@@ -237,11 +248,10 @@ class GameScene extends Phaser.Scene {
             .setDepth(1002)
             .on('pointerdown', () => {
                 if (this.inventory.isVisible == false) {
-                    this.roomManager.nextRoom(); // Comportamento normal
+                    this.roomManager.prevRoom();
                 }
             });
 
-        // Seta direita
         this.arrows.right = this.add.image(this.scale.width - 20, this.scale.height / 2, 'seta')
             .setOrigin(0.5)
             .setDisplaySize(25, 25)
@@ -249,69 +259,121 @@ class GameScene extends Phaser.Scene {
             .setDepth(1002)
             .on('pointerdown', () => {
                 if (this.inventory.isVisible == false) {
-                    this.roomManager.nextRoom(); // Comportamento normal
+                    this.roomManager.nextRoom();
                 }
             });
     }
 
     updateArrowsVisibility() {
-        this.arrows.left.setVisible(true);
-        this.arrows.right.setVisible(true);
+        // As setas só devem ser visíveis em quartos padrão
+        const standard = this.isStandardRoom();
+        this.arrows.left.setVisible(standard);
+        this.arrows.right.setVisible(standard);
     }
 
     updateBackground(bgKey) {
         this.bg.setTexture(bgKey);
+        // É bom redefinir o displaySize caso os BGs tenham tamanhos diferentes da tela
+        this.bg.displayWidth = this.scale.width;
+        this.bg.displayHeight = this.scale.height;
     }
 
     loadMapObjects(mapKey) {
-        // Carrega os objetos do mapa
         const mapData = this.cache.json.get(mapKey);
+        if (!mapData || !mapData.layers) { // Adicionada verificação de segurança
+            console.warn(`Dados do mapa ${mapKey} não encontrados ou inválidos.`);
+            return;
+        }
         const objetos = mapData.layers.filter(layer => layer.type === 'objectgroup');
 
         objetos.forEach(group => {
-            group.objects.forEach(obj => {
-                // Cria zona interativa
-                const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
-                    .setOrigin(0)
-                    .setInteractive({ useHandCursor: true })
-                    .on('pointerover', () => this.showTooltip(obj))
-                    .on('pointerout', () => this.tooltip.setVisible(false))
-                    .on('pointerdown', () => this.handleObjectClick(obj));
-
-                // Armazena a zona para limpeza posterior
-                this.roomManager.interactiveZones.push(zone);
-
-                // Debug visual (opcional)
-                // const debugRect = this.add.rectangle(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width, obj.height)
-                //     .setStrokeStyle(1, 0x00ff00)
-                //     .setDepth(99);
-
-                // this.roomManager.interactiveZones.push(debugRect);
-            });
+            if (group.name === 'notebook') {
+                group.objects.forEach(obj => {
+                    if (mapKey === 'caixaclara' && obj.name === 'caderno' && obj.type === 'item') {
+                        this.createNotebookObject(obj);
+                    }
+                });
+            } else {
+                group.objects.forEach(obj => {
+                    this.createStandardInteractiveZone(obj);
+                });
+            }
         });
     }
 
-    showTooltip(obj) {
+    // <--- MÉTODO MODIFICADO para gerenciar this.notebookSprite
+    createNotebookObject(obj) {
+        const targetWidth = 96;
+        const targetHeight = 96;
+        const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
+        const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
+
+        // Destrói o sprite anterior do caderno, se existir
+        if (this.notebookSprite) {
+            this.notebookSprite.destroy();
+            this.notebookSprite = null;
+        }
+
+        // Cria o sprite e armazena a referência
+        this.notebookSprite = this.add.image(
+            posX + targetWidth / 2,
+            posY + targetHeight / 2,
+            'caderno'
+        )
+            .setDisplaySize(targetWidth, targetHeight)
+            .setOrigin(0.5, 0.5)
+            .setDepth(10);
+
+        const zone = this.add.zone(
+            obj.x, obj.y,
+            obj.width, obj.height
+        )
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip({ name: 'Caderno da Clara', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
+
+        this.roomManager.interactiveZones.push(zone);
+    }
+
+    createStandardInteractiveZone(obj) {
+        const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip(obj))
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj));
+
+        this.roomManager.interactiveZones.push(zone);
+    }
+
+    showTooltip(obj) { // obj aqui deve ter x, y, width, height, name
         if (this.inventory.isVisible) return;
 
         this.tooltip.setText(obj.name);
 
-        let posX = obj.x + 10;
-        let posY = obj.y - 20;
+        // Posição do tooltip baseada no objeto Tiled (obj)
+        let tooltipPosX = obj.x + (obj.width / 2); // Centro horizontal do objeto Tiled
+        let tooltipPosY = obj.y - 5; // Um pouco acima do objeto Tiled
 
-        if (posY < 0) posY = obj.y + 20;
-        if (posX + this.tooltip.width > this.scale.width) posX = this.scale.width - this.tooltip.width - 10;
-        if (posX < 0) posX = 10;
+        // Ajustes para manter o tooltip na tela (simplificado)
+        if (tooltipPosY - this.tooltip.height < 0) { // Se for sair por cima
+            tooltipPosY = obj.y + obj.height + 5 + this.tooltip.height; // Posiciona abaixo
+        }
 
-        this.tooltip.setPosition(posX, posY).setVisible(true);
+        // Centraliza o tooltip horizontalmente em relação a tooltipPosX
+        this.tooltip.setOrigin(0.5, 1); // ancora no centro horizontal, base vertical
+
+        // Garante que não saia pelas laterais
+        const halfWidth = this.tooltip.width / 2;
+        if (tooltipPosX - halfWidth < 0) tooltipPosX = halfWidth;
+        if (tooltipPosX + halfWidth > this.scale.width) tooltipPosX = this.scale.width - halfWidth;
+
+        this.tooltip.setPosition(tooltipPosX, tooltipPosY).setVisible(true);
     }
 
     handleObjectClick(obj) {
-        //         if (obj.name === "caixa pequena") {
-        //     this.loadCustomMap('caixaclara', 'caixaclara');
-        //     this.showTextBox("Você abriu a caixa pequena.");
-        // }
-
         if (this.inventory.isVisible) return;
 
         if (obj.name === "caixa pequena") {
@@ -320,9 +382,15 @@ class GameScene extends Phaser.Scene {
         }
 
         if (obj.name === "voltar") {
-            this.loadCustomMap('mapa1', 'bg1'); // Ex: mapa POV + fundo opcional
+            this.loadCustomMap('mapa1', 'bg1'); // Mantido como no seu código original
+            // Garante que setas reapareçam se mapa1 for standard room
+            this.time.delayedCall(50, () => this.updateArrowsVisibility());
         }
 
+        // A visibilidade das setas é principalmente gerenciada por updateArrowsVisibility
+        // chamada após loadRoom ou loadCustomMap.
+        // A lógica abaixo pode ser redundante ou causar chamadas desnecessárias a setVisible.
+        /*
         if (this.isStandardRoom()) {
             this.arrows.left.setVisible(true);
             this.arrows.right.setVisible(true);
@@ -330,8 +398,7 @@ class GameScene extends Phaser.Scene {
             this.arrows.left.setVisible(false);
             this.arrows.right.setVisible(false);
         }
-
-        // Adicione aqui lógica para interação com objetos específicos
+        */
     }
 
     showTextBoxWithChoices(message) {
@@ -347,7 +414,6 @@ class GameScene extends Phaser.Scene {
         this.buttonOpen.setVisible(false);
         this.buttonClose.setVisible(false);
     }
-
 }
 
 class Inventory {
@@ -358,12 +424,12 @@ class Inventory {
         this.maxSlots = 10;
         this.scrollY = 0;
         this.maxScroll = 0;
-        
+
         // Posições e dimensões
         this.inventoryWidth = 150;
         this.hiddenX = scene.cameras.main.width + 10;
         this.visibleX = scene.cameras.main.width - this.inventoryWidth;
-        
+
         this.createToggleButton();
         this.createInventoryOverlay();
 
@@ -371,53 +437,53 @@ class Inventory {
 
         this.itemActions = {};
     }
-    
+
     isInventoryActive() {
         return this.inventory.isVisible;
     }
 
     createToggleButton() {
-    const rightPosition = this.scene.cameras.main.width - 40;
-    const topPosition = 20;
-    
-    this.toggleButton = this.scene.add.image(rightPosition, topPosition, 'iconInventory')
-        .setDisplaySize(40, 40) // Tamanho fixo
-        .setInteractive({ useHandCursor: true })
-        .setDepth(1005);
-    
-    // Efeitos de hover - agora mais sutis
-    this.toggleButton.on('pointerover', () => {
-        this.scene.tweens.add({
-            targets: this.toggleButton,
-            scaleX: 0.4, 
-            scaleY: 0.4,
-            duration: 100,
-            ease: 'Sine.easeOut'
+        const rightPosition = this.scene.cameras.main.width - 40;
+        const topPosition = 20;
+
+        this.toggleButton = this.scene.add.image(rightPosition, topPosition, 'iconInventory')
+            .setDisplaySize(40, 40) // Tamanho fixo
+            .setInteractive({ useHandCursor: true })
+            .setDepth(1005);
+
+        // Efeitos de hover - agora mais sutis
+        this.toggleButton.on('pointerover', () => {
+            this.scene.tweens.add({
+                targets: this.toggleButton,
+                scaleX: 0.4,
+                scaleY: 0.4,
+                duration: 100,
+                ease: 'Sine.easeOut'
+            });
         });
-    });
-    
-    this.toggleButton.on('pointerout', () => {
-        this.scene.tweens.add({
-            targets: this.toggleButton,
-            scaleX: 0.3,
-            scaleY: 0.3,
-            duration: 100,
-            ease: 'Sine.easeIn'
+
+        this.toggleButton.on('pointerout', () => {
+            this.scene.tweens.add({
+                targets: this.toggleButton,
+                scaleX: 0.3,
+                scaleY: 0.3,
+                duration: 100,
+                ease: 'Sine.easeIn'
+            });
         });
-    });
-    
-    this.toggleButton.on('pointerdown', () => {
-        this.scene.tweens.add({
-            targets: this.toggleButton,
-            scaleX: 0.03,
-            scaleY: 0.03,
-            duration: 50,
-            yoyo: true
+
+        this.toggleButton.on('pointerdown', () => {
+            this.scene.tweens.add({
+                targets: this.toggleButton,
+                scaleX: 0.03,
+                scaleY: 0.03,
+                duration: 50,
+                yoyo: true
+            });
+            this.toggleInventory();
         });
-        this.toggleInventory();
-    });
-}
-    
+    }
+
     createInventoryOverlay() {
         const gameWidth = this.scene.cameras.main.width;
         const gameHeight = this.scene.cameras.main.height;
@@ -425,20 +491,20 @@ class Inventory {
         const x = gameWidth - this.inventoryWidth;
 
         this.inventoryBg = this.scene.add.image(
-            this.hiddenX, 
-            gameHeight / 2, 
+            this.hiddenX,
+            gameHeight / 2,
             'inventory'
         )
-        .setOrigin(1.2, 0.5)
-        .setDisplaySize(this.inventoryWidth - x - 25, gameHeight)
-        .setDepth(1003);
+            .setOrigin(1.2, 0.5)
+            .setDisplaySize(this.inventoryWidth - x - 25, gameHeight)
+            .setDepth(1003);
 
         const rightPadding = 30;
         this.slotsContainer = this.scene.add.container(
-            this.hiddenX + rightPadding, 
+            this.hiddenX + rightPadding,
             60
         )
-        .setDepth(1004);
+            .setDepth(1004);
 
         const slotSize = 60;
         const padding = 5;
@@ -451,13 +517,13 @@ class Inventory {
                 x, y,
                 'slot'
             )
-            .setDisplaySize(slotSize, slotSize);
+                .setDisplaySize(slotSize, slotSize);
 
             this.slots.push({
                 background: slotBg,
                 item: null,
                 x: x,
-                y: y 
+                y: y
             });
 
             this.slotsContainer.add(slotBg);
@@ -469,31 +535,31 @@ class Inventory {
         // Configurar scroll do mouse
         this.setupMouseScroll();
     }
-    
+
     calculateMaxScroll() {
         const slotHeight = 60 + 10;
         const visibleHeight = this.scene.cameras.main.height - 120;
         const totalHeight = this.maxSlots * slotHeight;
-        
+
         this.maxScroll = Math.max(0, totalHeight - visibleHeight);
     }
-    
+
     setupMouseScroll() {
         this.scene.input.on('wheel', (pointer, gameObjects, deltaX, deltaY) => {
             if (this.isVisible) {
                 this.scrollY += deltaY * 0.5;
-                
+
                 this.scrollY = Phaser.Math.Clamp(this.scrollY, 0, this.maxScroll);
-                
+
                 this.slotsContainer.y = 60 - this.scrollY;
             }
         });
     }
-    
+
     toggleInventory() {
         inventorySound.play();
         if (this.isAnimating) return;
-        
+
         this.isVisible = !this.isVisible;
         this.isAnimating = true;
 
@@ -502,7 +568,7 @@ class Inventory {
         if (this.isVisible) {
             this.scrollY = 0;
             this.slotsContainer.y = 60;
-            
+
             // Animação de entrada
             this.scene.tweens.add({
                 targets: [this.inventoryBg, this.slotsContainer],
@@ -531,7 +597,7 @@ class Inventory {
             this.scene.setInteractionsEnabled(true);
         }
     }
-    
+
     addItem(itemKey, action = null) {
         const emptySlot = this.slots.find(slot => slot.item === null);
         if (emptySlot) {
@@ -540,24 +606,24 @@ class Inventory {
                 emptySlot.y,
                 itemKey
             )
-            .setDisplaySize(50, 50)
-            .setInteractive() 
-            .on('pointerdown', () => {
-                if (this.isVisible) { 
-                    this.executeItemAction(itemKey);
-                }
-            })
-            .setVisible(this.isVisible)
-            .setDepth(53);
-            
+                .setDisplaySize(50, 50)
+                .setInteractive()
+                .on('pointerdown', () => {
+                    if (this.isVisible) {
+                        this.executeItemAction(itemKey);
+                    }
+                })
+                .setVisible(this.isVisible)
+                .setDepth(53);
+
             emptySlot.item = item;
             this.slotsContainer.add(item);
-            
+
             // Registra a ação se fornecida
             if (action) {
                 this.itemActions[itemKey] = action;
             }
-            
+
             return true;
         }
         return false;
@@ -572,12 +638,12 @@ class Inventory {
             this.scene.showTooltip({ name: `Usando ${itemKey}...` });
         }
     }
-    
+
     removeItem(itemKey) {
-        const slotIndex = this.slots.findIndex(slot => 
+        const slotIndex = this.slots.findIndex(slot =>
             slot.item && slot.item.texture.key === itemKey
         );
-        
+
         if (slotIndex !== -1) {
             this.slots[slotIndex].item.destroy();
             this.slots[slotIndex].item = null;
@@ -594,12 +660,15 @@ const config = {
     height: sizes.height,
     scene: [GameScene],
     scale: {
-        mode: Phaser.Scale.NONE // Evita scaling automático
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH // Corrigido para Phaser.Scale.CENTER_BOTH
     },
     render: {
-        antialias: false, // Para pixel art
-        roundPixels: true // Melhora clareza
+        pixelArt: true,
+        antialias: false,
+        roundPixels: true
     }
+    // parent: 'game-container', // Descomente e use se tiver um div no HTML
 };
 
 // Inicia o jogo

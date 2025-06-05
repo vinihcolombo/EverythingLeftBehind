@@ -278,6 +278,42 @@
          "y":0
         }, 
         {
+         "id":11,
+         "image":"..\/assets\/images\/objects\/Notebook_Item.png",
+         "imageheight":96,
+         "imagewidth":96,
+         "name":"caderno",
+         "offsetx":103.5,
+         "offsety":109,
+         "opacity":1,
+         "type":"imagelayer",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":10,
+         "name":"notebook",
+         "objects":[
+                {
+                 "height":34.9090909090909,
+                 "id":4,
+                 "name":"caderno",
+                 "rotation":0,
+                 "type":"item",
+                 "visible":true,
+                 "width":58.5454545454545,
+                 "x":122.636363636364,
+                 "y":140.636363636364
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
          "draworder":"topdown",
          "id":4,
          "name":"polaroid",
@@ -321,8 +357,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":6,
- "nextobjectid":4,
+ "nextlayerid":12,
+ "nextobjectid":6,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
