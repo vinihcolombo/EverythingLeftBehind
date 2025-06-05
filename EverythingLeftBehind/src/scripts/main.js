@@ -70,6 +70,16 @@ class GameScene extends Phaser.Scene {
         this.standardRooms = ['mapa1', 'mapa2', 'mapa3', 'mapa4'];
         this.currentMapKey = null;
         this.inspectionScreen = null;
+
+        //teste zoom
+        this.zoomView = {
+            active: false,
+            currentItem: null,
+            overlay: null,
+            blurBg: null,
+            closeButton: null,
+            zoomedItem: null
+        };
     }
 
     preload() {
@@ -182,27 +192,35 @@ class GameScene extends Phaser.Scene {
             .setVisible(false);
 
         //TESTE ITEM DE INVENTÁRIO
-        //this.inventory.addItem('notebookOpen', () => {
-        //    Função que item irá executar ao ser clicado
-        //    this.inventory.removeItem('notebookOpen');
-        //});
+        this.inventory.addItem('notebookOpen', () => {
+            this.showItemZoom('notebookOpen');
+        });
 
         this.setInteractionsEnabled(true);
+
     }
 
     setInteractionsEnabled(state) {
-        // Ativa/desativa todas as zonas interativas
-        this.roomManager.interactiveZones.forEach(zone => {
-            zone.input.enabled = state;
-        });
-        
-        // Ativa/desativa as setas
-        this.arrows.left.setInteractive({ enabled: state });
-        this.arrows.right.setInteractive({ enabled: state });
-        
-        // Tooltip só aparece se interações estiverem ativas
-        this.tooltip.setVisible(false);
+    // Se estiver em zoom, sempre desativa interações normais
+    if (this.zoomView.active) state = false;
+    
+    // Ativa/desativa todas as zonas interativas
+    this.roomManager.interactiveZones.forEach(zone => {
+        zone.input.enabled = state;
+    });
+    
+    // Ativa/desativa as setas
+    this.arrows.left.setInteractive({ enabled: state });
+    this.arrows.right.setInteractive({ enabled: state });
+    
+    // Tooltip só aparece se interações estiverem ativas
+    this.tooltip.setVisible(false);
+    
+    // Ativa/desativa o inventário (exceto se estiver em zoom)
+    if (this.inventory) {
+        this.inventory.toggleButton.setInteractive({ enabled: !this.zoomView.active });
     }
+}
 
     loadCustomMap(mapKey, bgKey) {
         // Limpa zonas interativas anteriores
@@ -237,7 +255,7 @@ class GameScene extends Phaser.Scene {
             .setDepth(1002)
             .on('pointerdown', () => {
                 if (this.inventory.isVisible == false) {
-                    this.roomManager.nextRoom(); // Comportamento normal
+                    this.roomManager.prevRoom(); // Comportamento normal
                 }
             });
 
@@ -347,6 +365,98 @@ class GameScene extends Phaser.Scene {
         this.buttonOpen.setVisible(false);
         this.buttonClose.setVisible(false);
     }
+
+    showItemZoom(itemKey) {
+    // Se já estiver mostrando algo, ignore
+    if (this.zoomView.active) return;
+
+    this.arrows.left.setVisible(false);
+    this.arrows.right.setVisible(false);
+    this.inventory.toggleInventory();
+
+    // Ativa o estado de zoom
+    this.zoomView.active = true;
+    this.zoomView.currentItem = itemKey;
+
+    // Cria um overlay escuro semi-transparente
+    this.zoomView.overlay = this.add.rectangle(
+        this.cameras.main.centerX,
+        this.cameras.main.centerY,
+        this.cameras.main.width,
+        this.cameras.main.height,
+        0x000000,
+        0.8
+    ).setDepth(1000).setInteractive();
+
+    // Cria uma cópia borrada do fundo atual (efeito de desfoque)
+    this.zoomView.blurBg = this.add.image(
+        this.cameras.main.centerX,
+        this.cameras.main.centerY,
+        this.bg.texture.key
+    )
+    .setDisplaySize(this.cameras.main.width, this.cameras.main.height)
+    .setAlpha(0.1)
+    .setDepth(1001)
+    .setBlendMode(Phaser.BlendModes.OVERLAY);
+
+    // Adiciona o item em grande escala (60% da altura da tela)
+    const itemHeight = this.cameras.main.height * 0.6;
+    this.zoomView.zoomedItem = this.add.image(
+        this.cameras.main.centerX - 100,
+        this.cameras.main.centerY,
+        itemKey
+    )
+    .setDisplaySize(itemHeight * 0.7, itemHeight) // Mantém proporção
+    .setDepth(1002);
+
+    // Botão de fechar (X no canto superior direito)
+    
+    this.zoomView.closeButton = this.add.text(
+    )
+
+    .setDepth(1003)
+    .setInteractive({ useHandCursor: true })
+    .on('pointerdown', () => {
+        this.closeItemZoom();
+    });
+
+    // Fecha ao clicar no overlay (fora do item)
+    this.zoomView.overlay.on('pointerdown', () => {
+        this.closeItemZoom();
+    });
+
+    // Desativa interações com o jogo principal
+    this.setInteractionsEnabled(false);
+}
+
+    closeItemZoom() {
+    if (!this.zoomView.active) return;
+
+    // Remove todos os elementos do zoom
+    this.zoomView.overlay.destroy();
+    this.zoomView.blurBg.destroy();
+    this.zoomView.closeButton.destroy();
+    
+    // Limpa a referência
+    if (this.zoomView.zoomedItem) {
+        this.zoomView.zoomedItem.destroy();
+    }
+
+    this.zoomView = {
+        active: false,
+        currentItem: null,
+        overlay: null,
+        blurBg: null,
+        closeButton: null,
+        zoomedItem: null
+    };
+
+    this.arrows.left.setVisible(true);
+    this.arrows.right.setVisible(true);
+
+    // Reativa interações com o jogo principal
+    this.setInteractionsEnabled(true);
+}
 
 }
 
