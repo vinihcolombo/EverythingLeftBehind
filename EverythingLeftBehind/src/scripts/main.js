@@ -5,8 +5,8 @@ const sizes = {
 };
 
 //Sons
-const clickSound = new Audio('assets/SFX/Button.wav');
-const inventorySound = new Audio('assets/SFX/Inventory_Button.wav');
+const clickSound = new Audio('./assets/SFX/Button.wav');
+const inventorySound = new Audio('./assets/SFX/Inventory_Button.wav');
 
 // Gerenciador de Quartos
 class RoomManager {
@@ -74,11 +74,11 @@ class GameScene extends Phaser.Scene {
 
     preload() {
         // Carrega todos os fundos
-        this.load.image('bg1', '/assets/images/parede1.png');
-        this.load.image('bg2', '/assets/images/parede2.png');
-        this.load.image('bg3', '/assets/images/parede3.png');
-        this.load.image('bg4', '/assets/images/parede4.png');
-        this.load.image('caixaclara', '/assets/images/CaixaClara.png');
+        this.load.image('bg1', './assets/images/parede1.png');
+        this.load.image('bg2', './assets/images/parede2.png');
+        this.load.image('bg3', './assets/images/parede3.png');
+        this.load.image('bg4', './assets/images/parede4.png');
+        this.load.image('caixaclara', './assets/images/CaixaClara.png');
 
         // Carrega os mapas
         this.load.json('mapa1', './maps/mapa1.json');
@@ -88,17 +88,17 @@ class GameScene extends Phaser.Scene {
         this.load.json('caixaclara', './maps/caixaclara.json');
 
         // Carrega ícone de seta
-        this.load.image('seta', '/assets/ui/seta.png');
+        this.load.image('seta', './/assets/ui/seta.png');
 
         //Itens de Inventários
-        this.load.image('notebookOpen', 'assets/images/objects/notebookOpen.png');
+        this.load.image('notebookOpen', './assets/images/objects/notebookOpen.png');
 
 
         //Inventário
-        this.load.image('backpack', 'assets/images/backpack.png');
-        this.load.image('slot', 'assets/images/Slot.png');
-        this.load.image('inventory', 'assets/images/InventoryOverlay.png');
-        this.load.image('iconInventory', 'assets/images/inventoryicon.png');
+        this.load.image('backpack', './assets/images/backpack.png');
+        this.load.image('slot', './assets/images/Slot.png');
+        this.load.image('inventory', './assets/images/InventoryOverlay.png');
+        this.load.image('iconInventory', './assets/images/inventoryicon.png');
     }
 
     create() {
