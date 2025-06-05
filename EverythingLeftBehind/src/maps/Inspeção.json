@@ -1,0 +1,16 @@
+{
+    "fundo": {
+        "cor": "#000000",
+        "largura": 800,
+        "altura": 600
+    },
+    "objetos": [
+        {
+            "nome": "notebook",
+            "x": 200,
+            "y": 250,
+            "escala": 0.5,
+            "arquivo": "notebookOpen.png"
+        }
+    ]
+}
