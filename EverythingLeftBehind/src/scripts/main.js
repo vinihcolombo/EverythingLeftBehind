@@ -84,10 +84,10 @@ class GameScene extends Phaser.Scene {
 
     preload() {
         // Carrega todos os fundos
-        this.load.image('bg1', './assets/images/parede1.png');
-        this.load.image('bg2', './assets/images/parede2.png');
-        this.load.image('bg3', './assets/images/parede3.png');
-        this.load.image('bg4', './assets/images/parede4.png');
+        this.load.image('bg1', './assets/images/paredeNorte_0.png');
+        this.load.image('bg2', './assets/images/paredeOeste_0.png');
+        this.load.image('bg3', './assets/images/paredeSul_0.png');
+        this.load.image('bg4', './assets/images/paredeLeste_0.png');
         this.load.image('caixaclara', './assets/images/CaixaClara.png');
 
         // Carrega os mapas
