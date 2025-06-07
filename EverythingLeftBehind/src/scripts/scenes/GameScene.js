@@ -1,3 +1,4 @@
+import PuzzleGame from '../puzzles/foto-rasgada.js';
 import RoomManager from '../managers/RoomManager.js';
 import Inventory from '../ui/Inventory.js';
 import { sizes } from '../constants.js';
@@ -61,6 +62,10 @@ export default class GameScene extends Phaser.Scene {
         //Itens de Inventários
         this.load.image('notebookOpen', './assets/images/objects/notebookOpen.png');
         this.load.image('keychain', './assets/images/objects/keychain.png');
+        this.load.image('rockCollection', './assets/images/objects/rockCollection.png');
+        this.load.image('Notebook_Item', './assets/images/objects/Notebook_Item.png');
+        this.load.image('camera', './assets/images/objects/camera.png');
+        this.load.image('book', './assets/images/objects/Book.png');
 
 
         //Inventário
@@ -200,11 +205,6 @@ export default class GameScene extends Phaser.Scene {
             .setDepth(101)
             .setVisible(false);
 
-        //TESTE ITEM DE INVENTÁRIO
-        this.inventory.addItem('notebookOpen', () => {
-            this.showItemZoom('notebookOpen');
-        });
-
         this.setInteractionsEnabled(true);
 
     }
@@ -264,6 +264,8 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     goBackToPreviousMap() {
+        this.clearItemSprites();
+
         if (this.navigationHistory.length > 0) {
             const previous = this.navigationHistory.pop();
             this.loadCustomMap(previous.mapKey, previous.bgKey);
@@ -325,27 +327,40 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     loadMapObjects(mapKey) {
-        const mapData = this.cache.json.get(mapKey);
-        if (!mapData || !mapData.layers) { // Adicionada verificação de segurança
-            console.warn(`Dados do mapa ${mapKey} não encontrados ou inválidos.`);
-            return;
-        }
-        const objetos = mapData.layers.filter(layer => layer.type === 'objectgroup');
-
-        objetos.forEach(group => {
-            if (group.name === 'caixaclara') {
-                group.objects.forEach(obj => {
-                    if (mapKey === 'caixaclara' && obj.name === 'Chave de Apartamento') {
-                        this.createChave(obj);
-                    }
-                });
-            } else {
-                group.objects.forEach(obj => {
-                    this.createStandardInteractiveZone(obj);
-                });
-            }
-        });
+    console.log(`Carregando objetos do mapa: ${mapKey}`); // Debug
+    
+    const mapData = this.cache.json.get(mapKey);
+    if (!mapData) {
+        console.error(`Mapa ${mapKey} não encontrado no cache!`);
+        return;
     }
+
+    mapData.layers.forEach(layer => {
+        console.log(`Camada: ${layer.name} (${layer.type})`); // Debug
+        
+        if (layer.type === 'objectgroup') {
+            layer.objects.forEach(obj => {
+                console.log(`- Objeto: ${obj.name} em (${obj.x},${obj.y})`); // Debug
+                
+                if (obj.name === 'Chave de Apartamento') { // Modifiquei a condição
+                    this.createChave(obj);
+                }
+                else if (obj.name === 'Coleção de Pedras') {
+                    this.createPedra(obj);
+                } 
+                else if (obj.name === 'Caderno de Escrita') {
+                    this.createNotebook(obj);
+                }
+                else if (obj.name === 'gavetaCamera') {
+                    this.createCamera(obj);
+                }
+                else {
+                    this.createStandardInteractiveZone(obj);
+                }
+            });
+        }
+    });
+}
 
     // <--- MÉTODO MODIFICADO para gerenciar this.notebookSprite
     createChave(obj) {
@@ -377,6 +392,108 @@ export default class GameScene extends Phaser.Scene {
             .setOrigin(0)
             .setInteractive({ useHandCursor: true })
             .on('pointerover', () => this.showTooltip({ name: 'Chave de Apartamento', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
+
+        this.roomManager.interactiveZones.push(zone);
+    }
+    createPedra(obj) {
+        const targetWidth = 96;
+        const targetHeight = 96;
+        const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
+        const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
+
+        // Destrói o sprite anterior do caderno, se existir
+        if (this.PedraSprite) {
+            this.PedraSprite.destroy();
+            this.PedraSprite = null;
+        }
+
+        // Cria o sprite e armazena a referência
+        this.PedraSprite = this.add.image( // "PedraSprite" É A FUNÇÃO PARA CHAMAR O REMOVER OBJETO QUANDO CLICA
+            posX + targetWidth / 2,
+            posY + targetHeight / 2,
+            'rockCollection'
+        )
+            .setDisplaySize(targetWidth, targetHeight)
+            .setOrigin(0.5, 0.5)
+            .setDepth(10);
+
+        const zone = this.add.zone(
+            obj.x, obj.y,
+            obj.width, obj.height
+        )
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip({ name: 'Coleção de Pedras', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
+
+        this.roomManager.interactiveZones.push(zone);
+    }
+    createNotebook(obj) {
+        const targetWidth = 96;
+        const targetHeight = 96;
+        const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
+        const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
+
+        // Destrói o sprite anterior do caderno, se existir
+        if (this.NotebookSprite) {
+            this.NotebookSprite.destroy();
+            this.NotebookSprite = null;
+        }
+
+        // Cria o sprite e armazena a referência
+        this.NotebookSprite = this.add.image( // "NotebookSprite" É A FUNÇÃO PARA CHAMAR O REMOVER OBJETO QUANDO CLICA
+            posX + targetWidth / 2,
+            posY + targetHeight / 2,
+            'Notebook_Item'
+        )
+            .setDisplaySize(targetWidth, targetHeight)
+            .setOrigin(0.5, 0.5)
+            .setDepth(10);
+
+        const zone = this.add.zone(
+            obj.x, obj.y,
+            obj.width, obj.height
+        )
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip({ name: 'Caderno de Escrita', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
+
+        this.roomManager.interactiveZones.push(zone);
+    }
+    createCamera(obj) {
+        const targetWidth = 96;
+        const targetHeight = 96;
+        const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
+        const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
+
+        // Destrói o sprite anterior do caderno, se existir
+        if (this.CameraSprite) {
+            this.CameraSprite.destroy();
+            this.CameraSprite = null;
+        }
+
+        // Cria o sprite e armazena a referência
+        this.CameraSprite = this.add.image( // "CameraSprite" É A FUNÇÃO PARA CHAMAR O REMOVER OBJETO QUANDO CLICA
+            posX + targetWidth / 2,
+            posY + targetHeight / 2,
+            'camera'
+        )
+            .setDisplaySize(targetWidth, targetHeight)
+            .setOrigin(0.5, 0.5)
+            .setDepth(10);
+
+        const zone = this.add.zone(
+            obj.x, obj.y,
+            obj.width, obj.height
+        )
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip({ name: 'Câmera Fotográfica', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
             .on('pointerout', () => this.tooltip.setVisible(false))
             .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
 
@@ -428,10 +545,43 @@ export default class GameScene extends Phaser.Scene {
             this.inventory.addItem('keychain', () => {
                 this.showItemZoom('keychain');
             });
-            this.ChaveSprite.destroy(); // REMOVER OBJETO QUANDO CLICA
             this.removeHitboxForObject(obj);
+            this.ChaveSprite.destroy(); // REMOVER OBJETO QUANDO CLICA
             return;
         }
+
+        if (obj.name === "Coleção de Pedras") {
+            this.inventory.addItem('rockCollection', () => {
+                ;
+            });
+            this.removeHitboxForObject(obj);
+            this.PedraSprite.destroy();
+            return;
+        }
+        if (obj.name === "Caderno de Escrita") {
+            this.inventory.addItem('notebookOpen', () => {
+                this.showItemZoom('notebookOpen');
+            });
+            this.removeHitboxForObject(obj);
+            this.NotebookSprite.destroy();
+            return;
+        }
+
+        if (obj.name === "gavetaCamera") {
+            this.inventory.addItem('camera', () => {
+                this.showItemZoom('camera');
+            });
+            this.removeHitboxForObject(obj);
+            this.CameraSprite.destroy();
+            return;
+        }
+
+        if (obj.name === "caixaSemQuadro") { // Ou qualquer outro nome que você definir
+        this.startPuzzle();
+        return;
+        }
+
+        
 
         this.lastClickedObject = obj;
 
@@ -495,6 +645,53 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
     //=========================================================================================================
     //=========================================================================================================
+
+startPuzzle() {
+    // Desativa interações normais
+    this.setInteractionsEnabled(false);
+    
+    // Cria o puzzle centralizado na tela
+    this.puzzleGame = new PuzzleGame(this, 'bg1', this.inventory); // Use a textura apropriada
+    
+    // Posiciona no centro da tela
+    const x = (sizes.width - 600) / 2; // 600 é o puzzleWidth padrão
+    const y = (sizes.height - 600) / 2; // 600 é o puzzleHeight padrão
+    
+    this.puzzleGame.create(x, y);
+    
+    // Configura o callback quando o puzzle for completado
+    this.puzzleGame.setOnComplete(() => {
+
+        this.inventory.addItem('book', () => {
+            this.showItemZoom('book');
+        })
+        // Adiciona lógica para quando o puzzle for completado
+        this.time.delayedCall(2000, () => {
+            this.puzzleGame.destroy();
+            this.puzzleGame = null;
+            this.setInteractionsEnabled(true);
+        });
+    });
+}
+
+    clearItemSprites() {
+        if (this.ChaveSprite) {
+            this.ChaveSprite.destroy();
+            this.ChaveSprite = null;
+        }
+        if (this.PedraSprite) {
+            this.PedraSprite.destroy();
+            this.PedraSprite = null;
+        }
+        if (this.NotebookSprite) {
+            this.NotebookSprite.destroy();
+            this.NotebookSprite = null;
+        }
+        if (this.CameraSprite) {
+            this.CameraSprite.destroy();
+            this.CameraSprite = null;
+        }
+    }
 
     removeHitboxForObject(obj) {
         // Encontra a zona correspondente ao objeto clicado

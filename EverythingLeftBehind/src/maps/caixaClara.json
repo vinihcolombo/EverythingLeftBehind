@@ -347,7 +347,7 @@
         {
          "draworder":"topdown",
          "id":5,
-         "name":"Camada de Objetos 3",
+         "name":"caixaclara",
          "objects":[
                 {
                  "height":38.2441314553991,
