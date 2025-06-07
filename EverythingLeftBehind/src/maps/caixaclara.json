@@ -266,9 +266,22 @@
          "y":0
         }, 
         {
+         "id":6,
+         "image":"..\/assets\/images\/objects\/keychain.png",
+         "imageheight":96,
+         "imagewidth":96,
+         "name":"chave_caixaclara",
+         "offsetx":212,
+         "offsety":112,
+         "opacity":1,
+         "type":"imagelayer",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
          "id":3,
-         "imageheight":25,
-         "imagewidth":25,
+         "image":"",
          "name":"voltar",
          "opacity":1,
          "type":"imagelayer",
@@ -278,42 +291,30 @@
         }, 
         {
          "draworder":"topdown",
-         "id":4,
-         "name":"polaroid",
+         "id":5,
+         "name":"caixaclara",
          "objects":[
                 {
                  "height":49,
                  "id":1,
+                 "name":"Chave de Apartamento",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":54,
+                 "x":240,
+                 "y":128.5
+                }, 
+                {
+                 "height":50,
+                 "id":4,
                  "name":"polaroid",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":40.5,
-                 "x":206,
-                 "y":73.5
-                }],
-         "opacity":1,
-         "type":"objectgroup",
-         "visible":true,
-         "x":0,
-         "y":0
-        },
-        {
-         "draworder":"topdown",
-         "id":5,
-         "name":"chave",
-         "objects":[
-                {
-                 "height":49,
-                 "id":1,
-                 "image":"..\/assets\/images\/objects\/keychain.png",
-                 "name":"chave",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":40.5,
-                 "x":253.5,
-                 "y":128.5
+                 "width":45.25,
+                 "x":202.75,
+                 "y":72.75
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -343,8 +344,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":6,
- "nextobjectid":4,
+ "nextlayerid":8,
+ "nextobjectid":5,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

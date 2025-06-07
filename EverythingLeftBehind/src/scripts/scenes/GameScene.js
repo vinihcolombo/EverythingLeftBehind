@@ -325,31 +325,78 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     loadMapObjects(mapKey) {
-        // Carrega os objetos do mapa
         const mapData = this.cache.json.get(mapKey);
+        if (!mapData || !mapData.layers) { // Adicionada verificação de segurança
+            console.warn(`Dados do mapa ${mapKey} não encontrados ou inválidos.`);
+            return;
+        }
         const objetos = mapData.layers.filter(layer => layer.type === 'objectgroup');
 
         objetos.forEach(group => {
-            group.objects.forEach(obj => {
-                // Cria zona interativa
-                const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
-                    .setOrigin(0)
-                    .setInteractive({ useHandCursor: true })
-                    .on('pointerover', () => this.showTooltip(obj))
-                    .on('pointerout', () => this.tooltip.setVisible(false))
-                    .on('pointerdown', () => this.handleObjectClick(obj));
-
-                // Armazena a zona para limpeza posterior
-                this.roomManager.interactiveZones.push(zone);
-
-                // Debug visual (opcional)
-                // const debugRect = this.add.rectangle(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width, obj.height)
-                //     .setStrokeStyle(1, 0x00ff00)
-                //     .setDepth(99);
-
-                // this.roomManager.interactiveZones.push(debugRect);
-            });
+            if (group.name === 'caixaclara') {
+                group.objects.forEach(obj => {
+                    if (mapKey === 'caixaclara' && obj.name === 'Chave de Apartamento') {
+                        this.createChave(obj);
+                    }
+                });
+            } else {
+                group.objects.forEach(obj => {
+                    this.createStandardInteractiveZone(obj);
+                });
+            }
         });
+    }
+
+    // <--- MÉTODO MODIFICADO para gerenciar this.notebookSprite
+    createChave(obj) {
+        const targetWidth = 96;
+        const targetHeight = 96;
+        const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
+        const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
+
+        // Destrói o sprite anterior do caderno, se existir
+        if (this.ChaveSprite) {
+            this.ChaveSprite.destroy();
+            this.ChaveSprite = null;
+        }
+
+        // Cria o sprite e armazena a referência
+        this.ChaveSprite = this.add.image( // "ChaveSprite" É A FUNÇÃO PARA CHAMAR O REMOVER OBJETO QUANDO CLICA
+            posX + targetWidth / 2,
+            posY + targetHeight / 2,
+            'keychain'
+        )
+            .setDisplaySize(targetWidth, targetHeight)
+            .setOrigin(0.5, 0.5)
+            .setDepth(10);
+
+        const zone = this.add.zone(
+            obj.x, obj.y,
+            obj.width, obj.height
+        )
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip({ name: 'Chave de Apartamento', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
+
+        this.roomManager.interactiveZones.push(zone);
+    }
+
+    createStandardInteractiveZone(obj) {
+        const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip(obj))
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj));
+
+        this.roomManager.interactiveZones.push(zone);
+
+        // const debugRect = this.add.rectangle(obj.x + obj.width / 2, obj.y + obj.height / 2, obj.width, obj.height)
+        // .setStrokeStyle(1, 0x00ff00)
+        // .setDepth(99);
+        // this.roomManager.interactiveZones.push(debugRect);
     }
 
     //=========================================================================================================
@@ -381,6 +428,7 @@ export default class GameScene extends Phaser.Scene {
             this.inventory.addItem('keychain', () => {
                 this.showItemZoom('keychain');
             });
+            this.ChaveSprite.destroy(); // REMOVER OBJETO QUANDO CLICA
             this.removeHitboxForObject(obj);
             return;
         }
@@ -449,42 +497,34 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     removeHitboxForObject(obj) {
-    // Encontra a zona correspondente ao objeto clicado
-    const zoneIndex = this.roomManager.interactiveZones.findIndex(zone => 
-        Math.abs(zone.x - obj.x) < 5 && // Margem de erro para posição
-        Math.abs(zone.y - obj.y) < 5 &&
-        zone.width === obj.width &&
-        zone.height === obj.height
-    );
+        // Encontra a zona correspondente ao objeto clicado
+        const zoneIndex = this.roomManager.interactiveZones.findIndex(zone =>
+            Math.abs(zone.x - obj.x) < 5 && // Margem de erro para posição
+            Math.abs(zone.y - obj.y) < 5 &&
+            zone.width === obj.width &&
+            zone.height === obj.height
+        );
 
-    if (zoneIndex !== -1) {
-        const zone = this.roomManager.interactiveZones[zoneIndex];
-        
-        // 1. Remove a interatividade
-        zone.disableInteractive();
-        
-        // 2. Remove da lista de zonas
-        this.roomManager.interactiveZones.splice(zoneIndex, 1);
-        
-        // 3. Opcional: Adiciona efeito visual de coleta
-        this.add.tween({
-            targets: zone,
-            alpha: 0,
-            duration: 500,
-            onComplete: () => {
-                // 4. Destrói completamente após animação
-                zone.destroy();
-            }
-        });
+        if (zoneIndex !== -1) {
+            const zone = this.roomManager.interactiveZones[zoneIndex];
 
-        // 5. Marca como coletado no mapa (opcional)
-        const mapData = this.cache.json.get(this.currentMapKey);
-        mapData.layers.forEach(layer => {
-            if (layer.type === 'objectgroup') {
-                layer.objects = layer.objects.filter(mapObj => 
-                    mapObj.name !== obj.name || 
-                    mapObj.x !== obj.x || 
-                    mapObj.y !== obj.y
+            // 1. Remove a interatividade
+            zone.disableInteractive();
+
+            // 2. Remove da lista de zonas
+            this.roomManager.interactiveZones.splice(zoneIndex, 1);
+
+            // 4. Destrói completamente após animação
+            zone.destroy();
+
+            // 5. Marca como coletado no mapa (opcional)
+            const mapData = this.cache.json.get(this.currentMapKey);
+            mapData.layers.forEach(layer => {
+                if (layer.type === 'objectgroup') {
+                    layer.objects = layer.objects.filter(mapObj =>
+                        mapObj.name !== obj.name ||
+                        mapObj.x !== obj.x ||
+                        mapObj.y !== obj.y
                     );
                 }
             });
