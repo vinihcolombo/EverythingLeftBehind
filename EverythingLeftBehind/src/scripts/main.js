@@ -8,6 +8,10 @@ const sizes = {
 const clickSound = new Audio('./assets/SFX/Button.wav');
 const inventorySound = new Audio('./assets/SFX/Inventory_Button.wav');
 
+//=========================================================================================================
+//=========================================================================================================
+//=========================================================================================================
+
 // Gerenciador de Quartos
 class RoomManager {
     constructor(scene) {
@@ -16,6 +20,8 @@ class RoomManager {
         this.maxRooms = 4;
         this.interactiveZones = []; // Armazena todas as zonas interativas
     }
+
+//=========================================================================================================
 
     loadRoom(roomNumber) {
         if (this.scene.currentMapKey && this.scene.bg.texture) {
@@ -39,15 +45,21 @@ class RoomManager {
         this.scene.updateArrowsVisibility();
     }
 
+//=========================================================================================================
+
     playSound(){
         clickSound.currentTime = 0;
         clickSound.play();
     }
 
+//=========================================================================================================
+
     clearPreviousZones() {
         this.interactiveZones.forEach(zone => zone.destroy());
         this.interactiveZones = [];
     }
+
+//=========================================================================================================
 
     nextRoom() {
         const totalRooms = this.scene.standardRooms.length;
@@ -56,6 +68,8 @@ class RoomManager {
         clickSound.play();
     }
 
+//=========================================================================================================
+
     prevRoom() {
         const totalRooms = this.scene.standardRooms.length;
         this.loadRoom(((this.currentRoom - 2 + totalRooms) % totalRooms) + 1);
@@ -63,6 +77,10 @@ class RoomManager {
         clickSound.play();
     }
 }
+
+//=========================================================================================================
+//=========================================================================================================
+//=========================================================================================================
 
 // Cena Principal do Jogo
 class GameScene extends Phaser.Scene {
@@ -90,6 +108,8 @@ class GameScene extends Phaser.Scene {
         };
     }
 
+//=========================================================================================================
+
     preload() {
         // Carrega todos os fundos
         this.load.image('bg1', './assets/images/paredeNorte_0.png');
@@ -101,6 +121,7 @@ class GameScene extends Phaser.Scene {
         this.load.image('retrato', './assets/images/retratoPlaceholder.png');
         this.load.image('gaveta', './assets/images/gavetaTrancada.png');
         this.load.image('caixa', './assets/images/Caixa.png');
+        this.load.image('mapa', './assets/images/mapaMundi.png');
 
         // Carrega os mapas
         this.load.json('mapa1', './maps/ParedeNorteDefinitiva.json');
@@ -113,6 +134,7 @@ class GameScene extends Phaser.Scene {
         this.load.json('paredeComCaixa', './maps/SemQuadroFotoRasgada.json');
         this.load.json('retrato', './maps/retrato.json');
         this.load.json('gaveta', './maps/gavetaComCamera.json');
+        this.load.json('mapa', './maps/mapaMundi.json');
 
         // Carrega ícone de seta
         this.load.image('seta', './/assets/ui/seta.png');
@@ -127,6 +149,8 @@ class GameScene extends Phaser.Scene {
         this.load.image('inventory', './assets/images/InventoryOverlay.png');
         this.load.image('iconInventory', './assets/images/inventoryicon.png');
     }
+
+//=========================================================================================================
 
     create() {
         this.lastClickedObject = null;
@@ -209,6 +233,9 @@ class GameScene extends Phaser.Scene {
                     else if (this.lastClickedObject.name === "gavetaGrande") {
                         this.loadCustomMap('gaveta', 'gaveta');
                     }
+                    else if (this.lastClickedObject.name === "Quadro") {
+                        this.loadCustomMap('mapa', 'mapa');
+                    }
                 }
                 this.hideTextBox();
             })
@@ -245,6 +272,8 @@ class GameScene extends Phaser.Scene {
 
     }
 
+//=========================================================================================================
+
     setInteractionsEnabled(state) {
     // Se estiver em zoom, sempre desativa interações normais
     if (this.zoomView.active) state = false;
@@ -266,6 +295,8 @@ class GameScene extends Phaser.Scene {
         this.inventory.toggleButton.setInteractive({ enabled: !this.zoomView.active });
     }
 }
+
+//=========================================================================================================
 
     loadCustomMap(mapKey, bgKey) {
 
@@ -293,6 +324,8 @@ class GameScene extends Phaser.Scene {
         this.arrows.right.setVisible(false);
     }
 
+//=========================================================================================================
+
     goBackToPreviousMap() {
     if (this.navigationHistory.length > 0) {
         const previous = this.navigationHistory.pop();
@@ -304,9 +337,13 @@ class GameScene extends Phaser.Scene {
     this.updateArrowsVisibility();
 }
 
+//=========================================================================================================
+
     isStandardRoom() { // Verificação se é um quarto padrão para as setas aparecerem 
         return this.standardRooms.includes(this.currentMapKey);
     }
+
+//=========================================================================================================
 
     createNavigationArrows() {
         // Seta esquerda
@@ -335,14 +372,20 @@ class GameScene extends Phaser.Scene {
             });
     }
 
+//=========================================================================================================
+
     updateArrowsVisibility() {
         this.arrows.left.setVisible(true);
         this.arrows.right.setVisible(true);
     }
 
+//=========================================================================================================
+
     updateBackground(bgKey) {
         this.bg.setTexture(bgKey);
     }
+
+//=========================================================================================================
 
     loadMapObjects(mapKey) {
         // Carrega os objetos do mapa
@@ -372,6 +415,8 @@ class GameScene extends Phaser.Scene {
         });
     }
 
+//=========================================================================================================
+
     showTooltip(obj) {
         if (this.inventory.isVisible) return;
 
@@ -386,6 +431,8 @@ class GameScene extends Phaser.Scene {
 
         this.tooltip.setPosition(posX, posY).setVisible(true);
     }
+
+//=========================================================================================================
 
     handleObjectClick(obj) {
         //         if (obj.name === "caixa pequena") {
@@ -431,6 +478,11 @@ class GameScene extends Phaser.Scene {
             return;
         }
 
+        if (obj.name === "Quadro") {
+            this.showTextBoxWithChoices("Mapa-mundi");
+            return;
+        }
+
         if (obj.name === "voltar") {
             this.goBackToPreviousMap();
             return;
@@ -458,12 +510,16 @@ class GameScene extends Phaser.Scene {
         this.buttonClose.setVisible(true);
     }
 
+//=========================================================================================================
+
     hideTextBox() {
         this.textBox.setVisible(false);
         this.textBoxBackground.setVisible(false);
         this.buttonOpen.setVisible(false);
         this.buttonClose.setVisible(false);
     }
+
+//=========================================================================================================
 
     showItemZoom(itemKey) {
     // Se já estiver mostrando algo, ignore
@@ -528,6 +584,8 @@ class GameScene extends Phaser.Scene {
     this.setInteractionsEnabled(false);
 }
 
+//=========================================================================================================
+
     closeItemZoom() {
     if (!this.zoomView.active) return;
 
@@ -559,6 +617,10 @@ class GameScene extends Phaser.Scene {
 
 }
 
+//=========================================================================================================
+//=========================================================================================================
+//=========================================================================================================
+
 class Inventory {
     constructor(scene) {
         this.scene = scene;
@@ -580,10 +642,14 @@ class Inventory {
 
         this.itemActions = {};
     }
-    
+ 
+//=========================================================================================================
+
     isInventoryActive() {
         return this.inventory.isVisible;
     }
+
+//=========================================================================================================
 
     createToggleButton() {
     const rightPosition = this.scene.cameras.main.width - 40;
@@ -627,6 +693,8 @@ class Inventory {
     });
 }
     
+//=========================================================================================================
+
     createInventoryOverlay() {
         const gameWidth = this.scene.cameras.main.width;
         const gameHeight = this.scene.cameras.main.height;
@@ -678,7 +746,9 @@ class Inventory {
         // Configurar scroll do mouse
         this.setupMouseScroll();
     }
-    
+  
+//=========================================================================================================
+
     calculateMaxScroll() {
         const slotHeight = 60 + 10;
         const visibleHeight = this.scene.cameras.main.height - 120;
@@ -686,7 +756,9 @@ class Inventory {
         
         this.maxScroll = Math.max(0, totalHeight - visibleHeight);
     }
-    
+   
+//=========================================================================================================    
+
     setupMouseScroll() {
         this.scene.input.on('wheel', (pointer, gameObjects, deltaX, deltaY) => {
             if (this.isVisible) {
@@ -698,7 +770,9 @@ class Inventory {
             }
         });
     }
-    
+ 
+//=========================================================================================================
+
     toggleInventory() {
         inventorySound.play();
         if (this.isAnimating) return;
@@ -740,7 +814,9 @@ class Inventory {
             this.scene.setInteractionsEnabled(true);
         }
     }
-    
+   
+//=========================================================================================================
+
     addItem(itemKey, action = null) {
         const emptySlot = this.slots.find(slot => slot.item === null);
         if (emptySlot) {
@@ -772,6 +848,8 @@ class Inventory {
         return false;
     }
 
+//=========================================================================================================
+
     executeItemAction(itemKey) {
         if (this.itemActions[itemKey]) {
             this.itemActions[itemKey]();
@@ -782,6 +860,8 @@ class Inventory {
         }
     }
     
+//=========================================================================================================
+
     removeItem(itemKey) {
         const slotIndex = this.slots.findIndex(slot => 
             slot.item && slot.item.texture.key === itemKey
