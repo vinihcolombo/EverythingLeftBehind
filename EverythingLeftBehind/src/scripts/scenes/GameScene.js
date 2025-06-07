@@ -60,6 +60,7 @@ export default class GameScene extends Phaser.Scene {
 
         //Itens de Inventários
         this.load.image('notebookOpen', './assets/images/objects/notebookOpen.png');
+        this.load.image('keychain', './assets/images/objects/keychain.png');
 
 
         //Inventário
@@ -376,6 +377,14 @@ export default class GameScene extends Phaser.Scene {
         //     this.showTextBox("Você abriu a caixa pequena.");
         // }
 
+        if (obj.name === "Chave de Apartamento") {
+            this.inventory.addItem('keychain', () => {
+                this.showItemZoom('keychain');
+            });
+            this.removeHitboxForObject(obj);
+            return;
+        }
+
         this.lastClickedObject = obj;
 
         if (this.inventory.isVisible) return;
@@ -438,6 +447,49 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
     //=========================================================================================================
     //=========================================================================================================
+
+    removeHitboxForObject(obj) {
+    // Encontra a zona correspondente ao objeto clicado
+    const zoneIndex = this.roomManager.interactiveZones.findIndex(zone => 
+        Math.abs(zone.x - obj.x) < 5 && // Margem de erro para posição
+        Math.abs(zone.y - obj.y) < 5 &&
+        zone.width === obj.width &&
+        zone.height === obj.height
+    );
+
+    if (zoneIndex !== -1) {
+        const zone = this.roomManager.interactiveZones[zoneIndex];
+        
+        // 1. Remove a interatividade
+        zone.disableInteractive();
+        
+        // 2. Remove da lista de zonas
+        this.roomManager.interactiveZones.splice(zoneIndex, 1);
+        
+        // 3. Opcional: Adiciona efeito visual de coleta
+        this.add.tween({
+            targets: zone,
+            alpha: 0,
+            duration: 500,
+            onComplete: () => {
+                // 4. Destrói completamente após animação
+                zone.destroy();
+            }
+        });
+
+        // 5. Marca como coletado no mapa (opcional)
+        const mapData = this.cache.json.get(this.currentMapKey);
+        mapData.layers.forEach(layer => {
+            if (layer.type === 'objectgroup') {
+                layer.objects = layer.objects.filter(mapObj => 
+                    mapObj.name !== obj.name || 
+                    mapObj.x !== obj.x || 
+                    mapObj.y !== obj.y
+                    );
+                }
+            });
+        }
+    }
 
     showTextBoxWithChoices(message) {
         this.textBox.setText(message).setVisible(true);

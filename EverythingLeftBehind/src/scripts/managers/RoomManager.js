@@ -42,9 +42,13 @@ export default class RoomManager {
     //=========================================================================================================
 
     clearPreviousZones() {
-        this.interactiveZones.forEach(zone => zone.destroy());
+        this.interactiveZones.forEach(zone => {
+            if (!zone.getData('collected')) { // Só remove se não foi coletado
+                zone.destroy();
+            }
+        });
         this.interactiveZones = [];
-    }
+}
 
     //=========================================================================================================
 
