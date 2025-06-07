@@ -267,7 +267,6 @@
         }, 
         {
          "id":3,
-         "image":"..\/assets\/images\/Seta_Esquerda.png",
          "imageheight":25,
          "imagewidth":25,
          "name":"voltar",
@@ -298,6 +297,29 @@
          "visible":true,
          "x":0,
          "y":0
+        },
+        {
+         "draworder":"topdown",
+         "id":5,
+         "name":"chave",
+         "objects":[
+                {
+                 "height":49,
+                 "id":1,
+                 "image":"..\/assets\/images\/objects\/keychain.png",
+                 "name":"chave",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":40.5,
+                 "x":253.5,
+                 "y":128.5
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }, 
         {
          "draworder":"topdown",
@@ -305,13 +327,13 @@
          "name":"voltar",
          "objects":[
                 {
-                 "height":25.625,
+                 "height":17.625,
                  "id":2,
                  "name":"voltar",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":26.125,
+                 "width":17.125,
                  "x":-0.125,
                  "y":0
                 }],

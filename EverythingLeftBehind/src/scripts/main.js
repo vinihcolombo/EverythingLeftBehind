@@ -18,8 +18,16 @@ class RoomManager {
     }
 
     loadRoom(roomNumber) {
-        this.currentRoom = roomNumber;
+        if (this.scene.currentMapKey && this.scene.bg.texture) {
+        this.scene.navigationHistory.push({
+            mapKey: this.scene.currentMapKey,
+            bgKey: this.scene.bg.texture.key,
+            isRoom: true,
+            roomNumber: this.currentRoom
+        });
+    }
 
+        this.currentRoom = roomNumber;
         // Limpa as zonas interativas anteriores
         this.clearPreviousZones();
 
@@ -89,13 +97,22 @@ class GameScene extends Phaser.Scene {
         this.load.image('bg3', './assets/images/paredeSul_0.png');
         this.load.image('bg4', './assets/images/paredeLeste_0.png');
         this.load.image('caixaclara', './assets/images/CaixaClara.png');
+        this.load.image('paredeComCaixa', './assets/images/ParedecomCaixa.png');
+        this.load.image('retrato', './assets/images/retratoPlaceholder.png');
+        this.load.image('gaveta', './assets/images/gavetaTrancada.png');
+        this.load.image('caixa', './assets/images/Caixa.png');
 
         // Carrega os mapas
-        this.load.json('mapa1', './maps/mapa1.json');
-        this.load.json('mapa2', './maps/mapa2.json');
-        this.load.json('mapa3', './maps/mapa3.json');
-        this.load.json('mapa4', './maps/mapa4.json');
-        this.load.json('caixaclara', './maps/caixaclara.json');
+        this.load.json('mapa1', './maps/ParedeNorteDefinitiva.json');
+        this.load.json('mapa2', './maps/paredeSulDefinitiva.json');
+        this.load.json('mapa3', './maps/paredeLesteDefinitiva.json');
+        this.load.json('mapa4', './maps/paredeOesteDefinitiva.json');
+        this.load.json('caixaclara', './maps/caixaClara.json');
+        this.load.json('caixahelena', './maps/caixaHelena.json');
+        this.load.json('caixarafael', "./maps/caixaRafael.json");
+        this.load.json('paredeComCaixa', './maps/SemQuadroFotoRasgada.json');
+        this.load.json('retrato', './maps/retrato.json');
+        this.load.json('gaveta', './maps/gavetaComCamera.json');
 
         // Carrega ícone de seta
         this.load.image('seta', './/assets/ui/seta.png');
@@ -112,6 +129,8 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
+        this.lastClickedObject = null;
+        this.navigationHistory = [];
         // Inicializa o gerenciador de quartos
         this.roomManager = new RoomManager(this);
 
@@ -154,6 +173,9 @@ class GameScene extends Phaser.Scene {
             .setDepth(101)
             .setVisible(true);
 
+//=========================================================================================================
+//              HITBOXES
+//=========================================================================================================
 
         // Botões na ESQUERDA
         this.buttonOpen = this.add.text(10, sizes.height - 25, '[Abrir]', {
@@ -168,11 +190,34 @@ class GameScene extends Phaser.Scene {
         })
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => {
-                this.loadCustomMap('caixaclara', 'caixaclara');
+                if (this.lastClickedObject) {
+                    if (this.lastClickedObject.name === "caixaClara") {
+                        this.loadCustomMap('caixaclara', 'caixa');
+                    }
+                    else if (this.lastClickedObject.name === "Caixa sobre Helena") {
+                        this.loadCustomMap('caixahelena', 'caixa');
+                    }
+                    else if (this.lastClickedObject.name === "Caixa do Rafael") {
+                        this.loadCustomMap('caixarafael', 'caixa');
+                    }
+                    else if (this.lastClickedObject.name === "QuadroBanana") {
+                        this.loadCustomMap('paredeComCaixa', 'paredeComCaixa');
+                    }
+                    else if (this.lastClickedObject.name === "PrateleiraArmario") {
+                        this.loadCustomMap('retrato', 'retrato');
+                    }
+                    else if (this.lastClickedObject.name === "gavetaGrande") {
+                        this.loadCustomMap('gaveta', 'gaveta');
+                    }
+                }
                 this.hideTextBox();
             })
             .setDepth(101)
             .setVisible(false);
+
+//=========================================================================================================
+//=========================================================================================================
+//=========================================================================================================
 
         this.buttonClose = this.add.text(90, sizes.height - 25, '[Fechar]', {
             fontFamily: '"Press Start 2P", monospace',
@@ -223,6 +268,13 @@ class GameScene extends Phaser.Scene {
 }
 
     loadCustomMap(mapKey, bgKey) {
+
+        if (this.currentMapKey && this.bg.texture) {
+            this.navigationHistory.push({
+                mapKey: this.currentMapKey,
+                bgKey: this.bg.texture.key
+            });
+        }
         // Limpa zonas interativas anteriores
         this.roomManager.clearPreviousZones();
 
@@ -240,6 +292,17 @@ class GameScene extends Phaser.Scene {
         this.arrows.left.setVisible(false);
         this.arrows.right.setVisible(false);
     }
+
+    goBackToPreviousMap() {
+    if (this.navigationHistory.length > 0) {
+        const previous = this.navigationHistory.pop();
+        this.loadCustomMap(previous.mapKey, previous.bgKey);
+    } else {
+        // Se não houver histórico, volta para o mapa1 como fallback
+        this.loadCustomMap('mapa1', 'bg1');
+    }
+    this.updateArrowsVisibility();
+}
 
     isStandardRoom() { // Verificação se é um quarto padrão para as setas aparecerem 
         return this.standardRooms.includes(this.currentMapKey);
@@ -330,15 +393,47 @@ class GameScene extends Phaser.Scene {
         //     this.showTextBox("Você abriu a caixa pequena.");
         // }
 
+        this.lastClickedObject = obj;
+
         if (this.inventory.isVisible) return;
 
-        if (obj.name === "caixa pequena") {
+//=========================================================================================================
+//          HITBOXES 
+//=========================================================================================================
+
+        if (obj.name === "caixaClara") {
             this.showTextBoxWithChoices("Nossa.. tantas memórias da Clara por aqui..");
             return;
         }
 
+        if (obj.name === "QuadroBanana") {
+            this.showTextBoxWithChoices("Placeholder...");
+            return;
+        }
+
+        if (obj.name === "PrateleiraArmario") {
+            this.showTextBoxWithChoices("Teste 123");
+            return;
+        }
+
+        if (obj.name === "gavetaGrande") {
+            this.showTextBoxWithChoices("Uma gaveta");
+            return;
+        }
+
+        if (obj.name === "Caixa sobre Helena") {
+            this.showTextBoxWithChoices("Irmã");
+            return;
+        }
+
+        if (obj.name === "Caixa do Rafael") {
+            this.showTextBoxWithChoices("aaaaaaa");
+            return;
+        }
+
         if (obj.name === "voltar") {
-            this.loadCustomMap('mapa1', 'bg1'); // Ex: mapa POV + fundo opcional
+            this.goBackToPreviousMap();
+            return;
         }
 
         if (this.isStandardRoom()) {
@@ -351,6 +446,10 @@ class GameScene extends Phaser.Scene {
 
         // Adicione aqui lógica para interação com objetos específicos
     }
+
+//=========================================================================================================
+//=========================================================================================================
+//=========================================================================================================
 
     showTextBoxWithChoices(message) {
         this.textBox.setText(message).setVisible(true);
