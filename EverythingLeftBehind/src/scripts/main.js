@@ -21,17 +21,17 @@ class RoomManager {
         this.interactiveZones = []; // Armazena todas as zonas interativas
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     loadRoom(roomNumber) {
         if (this.scene.currentMapKey && this.scene.bg.texture) {
-        this.scene.navigationHistory.push({
-            mapKey: this.scene.currentMapKey,
-            bgKey: this.scene.bg.texture.key,
-            isRoom: true,
-            roomNumber: this.currentRoom
-        });
-    }
+            this.scene.navigationHistory.push({
+                mapKey: this.scene.currentMapKey,
+                bgKey: this.scene.bg.texture.key,
+                isRoom: true,
+                roomNumber: this.currentRoom
+            });
+        }
 
         this.currentRoom = roomNumber;
         // Limpa as zonas interativas anteriores
@@ -45,21 +45,21 @@ class RoomManager {
         this.scene.updateArrowsVisibility();
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
-    playSound(){
+    playSound() {
         clickSound.currentTime = 0;
         clickSound.play();
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     clearPreviousZones() {
         this.interactiveZones.forEach(zone => zone.destroy());
         this.interactiveZones = [];
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     nextRoom() {
         const totalRooms = this.scene.standardRooms.length;
@@ -68,7 +68,7 @@ class RoomManager {
         clickSound.play();
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     prevRoom() {
         const totalRooms = this.scene.standardRooms.length;
@@ -108,7 +108,7 @@ class GameScene extends Phaser.Scene {
         };
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     preload() {
         // Carrega todos os fundos
@@ -150,7 +150,7 @@ class GameScene extends Phaser.Scene {
         this.load.image('iconInventory', './assets/images/inventoryicon.png');
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     create() {
         this.lastClickedObject = null;
@@ -197,14 +197,14 @@ class GameScene extends Phaser.Scene {
             .setDepth(101)
             .setVisible(true);
 
-//=========================================================================================================
-//              HITBOXES
-//=========================================================================================================
+        //=========================================================================================================
+        //              HITBOXES
+        //=========================================================================================================
 
         // Botões na ESQUERDA
-        this.buttonOpen = this.add.text(10, sizes.height - 25, '[Abrir]', {
+        this.buttonOpen = this.add.text(0, sizes.height - 25, '[Abrir]', {
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '12px',
+            fontSize: '8px',
             color: '#00ff00',
             padding: { x: 6, y: 2 },
             stroke: '#000000',
@@ -242,13 +242,30 @@ class GameScene extends Phaser.Scene {
             .setDepth(101)
             .setVisible(false);
 
-//=========================================================================================================
-//=========================================================================================================
-//=========================================================================================================
+        //=========================================================================================================
+        //=========================================================================================================
+        //=========================================================================================================
 
-        this.buttonClose = this.add.text(90, sizes.height - 25, '[Fechar]', {
+        this.buttonClose = this.add.text(60, sizes.height - 25, '[Fechar]', {
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '12px',
+            fontSize: '8px',
+            color: '#ff0000',
+            padding: { x: 6, y: 2 },
+            stroke: '#000000',
+            strokeThickness: 2,
+            align: 'center',
+            resolution: 2,
+        })
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.hideTextBox();
+            })
+            .setDepth(101)
+            .setVisible(false);
+
+        this.buttonCloseDialogue = this.add.text(0, sizes.height - 25, '[Fechar]', {
+            fontFamily: '"Press Start 2P", monospace',
+            fontSize: '8px',
             color: '#ff0000',
             padding: { x: 6, y: 2 },
             stroke: '#000000',
@@ -272,31 +289,31 @@ class GameScene extends Phaser.Scene {
 
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     setInteractionsEnabled(state) {
-    // Se estiver em zoom, sempre desativa interações normais
-    if (this.zoomView.active) state = false;
-    
-    // Ativa/desativa todas as zonas interativas
-    this.roomManager.interactiveZones.forEach(zone => {
-        zone.input.enabled = state;
-    });
-    
-    // Ativa/desativa as setas
-    this.arrows.left.setInteractive({ enabled: state });
-    this.arrows.right.setInteractive({ enabled: state });
-    
-    // Tooltip só aparece se interações estiverem ativas
-    this.tooltip.setVisible(false);
-    
-    // Ativa/desativa o inventário (exceto se estiver em zoom)
-    if (this.inventory) {
-        this.inventory.toggleButton.setInteractive({ enabled: !this.zoomView.active });
-    }
-}
+        // Se estiver em zoom, sempre desativa interações normais
+        if (this.zoomView.active) state = false;
 
-//=========================================================================================================
+        // Ativa/desativa todas as zonas interativas
+        this.roomManager.interactiveZones.forEach(zone => {
+            zone.input.enabled = state;
+        });
+
+        // Ativa/desativa as setas
+        this.arrows.left.setInteractive({ enabled: state });
+        this.arrows.right.setInteractive({ enabled: state });
+
+        // Tooltip só aparece se interações estiverem ativas
+        this.tooltip.setVisible(false);
+
+        // Ativa/desativa o inventário (exceto se estiver em zoom)
+        if (this.inventory) {
+            this.inventory.toggleButton.setInteractive({ enabled: !this.zoomView.active });
+        }
+    }
+
+    //=========================================================================================================
 
     loadCustomMap(mapKey, bgKey) {
 
@@ -324,26 +341,26 @@ class GameScene extends Phaser.Scene {
         this.arrows.right.setVisible(false);
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     goBackToPreviousMap() {
-    if (this.navigationHistory.length > 0) {
-        const previous = this.navigationHistory.pop();
-        this.loadCustomMap(previous.mapKey, previous.bgKey);
-    } else {
-        // Se não houver histórico, volta para o mapa1 como fallback
-        this.loadCustomMap('mapa1', 'bg1');
+        if (this.navigationHistory.length > 0) {
+            const previous = this.navigationHistory.pop();
+            this.loadCustomMap(previous.mapKey, previous.bgKey);
+        } else {
+            // Se não houver histórico, volta para o mapa1 como fallback
+            this.loadCustomMap('mapa1', 'bg1');
+        }
+        this.updateArrowsVisibility();
     }
-    this.updateArrowsVisibility();
-}
 
-//=========================================================================================================
+    //=========================================================================================================
 
     isStandardRoom() { // Verificação se é um quarto padrão para as setas aparecerem 
         return this.standardRooms.includes(this.currentMapKey);
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     createNavigationArrows() {
         // Seta esquerda
@@ -372,20 +389,20 @@ class GameScene extends Phaser.Scene {
             });
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     updateArrowsVisibility() {
         this.arrows.left.setVisible(true);
         this.arrows.right.setVisible(true);
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     updateBackground(bgKey) {
         this.bg.setTexture(bgKey);
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     loadMapObjects(mapKey) {
         // Carrega os objetos do mapa
@@ -415,7 +432,7 @@ class GameScene extends Phaser.Scene {
         });
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     showTooltip(obj) {
         if (this.inventory.isVisible) return;
@@ -432,7 +449,7 @@ class GameScene extends Phaser.Scene {
         this.tooltip.setPosition(posX, posY).setVisible(true);
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     handleObjectClick(obj) {
         //         if (obj.name === "caixa pequena") {
@@ -444,9 +461,9 @@ class GameScene extends Phaser.Scene {
 
         if (this.inventory.isVisible) return;
 
-//=========================================================================================================
-//          HITBOXES 
-//=========================================================================================================
+        //=========================================================================================================
+        //          HITBOXES 
+        //=========================================================================================================
 
         if (obj.name === "caixaClara") {
             this.showTextBoxWithChoices("Nossa.. tantas memórias da Clara por aqui..");
@@ -499,9 +516,9 @@ class GameScene extends Phaser.Scene {
         // Adicione aqui lógica para interação com objetos específicos
     }
 
-//=========================================================================================================
-//=========================================================================================================
-//=========================================================================================================
+    //=========================================================================================================
+    //=========================================================================================================
+    //=========================================================================================================
 
     showTextBoxWithChoices(message) {
         this.textBox.setText(message).setVisible(true);
@@ -510,7 +527,13 @@ class GameScene extends Phaser.Scene {
         this.buttonClose.setVisible(true);
     }
 
-//=========================================================================================================
+    showTextBoxDialogue(message) {
+        this.textBox.setText(message).setVisible(true);
+        this.textBoxBackground.setVisible(true);
+        this.buttonCloseDialogue.setVisible(true);
+    }
+
+    //=========================================================================================================
 
     hideTextBox() {
         this.textBox.setVisible(false);
@@ -519,101 +542,101 @@ class GameScene extends Phaser.Scene {
         this.buttonClose.setVisible(false);
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     showItemZoom(itemKey) {
-    // Se já estiver mostrando algo, ignore
-    if (this.zoomView.active) return;
+        // Se já estiver mostrando algo, ignore
+        if (this.zoomView.active) return;
 
-    this.arrows.left.setVisible(false);
-    this.arrows.right.setVisible(false);
-    this.inventory.toggleInventory();
+        this.arrows.left.setVisible(false);
+        this.arrows.right.setVisible(false);
+        this.inventory.toggleInventory();
 
-    // Ativa o estado de zoom
-    this.zoomView.active = true;
-    this.zoomView.currentItem = itemKey;
+        // Ativa o estado de zoom
+        this.zoomView.active = true;
+        this.zoomView.currentItem = itemKey;
 
-    // Cria um overlay escuro semi-transparente
-    this.zoomView.overlay = this.add.rectangle(
-        this.cameras.main.centerX,
-        this.cameras.main.centerY,
-        this.cameras.main.width,
-        this.cameras.main.height,
-        0x000000,
-        0.8
-    ).setDepth(1000).setInteractive();
+        // Cria um overlay escuro semi-transparente
+        this.zoomView.overlay = this.add.rectangle(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            this.cameras.main.width,
+            this.cameras.main.height,
+            0x000000,
+            0.8
+        ).setDepth(1000).setInteractive();
 
-    // Cria uma cópia borrada do fundo atual (efeito de desfoque)
-    this.zoomView.blurBg = this.add.image(
-        this.cameras.main.centerX,
-        this.cameras.main.centerY,
-        this.bg.texture.key
-    )
-    .setDisplaySize(this.cameras.main.width, this.cameras.main.height)
-    .setAlpha(0.1)
-    .setDepth(1001)
-    .setBlendMode(Phaser.BlendModes.OVERLAY);
+        // Cria uma cópia borrada do fundo atual (efeito de desfoque)
+        this.zoomView.blurBg = this.add.image(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            this.bg.texture.key
+        )
+            .setDisplaySize(this.cameras.main.width, this.cameras.main.height)
+            .setAlpha(0.1)
+            .setDepth(1001)
+            .setBlendMode(Phaser.BlendModes.OVERLAY);
 
-    // Adiciona o item em grande escala (60% da altura da tela)
-    const itemHeight = this.cameras.main.height * 0.6;
-    this.zoomView.zoomedItem = this.add.image(
-        this.cameras.main.centerX - 100,
-        this.cameras.main.centerY,
-        itemKey
-    )
-    .setDisplaySize(itemHeight * 0.7, itemHeight) // Mantém proporção
-    .setDepth(1002);
+        // Adiciona o item em grande escala (60% da altura da tela)
+        const itemHeight = this.cameras.main.height * 0.6;
+        this.zoomView.zoomedItem = this.add.image(
+            this.cameras.main.centerX - 100,
+            this.cameras.main.centerY,
+            itemKey
+        )
+            .setDisplaySize(itemHeight * 0.7, itemHeight) // Mantém proporção
+            .setDepth(1002);
 
-    // Botão de fechar (X no canto superior direito)
-    
-    this.zoomView.closeButton = this.add.text(
-    )
+        // Botão de fechar (X no canto superior direito)
 
-    .setDepth(1003)
-    .setInteractive({ useHandCursor: true })
-    .on('pointerdown', () => {
-        this.closeItemZoom();
-    });
+        this.zoomView.closeButton = this.add.text(
+        )
 
-    // Fecha ao clicar no overlay (fora do item)
-    this.zoomView.overlay.on('pointerdown', () => {
-        this.closeItemZoom();
-    });
+            .setDepth(1003)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.closeItemZoom();
+            });
 
-    // Desativa interações com o jogo principal
-    this.setInteractionsEnabled(false);
-}
+        // Fecha ao clicar no overlay (fora do item)
+        this.zoomView.overlay.on('pointerdown', () => {
+            this.closeItemZoom();
+        });
 
-//=========================================================================================================
-
-    closeItemZoom() {
-    if (!this.zoomView.active) return;
-
-    // Remove todos os elementos do zoom
-    this.zoomView.overlay.destroy();
-    this.zoomView.blurBg.destroy();
-    this.zoomView.closeButton.destroy();
-    
-    // Limpa a referência
-    if (this.zoomView.zoomedItem) {
-        this.zoomView.zoomedItem.destroy();
+        // Desativa interações com o jogo principal
+        this.setInteractionsEnabled(false);
     }
 
-    this.zoomView = {
-        active: false,
-        currentItem: null,
-        overlay: null,
-        blurBg: null,
-        closeButton: null,
-        zoomedItem: null
-    };
+    //=========================================================================================================
 
-    this.arrows.left.setVisible(true);
-    this.arrows.right.setVisible(true);
+    closeItemZoom() {
+        if (!this.zoomView.active) return;
 
-    // Reativa interações com o jogo principal
-    this.setInteractionsEnabled(true);
-}
+        // Remove todos os elementos do zoom
+        this.zoomView.overlay.destroy();
+        this.zoomView.blurBg.destroy();
+        this.zoomView.closeButton.destroy();
+
+        // Limpa a referência
+        if (this.zoomView.zoomedItem) {
+            this.zoomView.zoomedItem.destroy();
+        }
+
+        this.zoomView = {
+            active: false,
+            currentItem: null,
+            overlay: null,
+            blurBg: null,
+            closeButton: null,
+            zoomedItem: null
+        };
+
+        this.arrows.left.setVisible(true);
+        this.arrows.right.setVisible(true);
+
+        // Reativa interações com o jogo principal
+        this.setInteractionsEnabled(true);
+    }
 
 }
 
@@ -629,12 +652,12 @@ class Inventory {
         this.maxSlots = 10;
         this.scrollY = 0;
         this.maxScroll = 0;
-        
+
         // Posições e dimensões
         this.inventoryWidth = 150;
         this.hiddenX = scene.cameras.main.width + 10;
         this.visibleX = scene.cameras.main.width - this.inventoryWidth;
-        
+
         this.createToggleButton();
         this.createInventoryOverlay();
 
@@ -642,58 +665,58 @@ class Inventory {
 
         this.itemActions = {};
     }
- 
-//=========================================================================================================
+
+    //=========================================================================================================
 
     isInventoryActive() {
         return this.inventory.isVisible;
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     createToggleButton() {
-    const rightPosition = this.scene.cameras.main.width - 40;
-    const topPosition = 20;
-    
-    this.toggleButton = this.scene.add.image(rightPosition, topPosition, 'iconInventory')
-        .setDisplaySize(40, 40) // Tamanho fixo
-        .setInteractive({ useHandCursor: true })
-        .setDepth(1005);
-    
-    // Efeitos de hover - agora mais sutis
-    this.toggleButton.on('pointerover', () => {
-        this.scene.tweens.add({
-            targets: this.toggleButton,
-            scaleX: 0.4, 
-            scaleY: 0.4,
-            duration: 100,
-            ease: 'Sine.easeOut'
+        const rightPosition = this.scene.cameras.main.width - 40;
+        const topPosition = 20;
+
+        this.toggleButton = this.scene.add.image(rightPosition, topPosition, 'iconInventory')
+            .setDisplaySize(40, 40) // Tamanho fixo
+            .setInteractive({ useHandCursor: true })
+            .setDepth(1005);
+
+        // Efeitos de hover - agora mais sutis
+        this.toggleButton.on('pointerover', () => {
+            this.scene.tweens.add({
+                targets: this.toggleButton,
+                scaleX: 0.4,
+                scaleY: 0.4,
+                duration: 100,
+                ease: 'Sine.easeOut'
+            });
         });
-    });
-    
-    this.toggleButton.on('pointerout', () => {
-        this.scene.tweens.add({
-            targets: this.toggleButton,
-            scaleX: 0.3,
-            scaleY: 0.3,
-            duration: 100,
-            ease: 'Sine.easeIn'
+
+        this.toggleButton.on('pointerout', () => {
+            this.scene.tweens.add({
+                targets: this.toggleButton,
+                scaleX: 0.3,
+                scaleY: 0.3,
+                duration: 100,
+                ease: 'Sine.easeIn'
+            });
         });
-    });
-    
-    this.toggleButton.on('pointerdown', () => {
-        this.scene.tweens.add({
-            targets: this.toggleButton,
-            scaleX: 0.03,
-            scaleY: 0.03,
-            duration: 50,
-            yoyo: true
+
+        this.toggleButton.on('pointerdown', () => {
+            this.scene.tweens.add({
+                targets: this.toggleButton,
+                scaleX: 0.03,
+                scaleY: 0.03,
+                duration: 50,
+                yoyo: true
+            });
+            this.toggleInventory();
         });
-        this.toggleInventory();
-    });
-}
-    
-//=========================================================================================================
+    }
+
+    //=========================================================================================================
 
     createInventoryOverlay() {
         const gameWidth = this.scene.cameras.main.width;
@@ -702,20 +725,20 @@ class Inventory {
         const x = gameWidth - this.inventoryWidth;
 
         this.inventoryBg = this.scene.add.image(
-            this.hiddenX, 
-            gameHeight / 2, 
+            this.hiddenX,
+            gameHeight / 2,
             'inventory'
         )
-        .setOrigin(1.2, 0.5)
-        .setDisplaySize(this.inventoryWidth - x - 25, gameHeight)
-        .setDepth(1003);
+            .setOrigin(1.2, 0.5)
+            .setDisplaySize(this.inventoryWidth - x - 25, gameHeight)
+            .setDepth(1003);
 
         const rightPadding = 30;
         this.slotsContainer = this.scene.add.container(
-            this.hiddenX + rightPadding, 
+            this.hiddenX + rightPadding,
             60
         )
-        .setDepth(1004);
+            .setDepth(1004);
 
         const slotSize = 60;
         const padding = 5;
@@ -728,13 +751,13 @@ class Inventory {
                 x, y,
                 'slot'
             )
-            .setDisplaySize(slotSize, slotSize);
+                .setDisplaySize(slotSize, slotSize);
 
             this.slots.push({
                 background: slotBg,
                 item: null,
                 x: x,
-                y: y 
+                y: y
             });
 
             this.slotsContainer.add(slotBg);
@@ -746,37 +769,37 @@ class Inventory {
         // Configurar scroll do mouse
         this.setupMouseScroll();
     }
-  
-//=========================================================================================================
+
+    //=========================================================================================================
 
     calculateMaxScroll() {
         const slotHeight = 60 + 10;
         const visibleHeight = this.scene.cameras.main.height - 120;
         const totalHeight = this.maxSlots * slotHeight;
-        
+
         this.maxScroll = Math.max(0, totalHeight - visibleHeight);
     }
-   
-//=========================================================================================================    
+
+    //=========================================================================================================    
 
     setupMouseScroll() {
         this.scene.input.on('wheel', (pointer, gameObjects, deltaX, deltaY) => {
             if (this.isVisible) {
                 this.scrollY += deltaY * 0.5;
-                
+
                 this.scrollY = Phaser.Math.Clamp(this.scrollY, 0, this.maxScroll);
-                
+
                 this.slotsContainer.y = 60 - this.scrollY;
             }
         });
     }
- 
-//=========================================================================================================
+
+    //=========================================================================================================
 
     toggleInventory() {
         inventorySound.play();
         if (this.isAnimating) return;
-        
+
         this.isVisible = !this.isVisible;
         this.isAnimating = true;
 
@@ -785,7 +808,7 @@ class Inventory {
         if (this.isVisible) {
             this.scrollY = 0;
             this.slotsContainer.y = 60;
-            
+
             // Animação de entrada
             this.scene.tweens.add({
                 targets: [this.inventoryBg, this.slotsContainer],
@@ -814,8 +837,8 @@ class Inventory {
             this.scene.setInteractionsEnabled(true);
         }
     }
-   
-//=========================================================================================================
+
+    //=========================================================================================================
 
     addItem(itemKey, action = null) {
         const emptySlot = this.slots.find(slot => slot.item === null);
@@ -825,30 +848,30 @@ class Inventory {
                 emptySlot.y,
                 itemKey
             )
-            .setDisplaySize(50, 50)
-            .setInteractive() 
-            .on('pointerdown', () => {
-                if (this.isVisible) { 
-                    this.executeItemAction(itemKey);
-                }
-            })
-            .setVisible(this.isVisible)
-            .setDepth(53);
-            
+                .setDisplaySize(50, 50)
+                .setInteractive()
+                .on('pointerdown', () => {
+                    if (this.isVisible) {
+                        this.executeItemAction(itemKey);
+                    }
+                })
+                .setVisible(this.isVisible)
+                .setDepth(53);
+
             emptySlot.item = item;
             this.slotsContainer.add(item);
-            
+
             // Registra a ação se fornecida
             if (action) {
                 this.itemActions[itemKey] = action;
             }
-            
+
             return true;
         }
         return false;
     }
 
-//=========================================================================================================
+    //=========================================================================================================
 
     executeItemAction(itemKey) {
         if (this.itemActions[itemKey]) {
@@ -859,14 +882,14 @@ class Inventory {
             this.scene.showTooltip({ name: `Usando ${itemKey}...` });
         }
     }
-    
-//=========================================================================================================
+
+    //=========================================================================================================
 
     removeItem(itemKey) {
-        const slotIndex = this.slots.findIndex(slot => 
+        const slotIndex = this.slots.findIndex(slot =>
             slot.item && slot.item.texture.key === itemKey
         );
-        
+
         if (slotIndex !== -1) {
             this.slots[slotIndex].item.destroy();
             this.slots[slotIndex].item = null;
@@ -883,12 +906,15 @@ const config = {
     height: sizes.height,
     scene: [GameScene],
     scale: {
-        mode: Phaser.Scale.NONE // Evita scaling automático
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH // Corrigido para Phaser.Scale.CENTER_BOTH
     },
     render: {
-        antialias: false, // Para pixel art
-        roundPixels: true // Melhora clareza
+        pixelArt: true,
+        antialias: false,
+        roundPixels: true
     }
+    // parent: 'game-container', // Descomente e use se tiver um div no HTML
 };
 
 // Inicia o jogo
