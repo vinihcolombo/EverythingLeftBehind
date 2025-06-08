@@ -1,5 +1,6 @@
 import PuzzleGame from '../puzzles/foto-rasgada.js';
 import CameraPuzzle from '../puzzles/camera-senha.js';
+import RetratoPuzzle from '../puzzles/retrato-puzzle.js';
 import RoomManager from '../managers/RoomManager.js';
 import Inventory from '../ui/Inventory.js';
 import { sizes } from '../constants.js';
@@ -41,11 +42,13 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('bg4', './assets/images/paredeLeste_0.png');
         this.load.image('caixaclara', './assets/images/CaixaClara.png');
         this.load.image('paredeComCaixa', './assets/images/ParedecomCaixa.png');
-        this.load.image('retrato', './assets/images/retratoPlaceholder.png');
+        this.load.image('retrato', './assets/images/fotoArmario.png');
         this.load.image('gaveta', './assets/images/gavetaTrancada.png');
         this.load.image('caixa', './assets/images/Caixa.png');
         this.load.image('mapa', './assets/images/mapaMundi.png');
         this.load.image('mapaMundiAlterado', './assets/images/mapaMundiAlterado.png');
+        this.load.image('bg-pedras', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
+        // this.load.image('bg-cartas', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
 
         // Carrega os mapas
         this.load.json('mapa1', './maps/ParedeNorteDefinitiva.json');
@@ -59,6 +62,8 @@ export default class GameScene extends Phaser.Scene {
         this.load.json('retrato', './maps/retrato.json');
         this.load.json('gaveta', './maps/gavetaComCamera.json');
         this.load.json('mapa', './maps/mapaMundi.json');
+        this.load.json('pedras', './maps/pedras.json');
+        // this.load.json('cartas', './maps/cartas.json');
 
         // Carrega ícone de seta
         this.load.image('seta', './/assets/ui/seta.png');
@@ -69,8 +74,11 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('rockCollection', './assets/images/objects/rockCollection.png');
         this.load.image('Notebook_Item', './assets/images/objects/Notebook_Item.png');
         this.load.image('camera', './assets/images/objects/camera.png');
-        this.load.image('book', './assets/images/objects/Book.png');
-
+        this.load.image('marcaPag1', './assets/images/objects/marcaPag1.png');
+        this.load.image('caneta1', './assets/images/objects/caneta1.png');
+        this.load.image('polaroid', './assets/images/objects/polaroid.png');
+        this.load.image('pedacoMapa', './assets/images/objects/pedacoMapa.png');
+        // this.load.image('pilhaCartas', './assets/images/objects/pilhaCartas.png');
 
         //Inventário
         this.load.image('backpack', './assets/images/backpack.png');
@@ -228,8 +236,15 @@ export default class GameScene extends Phaser.Scene {
             this.handleCameraUnlock();
         });
     }
+
+            this.retratoPuzzle = new RetratoPuzzle(this, "07/11/1999");
+            this.events.on('retratoPuzzleCompleted', () => {
+                this.gameState.rafaelStorylineCompleted = true;
+                console.log("Rafael storyline completa: ", this.gameState.rafaelStorylineCompleted);
+            });
     }
     
+
     update () {
     // Verificação de consistência
     if (this.bg.texture.key !== this.getExpectedBackground()) {
@@ -254,7 +269,9 @@ getExpectedBackground() {
         'caixahelena': 'caixa',
         'paredeComCaixa': 'paredeComCaixa',
         'retrato': 'retrato',
-        'mapa': this.gameState.mapaAlterado ? 'mapaMundiAlterado' : 'mapa'
+        'mapa': this.gameState.mapaAlterado ? 'mapaMundiAlterado' : 'mapa',
+        // 'cartas': 'bg-cartas',
+        'pedras': 'bg-pedras'
     };
     return mapToBg[this.currentMapKey] || 'bg1';
 }
@@ -313,49 +330,46 @@ getExpectedBackground() {
     this.loadMapObjects(mapKey);
     this.currentMapKey = mapKey;
     
-    this.arrows.left.setVisible(false);
-    this.arrows.right.setVisible(false);
+    this.updateArrowsVisibility();
 }
 
     //=========================================================================================================
 
     goBackToPreviousMap() {
+    // Fecha qualquer diálogo aberto
+    this.hideTextBox();
+    
     this.clearItemSprites();
     
     if (this.navigationHistory.length > 0) {
         const previous = this.navigationHistory.pop();
         console.log(`[DEBUG] Voltando para: ${previous.mapKey} com bg: ${previous.bgKey}`);
 
-        // 1. Destrói completamente o background atual
         this.bg.destroy();
-        
-        // 2. Cria um NOVO background
         this.bg = this.add.image(0, 0, previous.bgKey)
             .setOrigin(0, 0)
             .setDisplaySize(this.scale.width, this.scale.height);
         
-        // 3. Limpa todas as zonas interativas
-        this.roomManager.clearPreviousZones(true); // Força limpeza completa
-        
-        // 4. Recarrega tudo do zero
+        this.roomManager.clearPreviousZones(true);
         this.loadMapObjects(previous.mapKey);
         this.currentMapKey = previous.mapKey;
         
-        // 5. Atualiza visibilidade das setas
-        this.time.delayedCall(50, () => {
-            this.updateArrowsVisibility();
-        });
+        this.updateArrowsVisibility();
     } else {
-        // Fallback para o mapa1
         this.loadCustomMap('mapa1', 'bg1');
     }
 }
 
     //=========================================================================================================
 
-    isStandardRoom() { // Verificação se é um quarto padrão para as setas aparecerem 
-        return this.standardRooms.includes(this.currentMapKey);
-    }
+    isStandardRoom() {
+    // Lista de salas que devem ter setas desativadas
+    const nonStandardRooms = ['cartas', 'pedras', 'caixaclara', 'caixahelena', 
+                            'caixarafael', 'paredeComCaixa', 'retrato', 
+                            'gaveta', 'mapa'];
+    return !nonStandardRooms.includes(this.currentMapKey) && 
+           this.standardRooms.includes(this.currentMapKey);
+}
 
     //=========================================================================================================
 
@@ -389,9 +403,10 @@ getExpectedBackground() {
     //=========================================================================================================
 
     updateArrowsVisibility() {
-        this.arrows.left.setVisible(true);
-        this.arrows.right.setVisible(true);
-    }
+    const shouldShowArrows = this.isStandardRoom();
+    this.arrows.left.setVisible(shouldShowArrows);
+    this.arrows.right.setVisible(shouldShowArrows);
+}
 
     //=========================================================================================================
 
@@ -414,17 +429,42 @@ getExpectedBackground() {
         console.log(`Camada: ${layer.name} (${layer.type})`); // Debug
         
         if (layer.type === 'objectgroup') {
+            if (mapKey === 'pedras') {
+                    if (layer.name === '28/12/1998' || layer.name === '24/05/1998' || 
+                        layer.name === '12/03/1998' || layer.name === '07/11/1999' || 
+                        layer.name === '03/04/1999') {
+                        layer.objects.forEach(obj => {
+                            this.createStoneInteractiveZone(obj, layer.name);
+                        });
+                        return; // Pula para próxima camada
+                    }
+                }
             layer.objects.forEach(obj => {
                 console.log(`- Objeto: ${obj.name} em (${obj.x},${obj.y})`); // Debug
                 
                 if (obj.name === 'Chave de Apartamento') { // Modifiquei a condição
                     this.createChave(obj);
                 }
+                else if (obj.name === 'Pedaço de Mapa-múndi') {
+                    this.createMapa(obj);
+                }
+                else if (obj.name === 'Fotografia Revelada') {
+                    this.createFotografia(obj);
+                }
                 else if (obj.name === 'Coleção de Pedras') {
                     this.createPedra(obj);
                 } 
+                // else if (obj.name === 'Pilha de Cartas') {
+                //     this.createCartas(obj);
+                // }
                 else if (obj.name === 'Caderno de Escrita') {
                     this.createNotebook(obj);
+                }
+                else if (obj.name === 'Marcas-página') {
+                    this.createMarcaPaginas(obj);
+                }
+                else if (obj.name === 'Canetas Tinteiro') {
+                    this.createCanetas(obj);
                 }
                 else if (obj.name === 'gavetaCamera') {
                     this.createCamera(obj);
@@ -540,6 +580,182 @@ getExpectedBackground() {
 
         this.roomManager.interactiveZones.push(zone);
     }
+
+    createMarcaPaginas(obj) {
+        const targetWidth = 96;
+        const targetHeight = 96;
+        const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
+        const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
+
+        // Destrói o sprite anterior do caderno, se existir
+        if (this.MarcaPaginasSprite) {
+            this.MarcaPaginasSprite.destroy();
+            this.MarcaPaginasSprite = null;
+        }
+
+        // Cria o sprite e armazena a referência
+        this.MarcaPaginasSprite = this.add.image( // "MarcaPaginasSprite" É A FUNÇÃO PARA CHAMAR O REMOVER OBJETO QUANDO CLICA
+            posX + targetWidth / 2,
+            posY + targetHeight / 2,
+            'marcaPag1'
+        )
+            .setDisplaySize(targetWidth, targetHeight)
+            .setOrigin(0.5, 0.5)
+            .setDepth(10);
+
+        const zone = this.add.zone(
+            obj.x, obj.y,
+            obj.width, obj.height
+        )
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip({ name: 'Marcas-página', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
+
+        this.roomManager.interactiveZones.push(zone);
+    }
+
+    createCanetas(obj) {
+        const targetWidth = 96;
+        const targetHeight = 96;
+        const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
+        const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
+
+        // Destrói o sprite anterior do caderno, se existir
+        if (this.CanetasSprite) {
+            this.CanetasSprite.destroy();
+            this.CanetasSprite = null;
+        }
+
+        // Cria o sprite e armazena a referência
+        this.CanetasSprite = this.add.image( // "CanetasSprite" É A FUNÇÃO PARA CHAMAR O REMOVER OBJETO QUANDO CLICA
+            posX + targetWidth / 2,
+            posY + targetHeight / 2,
+            'caneta1'
+        )
+            .setDisplaySize(targetWidth, targetHeight)
+            .setOrigin(0.5, 0.5)
+            .setDepth(10);
+
+        const zone = this.add.zone(
+            obj.x, obj.y,
+            obj.width, obj.height
+        )
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip({ name: 'Canetas Tinteiro', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
+
+        this.roomManager.interactiveZones.push(zone);
+    }
+
+    createMapa(obj) {
+        const targetWidth = 96;
+        const targetHeight = 96;
+        const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
+        const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
+
+        // Destrói o sprite anterior do caderno, se existir
+        if (this.MapaSprite) {
+            this.MapaSprite.destroy();
+            this.MapaSprite = null;
+        }
+
+        // Cria o sprite e armazena a referência
+        this.MapaSprite = this.add.image( // "MapaSprite" É A FUNÇÃO PARA CHAMAR O REMOVER OBJETO QUANDO CLICA
+            posX + targetWidth / 2,
+            posY + targetHeight / 2,
+            'pedacoMapa'
+        )
+            .setDisplaySize(targetWidth, targetHeight)
+            .setOrigin(0.5, 0.5)
+            .setDepth(10);
+
+        const zone = this.add.zone(
+            obj.x, obj.y,
+            obj.width, obj.height
+        )
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip({ name: 'Pedaço de Mapa-múndi', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
+
+        this.roomManager.interactiveZones.push(zone);
+    }
+
+    // createCartas(obj) {
+    //     const targetWidth = 96;
+    //     const targetHeight = 96;
+    //     const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
+    //     const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
+
+    //     // Destrói o sprite anterior do caderno, se existir
+    //     if (this.CartasSprite) {
+    //         this.CartasSprite.destroy();
+    //         this.CartasSprite = null;
+    //     }
+
+    //     // Cria o sprite e armazena a referência
+    //     this.CartasSprite = this.add.image( // "CartasSprite" É A FUNÇÃO PARA CHAMAR O REMOVER OBJETO QUANDO CLICA
+    //         posX + targetWidth / 2,
+    //         posY + targetHeight / 2,
+    //         'pilhaCartas'
+    //     )
+    //         .setDisplaySize(targetWidth, targetHeight)
+    //         .setOrigin(0.5, 0.5)
+    //         .setDepth(10);
+
+    //     const zone = this.add.zone(
+    //         obj.x, obj.y,
+    //         obj.width, obj.height
+    //     )
+    //         .setOrigin(0)
+    //         .setInteractive({ useHandCursor: true })
+    //         .on('pointerover', () => this.showTooltip({ name: 'Pilha de Cartas', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
+    //         .on('pointerout', () => this.tooltip.setVisible(false))
+    //         .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
+
+    //     this.roomManager.interactiveZones.push(zone);
+    // }
+
+    createFotografia(obj) {
+        const targetWidth = 96;
+        const targetHeight = 96;
+        const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
+        const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
+
+        // Destrói o sprite anterior do caderno, se existir
+        if (this.FotografiaSprite) {
+            this.FotografiaSprite.destroy();
+            this.FotografiaSprite = null;
+        }
+
+        // Cria o sprite e armazena a referência
+        this.FotografiaSprite = this.add.image( // "FotografiaSprite" É A FUNÇÃO PARA CHAMAR O REMOVER OBJETO QUANDO CLICA
+            posX + targetWidth / 2,
+            posY + targetHeight / 2,
+            'polaroid'
+        )
+            .setDisplaySize(targetWidth, targetHeight)
+            .setOrigin(0.5, 0.5)
+            .setDepth(10);
+
+        const zone = this.add.zone(
+            obj.x, obj.y,
+            obj.width, obj.height
+        )
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip({ name: 'Fotografia Revelada', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
+
+        this.roomManager.interactiveZones.push(zone);
+    }
+
     createCamera(obj) {
         const targetWidth = 96;
         const targetHeight = 96;
@@ -621,6 +837,17 @@ getExpectedBackground() {
         this._lastClickedObjectCache = obj;
         console.log('lastClickedObject definido como:', this.lastClickedObject);
 
+        if (obj.name === "28/12/98")
+            this.showTextBoxDialogue("Esta veio da praia onde fizemos uma viagem de fim de semana, será que ele se lembra do pôr do sol?");
+        if (obj.name === "24/05/98")
+            this.showTextBoxDialogue("...Que dia maldito...");
+        if (obj.name === "12/03/98")
+            this.showTextBoxDialogue("Essa aqui a gente achou enquanto andava pelas ruas depois do meu aniversário, você me deu esta pedra dizendo que eu era especial...");
+        if (obj.name === "07/11/99")
+            this.showTextBoxDialogue("Nesse dia a gente matou aula pela última vez, a gente tava tão feliz, eu não sabia que nosso caminho se separava em breve");
+        if (obj.name === "03/04/99")
+            this.showTextBoxDialogue("Ele me deu essa pedra por pena, foi quando eu quebrei um braço escorregando em uma casca de banana igual uma idiota");
+
         if (obj.name === "Chave de Apartamento") {
             this.inventory.addItem('keychain', () => {
                 this.showItemZoom('keychain', "Quarto 372, muitas lembranças daquele apartamento");
@@ -630,20 +857,69 @@ getExpectedBackground() {
             return;
         }
 
+        if (obj.name === "Pedaço de Mapa-múndi") {
+            this.inventory.addItem('pedacoMapa', () => {
+                this.showItemZoom('pedacoMapa');
+            })
+            this.removeHitboxForObject(obj);
+            this.MapaSprite.destroy();
+            return;
+        }
+
+        if (obj.name === "Fotografia Revelada") {
+            this.inventory.addItem('polaroid', () => {
+                this.showItemZoom('polaroid');
+            })
+            this.removeHitboxForObject(obj);
+            this.FotografiaSprite.destroy();
+            return;
+        }
+
         if (obj.name === "Coleção de Pedras") {
             this.inventory.addItem('rockCollection', () => {
-                ;
+                this.goBackToPreviousMap();
+                this.loadCustomMap('pedras', 'pedras')  ;
+
             });
             this.removeHitboxForObject(obj);
             this.PedraSprite.destroy();
             return;
         }
+
+        // if (obj.name === "Pilha de Cartas") {
+        //     this.inventory.addItem('pilhaCartas', () => {
+        //         this.goBackToPreviousMap();
+        //         this.loadCustomMap('cartas', 'cartas');
+        //     })
+        //     this.removeHitboxForObject(obj);
+        //     this.CartasSprite.destroy();
+        //     return;
+        // }
+
         if (obj.name === "Caderno de Escrita") {
             this.inventory.addItem('notebookOpen', () => {
                 this.showItemZoom('notebookOpen');
             });
             this.removeHitboxForObject(obj);
             this.NotebookSprite.destroy();
+            return;
+        }
+
+        if (obj.name === "Marcas-página") {
+            this.inventory.addItem('Marcas-Página', () => {
+                ;
+            });
+            this.removeHitboxForObject(obj);
+            this.MarcaPaginasSprite.destroy();
+            return;
+        }
+
+        if (obj.name === "Canetas Tinteiro") {
+            this.inventory.addItem('Canetas Tinteiro', () => {
+                ;
+            });
+            this.removeHitboxForObject(obj);
+            this.CanetasSprite.destroy();
             return;
         }
 
@@ -688,6 +964,8 @@ getExpectedBackground() {
 
         if (obj.name === "caixaClara") {
             this.showTextBoxWithChoices("Nossa.. tantas memórias da Clara por aqui..");
+            console.log("RafaelStoryline: ", this.gameState.rafaelStorylineCompleted);
+            console.log("ClaraStoryline: ", this.gameState.claraStorylineCompleted);
             return;
         }
 
@@ -697,7 +975,12 @@ getExpectedBackground() {
         }
 
         if (obj.name === "PrateleiraArmario") {
-            this.showTextBoxWithChoices("Teste 123");
+            this.hideTextBox();
+            if (!this.gameState.retratoCompleted) {
+                this.retratoPuzzle.create();
+            } else {
+                this.showTextBoxDialogue("Já descobri a data deste retrato.");
+            }
             return;
         }
 
@@ -755,7 +1038,7 @@ startPuzzle() {
     this.setInteractionsEnabled(false);
     
     // Cria o puzzle centralizado na tela
-    this.puzzleGame = new PuzzleGame(this, 'bg1', this.inventory);
+    this.puzzleGame = new PuzzleGame(this, 'pedacoMapa', this.inventory);
     
     // Posiciona no centro da tela
     const x = (sizes.width - 600) / 2;
@@ -769,14 +1052,14 @@ startPuzzle() {
     // Configura o callback quando o puzzle for completado
     this.puzzleGame.setOnComplete(() => {
     // Adiciona o item usável com verificação de mapa
-    this.inventory.addUsableItem('book', 'book', () => {
+    this.inventory.addUsableItem('pedacoMapa', 'pedacoMapa', () => {
         // Retorna true se o mapa foi alterado, false caso contrário
         return this.alterarMapaMundi();
     });
     
     // Adiciona o item visual ao inventário
-    this.inventory.addItem('book', () => {
-        this.showItemZoom('book');
+    this.inventory.addItem('pedacoMapa', () => {
+        this.showItemZoom('pedacoMapa');
     });
 
     // Destrói o puzzle
@@ -818,18 +1101,39 @@ useFunctionalCamera() {
             this.ChaveSprite.destroy();
             this.ChaveSprite = null;
         }
+        if (this.MapaSprite) {
+            this.MapaSprite.destroy();
+            this.MapaSprite = null;
+        }
+        if (this.FotografiaSprite) {
+            this.FotografiaSprite.destroy();
+            this.FotografiaSprite = null;
+        }
         if (this.PedraSprite) {
             this.PedraSprite.destroy();
             this.PedraSprite = null;
         }
+        // if (this.CartasSprite) {
+        //     this.CartasSprite.destroy();
+        //     this.CartasSprite = null;
+        // }
         if (this.NotebookSprite) {
             this.NotebookSprite.destroy();
             this.NotebookSprite = null;
+        }
+        if (this.CanetasSprite) {
+            this.CanetasSprite.destroy();
+            this.CanetasSprite = null;
+        }
+        if (this.MarcaPaginasSprite) {
+            this.MarcaPaginasSprite.destroy();
+            this.MarcaPaginasSprite = null;
         }
         if (this.CameraSprite) {
             this.CameraSprite.destroy();
             this.CameraSprite = null;
         }
+        
     }
 
     removeHitboxForObject(obj) {
@@ -894,12 +1198,12 @@ useFunctionalCamera() {
     //=========================================================================================================
 
     hideTextBox() {
-        this.textBox.setVisible(false);
-        this.textBoxBackground.setVisible(false);
-        this.buttonOpen.setVisible(false);
-        this.buttonClose.setVisible(false);
-        this.buttonCloseDialogue.setVisible(false);
-    }
+    this.textBox.setVisible(false);
+    this.textBoxBackground.setVisible(false);
+    this.buttonOpen.setVisible(false);
+    this.buttonClose.setVisible(false);
+    this.buttonCloseDialogue.setVisible(false);
+}
 
     //=========================================================================================================
 
@@ -1165,4 +1469,4 @@ showZoomedImage(imageKey, options = {}) {
 }
 
     //=========================================================================================================
-}
+}   
