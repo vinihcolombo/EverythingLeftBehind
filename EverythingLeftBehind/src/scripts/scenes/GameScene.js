@@ -142,6 +142,11 @@ export default class GameScene extends Phaser.Scene {
         })
             .setInteractive({ useHandCursor: true })
 .on('pointerdown', () => {
+    const obj = this.lastClickedObject || this._lastClickedObjectCache;
+    console.log('Tentando abrir objeto:', obj?.name);
+    if (obj.name === "gavetaGrande") {
+        this.loadCustomMap('gaveta', 'gaveta');
+    }
     if (this.lastClickedObject) {
         if (this.lastClickedObject.name === "caixaClara") {
             this.loadCustomMap('caixaclara', 'caixa');
@@ -243,10 +248,14 @@ export default class GameScene extends Phaser.Scene {
 
     loadCustomMap(mapKey, bgKey) {
     // Verifica se é o mapa que pode ser alterado
+
     if (mapKey === 'mapa' && this.gameState.mapaAlterado) {
         bgKey = 'mapaMundiAlterado'; // Força o fundo alterado
     }
     
+    console.log(`[DEBUG] Carregando mapa: ${mapKey}`);
+    console.log(`Mapa no cache: ${this.cache.json.has(mapKey)}`);
+
     // Resto do método original...
     if (this.currentMapKey && this.bg.texture) {
         this.navigationHistory.push({
@@ -548,6 +557,11 @@ export default class GameScene extends Phaser.Scene {
         //     this.showTextBox("Você abriu a caixa pequena.");
         // }
 
+        console.log('[DEBUG] Objeto clicado:', obj.name);
+        this.lastClickedObject = obj;
+        this._lastClickedObjectCache = obj;
+        console.log('lastClickedObject definido como:', this.lastClickedObject);
+
         if (obj.name === "Chave de Apartamento") {
             this.inventory.addItem('keychain', () => {
                 this.showItemZoom('keychain');
@@ -593,6 +607,7 @@ export default class GameScene extends Phaser.Scene {
         // Se o mapa foi alterado, permite abrir a gaveta
         this.showTextBoxWithChoices("Uma gaveta");
         this.buttonOpen.setVisible(true);
+        this.buttonOpen.setDepth(1000);
     } else {
         // Se o mapa NÃO foi alterado, mostra mensagem diferente
         this.showTextBoxDialogue("A gaveta está trancada. Parece que preciso alterar algo primeiro...");
@@ -768,19 +783,19 @@ startPuzzle() {
     }
 
     showTextBoxWithChoices(message) {
-    this.textBox.setText(message).setVisible(true);
-    this.textBoxBackground.setVisible(true);
-    
-    // Mostra o botão "Abrir" apenas se for a gaveta E o mapa foi alterado
-if (this.lastClickedObject?.name === "gavetaGrande") {
-    // Só mostra "Abrir" se o mapa foi alterado
-    this.buttonOpen.setVisible(this.gameState.mapaAlterado);
-} else {
-    // Para outros objetos, mostra normalmente
-    this.buttonOpen.setVisible(true);
-}
-    this.buttonClose.setVisible(true);
-}
+        this.textBox.setText(message).setVisible(true);
+        this.textBoxBackground.setVisible(true);
+        
+        // Mostra o botão "Abrir" apenas se for a gaveta E o mapa foi alterado
+        if (this.lastClickedObject.name === "gavetaGrande") {
+            // Só mostra "Abrir" se o mapa foi alterado
+            this.buttonOpen.setVisible(this.gameState.mapaAlterado);
+        } else {
+            // Para outros objetos, mostra normalmente
+            this.buttonOpen.setVisible(true);
+        }
+        this.buttonClose.setVisible(true);
+    }
 
     showTextBoxDialogue(message) {
         this.textBox.setText(message).setVisible(true);
