@@ -41,13 +41,20 @@ export default class RoomManager {
 
     //=========================================================================================================
 
-    clearPreviousZones() {
-        this.interactiveZones.forEach(zone => {
-            if (!zone.getData('collected')) { // Só remove se não foi coletado
-                zone.destroy();
+    clearPreviousZones(forceDestroy = false) {
+    this.interactiveZones.forEach(zone => {
+        zone.destroy(); // Destrói completamente
+    });
+    this.interactiveZones = [];
+    
+    if (forceDestroy) {
+        // Limpeza adicional para garantir
+        this.scene.children.each(child => {
+            if (child instanceof Phaser.GameObjects.Zone) {
+                child.destroy();
             }
         });
-        this.interactiveZones = [];
+    }
 }
 
     //=========================================================================================================

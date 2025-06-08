@@ -43,7 +43,7 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('gaveta', './assets/images/gavetaTrancada.png');
         this.load.image('caixa', './assets/images/Caixa.png');
         this.load.image('mapa', './assets/images/mapaMundi.png');
-        this.load.image('mapaMundiAlterado', './assets/images/ParedeQuadro_Vazio.png');
+        this.load.image('mapaMundiAlterado', './assets/images/mapaMundiAlterado.png');
 
         // Carrega os mapas
         this.load.json('mapa1', './maps/ParedeNorteDefinitiva.json');
@@ -220,6 +220,36 @@ export default class GameScene extends Phaser.Scene {
 
     }
 
+    
+    update () {
+    // Verificação de consistência
+    if (this.bg.texture.key !== this.getExpectedBackground()) {
+        console.warn('Inconsistência detectada! Recriando background...');
+        this.bg.destroy();
+        this.bg = this.add.image(0, 0, this.getExpectedBackground())
+            .setOrigin(0, 0)
+            .setDisplaySize(this.scale.width, this.scale.height);
+    }
+}
+
+getExpectedBackground() {
+    // Mapeia currentMapKey para o background esperado
+    const mapToBg = {
+        'mapa1': 'bg1',
+        'mapa2': 'bg2',
+        'mapa3': 'bg3',
+        'mapa4': 'bg4',
+        'gaveta': 'gaveta', // ajuste conforme seus assets
+    'caixaclara': 'caixa',
+        'caixarafael': 'caixa',
+        'caixahelena': 'caixa',
+        'paredeComCaixa': 'paredeComCaixa',
+        'retrato': 'retrato',
+        'mapa': this.gameState.mapaAlterado ? 'mapaMundiAlterado' : 'mapa'
+    };
+    return mapToBg[this.currentMapKey] || 'bg1';
+}
+
     //=========================================================================================================
 
     setInteractionsEnabled(state) {
@@ -248,6 +278,7 @@ export default class GameScene extends Phaser.Scene {
 
     loadCustomMap(mapKey, bgKey) {
     // Verifica se é o mapa que pode ser alterado
+    if (this.currentMapKey === mapKey) return;
 
     if (mapKey === 'mapa' && this.gameState.mapaAlterado) {
         bgKey = 'mapaMundiAlterado'; // Força o fundo alterado
@@ -280,17 +311,29 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     goBackToPreviousMap() {
-        this.clearItemSprites();
-
-        if (this.navigationHistory.length > 0) {
-            const previous = this.navigationHistory.pop();
-            this.loadCustomMap(previous.mapKey, previous.bgKey);
-        } else {
-            // Se não houver histórico, volta para o mapa1 como fallback
-            this.loadCustomMap('mapa1', 'bg1');
-        }
-        this.updateArrowsVisibility();
+    if (this.navigationHistory.length === 0) {
+        this.loadCustomMap('mapa1', 'bg1');
+        return;
     }
+    
+    const previous = this.navigationHistory.pop();
+    
+    // Limpeza completa antes de carregar o mapa anterior
+    this.roomManager.clearPreviousZones(true);
+    this.clearItemSprites();
+    
+    // Carrega o mapa anterior
+    this.loadMapObjects(previous.mapKey);
+    this.currentMapKey = previous.mapKey;
+    
+    // Atualiza o background corretamente
+    this.bg.setTexture(previous.bgKey);
+    
+    // Pequeno delay para garantir que tudo foi carregado
+    this.time.delayedCall(50, () => {
+        this.updateArrowsVisibility();
+    });
+}
 
     //=========================================================================================================
 
