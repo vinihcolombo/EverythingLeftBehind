@@ -29,6 +29,7 @@ export default class CadernoPuzzle {
 
         this.scene.load.json('cadernoPuzzle', './maps/caderno.json');
         this.scene.load.once('complete', this.createPuzzleElements, this);
+        this.scene.load.image('papelRasgado', './assets/images/objects/papelRasgado.png');
         this.scene.load.start();
     }
 
@@ -292,10 +293,10 @@ export default class CadernoPuzzle {
     getPieceImageKey(pieceName) {
         // Map pieces to their image assets
         const pieceImages = {
-            "Escrita rosa": "escritarosa",
-            "Escrita roxa": "escritaroxa",
-            "Escrita vermelha": "escritavermelha",
-            "Escrita azul": "escritaazul"
+            "Escrita rosa": "papelRasgado",
+            "Escrita roxa": "papelRasgado",
+            "Escrita vermelha": "papelRasgado",
+            "Escrita azul": "papelRasgado"
         };
         return pieceImages[pieceName] || 'escritarosa';
     }

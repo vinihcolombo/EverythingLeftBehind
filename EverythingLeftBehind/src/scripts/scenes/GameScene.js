@@ -21,6 +21,8 @@ export default class GameScene extends Phaser.Scene {
         this.standardRooms = ['mapa1', 'mapa2', 'mapa3', 'mapa4'];
         this.currentMapKey = null;
         this.inspectionScreen = null;
+        this.canetasSprites = []; // Armazena todas as canetas
+        this.marcadoresSprites = []; // Armazena todos os marcadores
 
         //teste zoom
         this.zoomView = {
@@ -367,7 +369,8 @@ getExpectedBackground() {
     goBackToPreviousMap() {
     // Fecha qualquer diálogo aberto
     this.hideTextBox();
-    
+
+    // Limpa todos os sprites temporários
     this.clearItemSprites();
     
     if (this.navigationHistory.length > 0) {
@@ -448,6 +451,9 @@ getExpectedBackground() {
     loadMapObjects(mapKey) {
     console.log(`Carregando objetos do mapa: ${mapKey}`); // Debug
     
+    this.clearCanetas();
+    this.clearMarcadores();
+
     const mapData = this.cache.json.get(mapKey);
     if (!mapData) {
         console.error(`Mapa ${mapKey} não encontrado no cache!`);
@@ -507,9 +513,9 @@ getExpectedBackground() {
                     obj.name === "Caneta Vermelha" || obj.name === "Caneta Rosa") {
                     this.createCanetaIndividual(obj);
                 }
-                else if (obj.name.includes("MarcaPag")){
-                    this.createMarcaPaginaIndividual(obj);
-                }
+                else if (obj.name && obj.name.includes("MarcaPag")) {
+                        this.createMarcaPaginaIndividual(obj);
+                    }
                 else {
                     this.createStandardInteractiveZone(obj);
                 }
@@ -520,7 +526,7 @@ getExpectedBackground() {
     createCanetaIndividual(obj) {
     const imgKey = obj.name.includes("Roxa") || obj.name.includes("Rosa") ? 'caneta2' : 'caneta1';
     
-    const caneta = this.add.image(
+    const sprite = this.add.image(
         obj.x + obj.width/2,
         obj.y + obj.height/2,
         imgKey
@@ -536,31 +542,27 @@ getExpectedBackground() {
         .on('pointerout', () => this.tooltip.setVisible(false))
         .on('pointerdown', () => this.handleObjectClick(obj));
 
+    // Armazena a referência
+    this.canetasSprites.push({
+        sprite: sprite,
+        zone: zone,
+        originalObj: obj
+    });
+
     this.roomManager.interactiveZones.push(zone);
 }
 
 createMarcaPaginaIndividual(obj) {
-    // Determina qual imagem usar baseada no nome do objeto
     let imgKey;
     switch(obj.name) {
-        case "MarcaPag1":
-            imgKey = 'marcaPag1'; // Imagem para o primeiro marcador
-            break;
-        case "MarcaPag2":
-            imgKey = 'marcaPag2'; // Imagem para o segundo marcador
-            break;
-        case "MarcaPag3":
-            imgKey = 'marcaPag1'; // Imagem para o terceiro marcador
-            break;
-        case "MarcaPag4":
-            imgKey = 'marcaPag2'; // Imagem para o quarto marcador
-            break;
-        default:
-            imgKey = 'marcaPag1'; // Padrão caso não encontre
+        case "MarcaPag1": imgKey = 'marcaPag1'; break;
+        case "MarcaPag2": imgKey = 'marcaPag2'; break;
+        case "MarcaPag3": imgKey = 'marcaPag1'; break;
+        case "MarcaPag4": imgKey = 'marcaPag2'; break;
+        default: imgKey = 'marcaPag1';
     }
 
-    // Cria a imagem do marcador de página
-    const marcaPagina = this.add.image(
+    const sprite = this.add.image(
         obj.x + obj.width/2,
         obj.y + obj.height/2,
         imgKey
@@ -569,19 +571,19 @@ createMarcaPaginaIndividual(obj) {
     .setOrigin(0.5)
     .setDepth(10);
 
-    // Cria a zona interativa
     const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
         .setOrigin(0)
         .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => this.showTooltip({
-            name: obj.name,
-            x: obj.x,
-            y: obj.y,
-            width: obj.width,
-            height: obj.height
-        }))
+        .on('pointerover', () => this.showTooltip(obj))
         .on('pointerout', () => this.tooltip.setVisible(false))
         .on('pointerdown', () => this.handleMarcaPaginaClick(obj));
+
+    // Armazena a referência
+    this.marcadoresSprites.push({
+        sprite: sprite,
+        zone: zone,
+        originalObj: obj
+    });
 
     this.roomManager.interactiveZones.push(zone);
 }
@@ -1033,25 +1035,27 @@ createMarcaPaginaIndividual(obj) {
             return;
         }
 
-        if (obj.name === "Marcas-página") {
-            this.inventory.addItem('marcaPag1', () => {
-                this.goBackToPreviousMap();
-                this.loadCustomMap('marcapag', 'bg-marcapag');
-            });
-            this.removeHitboxForObject(obj);
-            this.MarcaPaginasSprite.destroy();
-            return;
-        }
-
         if (obj.name === "Canetas Tinteiro") {
-            this.inventory.addItem('caneta1', () => {
-                this.goBackToPreviousMap();
-                this.loadCustomMap('canetas', 'bg-canetas');
-            });
-            this.removeHitboxForObject(obj);
-            this.CanetasSprite.destroy();
-            return;
-        }
+        this.inventory.addItem('caneta1', () => {
+            // Carrega o mapa de canetas
+            this.goBackToPreviousMap();
+            this.loadCustomMap('canetas', 'bg-canetas');
+        });
+        this.removeHitboxForObject(obj);
+        if (this.CanetasSprite) this.CanetasSprite.destroy();
+        return;
+    }
+
+    if (obj.name === "Marcas-página") {
+        this.inventory.addItem('marcaPag1', () => {
+            // Carrega o mapa de marcadores
+            this.goBackToPreviousMap();
+            this.loadCustomMap('marcapag', 'bg-marcapag');
+        });
+        this.removeHitboxForObject(obj);
+        if (this.MarcaPaginasSprite) this.MarcaPaginasSprite.destroy();
+        return;
+    }
 
         if (obj.name === "gavetaCamera") {
     this.inventory.addItem('camera', () => {
@@ -1228,44 +1232,56 @@ useFunctionalCamera() {
 
 
     clearItemSprites() {
-        if (this.ChaveSprite) {
-            this.ChaveSprite.destroy();
-            this.ChaveSprite = null;
-        }
-        if (this.MapaSprite) {
-            this.MapaSprite.destroy();
-            this.MapaSprite = null;
-        }
-        if (this.FotografiaSprite) {
-            this.FotografiaSprite.destroy();
-            this.FotografiaSprite = null;
-        }
-        if (this.PedraSprite) {
-            this.PedraSprite.destroy();
-            this.PedraSprite = null;
-        }
-        // if (this.CartasSprite) {
-        //     this.CartasSprite.destroy();
-        //     this.CartasSprite = null;
-        // }
-        if (this.NotebookSprite) {
-            this.NotebookSprite.destroy();
-            this.NotebookSprite = null;
-        }
-        if (this.CanetasSprite) {
-            this.CanetasSprite.destroy();
-            this.CanetasSprite = null;
-        }
-        if (this.MarcaPaginasSprite) {
-            this.MarcaPaginasSprite.destroy();
-            this.MarcaPaginasSprite = null;
-        }
-        if (this.CameraSprite) {
-            this.CameraSprite.destroy();
-            this.CameraSprite = null;
-        }
-        
+    // Objetos gerais
+    if (this.ChaveSprite) {
+        this.ChaveSprite.destroy();
+        this.ChaveSprite = null;
     }
+    if (this.MapaSprite) {
+        this.MapaSprite.destroy();
+        this.MapaSprite = null;
+    }
+    if (this.FotografiaSprite) {
+        this.FotografiaSprite.destroy();
+        this.FotografiaSprite = null;
+    }
+    if (this.PedraSprite) {
+        this.PedraSprite.destroy();
+        this.PedraSprite = null;
+    }
+    if (this.NotebookSprite) {
+        this.NotebookSprite.destroy();
+        this.NotebookSprite = null;
+    }
+    if (this.CameraSprite) {
+        this.CameraSprite.destroy();
+        this.CameraSprite = null;
+    }
+
+    // Canetas e marca-páginas (adicionar esses arrays no constructor)
+    this.clearCanetas();
+    this.clearMarcadores();
+}
+
+clearCanetas() {
+    if (this.canetasSprites) {
+        this.canetasSprites.forEach(caneta => {
+            if (caneta.sprite) caneta.sprite.destroy();
+            if (caneta.zone) caneta.zone.destroy();
+        });
+        this.canetasSprites = [];
+    }
+}
+
+clearMarcadores() {
+    if (this.marcadoresSprites) {
+        this.marcadoresSprites.forEach(marcador => {
+            if (marcador.sprite) marcador.sprite.destroy();
+            if (marcador.zone) marcador.zone.destroy();
+        });
+        this.marcadoresSprites = [];
+    }
+}
 
     removeHitboxForObject(obj) {
         // Encontra a zona correspondente ao objeto clicado
