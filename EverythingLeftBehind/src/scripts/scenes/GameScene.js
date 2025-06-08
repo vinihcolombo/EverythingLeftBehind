@@ -2,6 +2,7 @@ import PuzzleGame from '../puzzles/foto-rasgada.js';
 import RoomManager from '../managers/RoomManager.js';
 import Inventory from '../ui/Inventory.js';
 import { sizes } from '../constants.js';
+import GameState from './GameState.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -42,6 +43,7 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('gaveta', './assets/images/gavetaTrancada.png');
         this.load.image('caixa', './assets/images/Caixa.png');
         this.load.image('mapa', './assets/images/mapaMundi.png');
+        this.load.image('mapaMundiAlterado', './assets/images/ParedeQuadro_Vazio.png');
 
         // Carrega os mapas
         this.load.json('mapa1', './maps/ParedeNorteDefinitiva.json');
@@ -82,6 +84,7 @@ export default class GameScene extends Phaser.Scene {
         this.navigationHistory = [];
         // Inicializa o gerenciador de quartos
         this.roomManager = new RoomManager(this);
+        this.gameState = new GameState();
 
         // Configura o fundo
         this.bg = this.add.image(0, 0, 'bg1').setOrigin(0, 0);
@@ -138,34 +141,37 @@ export default class GameScene extends Phaser.Scene {
             resolution: 2,
         })
             .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                if (this.lastClickedObject) {
-                    if (this.lastClickedObject.name === "caixaClara") {
-                        this.loadCustomMap('caixaclara', 'caixa');
-                    }
-                    else if (this.lastClickedObject.name === "Caixa sobre Helena") {
-                        this.loadCustomMap('caixahelena', 'caixa');
-                    }
-                    else if (this.lastClickedObject.name === "Caixa do Rafael") {
-                        this.loadCustomMap('caixarafael', 'caixa');
-                    }
-                    else if (this.lastClickedObject.name === "QuadroBanana") {
-                        this.loadCustomMap('paredeComCaixa', 'paredeComCaixa');
-                    }
-                    else if (this.lastClickedObject.name === "PrateleiraArmario") {
-                        this.loadCustomMap('retrato', 'retrato');
-                    }
-                    else if (this.lastClickedObject.name === "gavetaGrande") {
-                        this.loadCustomMap('gaveta', 'gaveta');
-                    }
-                    else if (this.lastClickedObject.name === "Quadro") {
-                        this.loadCustomMap('mapa', 'mapa');
-                    }
-                }
-                this.hideTextBox();
-            })
-            .setDepth(101)
-            .setVisible(false);
+.on('pointerdown', () => {
+    if (this.lastClickedObject) {
+        if (this.lastClickedObject.name === "caixaClara") {
+            this.loadCustomMap('caixaclara', 'caixa');
+        }
+        else if (this.lastClickedObject.name === "Caixa sobre Helena") {
+            this.loadCustomMap('caixahelena', 'caixa');
+        }
+        else if (this.lastClickedObject.name === "Caixa do Rafael") {
+            this.loadCustomMap('caixarafael', 'caixa');
+        }
+        else if (this.lastClickedObject.name === "QuadroBanana") {
+            this.loadCustomMap('paredeComCaixa', 'paredeComCaixa');
+        }
+        else if (this.lastClickedObject.name === "PrateleiraArmario") {
+            this.loadCustomMap('retrato', 'retrato');
+        }
+        else if (this.lastClickedObject.name === "gavetaGrande") {
+            this.loadCustomMap('gaveta', 'gaveta');
+        }
+        else if (this.lastClickedObject.name === "Quadro") {
+            this.loadCustomMap('mapa', 'mapa');
+        }
+    }
+    this.hideTextBox(); // Esta linha garante que a caixa será fechada
+})
+
+
+.setDepth(101)
+.setVisible(false);
+
 
         //=========================================================================================================
         //=========================================================================================================
@@ -236,30 +242,31 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     loadCustomMap(mapKey, bgKey) {
-
-        if (this.currentMapKey && this.bg.texture) {
-            this.navigationHistory.push({
-                mapKey: this.currentMapKey,
-                bgKey: this.bg.texture.key
-            });
-        }
-        // Limpa zonas interativas anteriores
-        this.roomManager.clearPreviousZones();
-
-        // Atualiza o fundo, se quiser um fundo específico para o POV
-        if (bgKey) {
-            this.updateBackground(bgKey);
-        }
-
-        // Carrega objetos do mapa customizado
-        this.loadMapObjects(mapKey);
-
-        this.currentMapKey = mapKey;
-
-        // Esconde setas (se não quiser navegar no POV)
-        this.arrows.left.setVisible(false);
-        this.arrows.right.setVisible(false);
+    // Verifica se é o mapa que pode ser alterado
+    if (mapKey === 'mapa' && this.gameState.mapaAlterado) {
+        bgKey = 'mapaMundiAlterado'; // Força o fundo alterado
     }
+    
+    // Resto do método original...
+    if (this.currentMapKey && this.bg.texture) {
+        this.navigationHistory.push({
+            mapKey: this.currentMapKey,
+            bgKey: this.bg.texture.key
+        });
+    }
+    
+    this.roomManager.clearPreviousZones();
+    
+    if (bgKey) {
+        this.updateBackground(bgKey);
+    }
+    
+    this.loadMapObjects(mapKey);
+    this.currentMapKey = mapKey;
+    
+    this.arrows.left.setVisible(false);
+    this.arrows.right.setVisible(false);
+}
 
     //=========================================================================================================
 
@@ -581,7 +588,18 @@ export default class GameScene extends Phaser.Scene {
         return;
         }
 
-        
+        if (obj.name === "gavetaGrande") {
+    if (this.gameState.mapaAlterado) {
+        // Se o mapa foi alterado, permite abrir a gaveta
+        this.showTextBoxWithChoices("Uma gaveta");
+        this.buttonOpen.setVisible(true);
+    } else {
+        // Se o mapa NÃO foi alterado, mostra mensagem diferente
+        this.showTextBoxDialogue("A gaveta está trancada. Parece que preciso alterar algo primeiro...");
+        this.buttonOpen.setVisible(false);
+    }
+    return;
+}
 
         this.lastClickedObject = obj;
 
@@ -646,32 +664,53 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
     //=========================================================================================================
 
+alterarMapaMundi() {
+    if (this.currentMapKey === 'mapa') {
+        this.gameState.mapaAlterado = true; // Marca como alterado permanentemente
+        this.updateBackground('mapaMundiAlterado');
+        return true;
+    }
+    return false;
+}
+
 startPuzzle() {
     // Desativa interações normais
     this.setInteractionsEnabled(false);
     
     // Cria o puzzle centralizado na tela
-    this.puzzleGame = new PuzzleGame(this, 'bg1', this.inventory); // Use a textura apropriada
+    this.puzzleGame = new PuzzleGame(this, 'bg1', this.inventory);
     
     // Posiciona no centro da tela
-    const x = (sizes.width - 600) / 2; // 600 é o puzzleWidth padrão
-    const y = (sizes.height - 600) / 2; // 600 é o puzzleHeight padrão
+    const x = (sizes.width - 600) / 2;
+    const y = (sizes.height - 600) / 2;
     
     this.puzzleGame.create(x, y);
     
+    // Armazena a referência à cena para usar dentro do callback
+    const scene = this;
+    
     // Configura o callback quando o puzzle for completado
     this.puzzleGame.setOnComplete(() => {
+    // Adiciona o item usável com verificação de mapa
+    this.inventory.addUsableItem('book', 'book', () => {
+        // Retorna true se o mapa foi alterado, false caso contrário
+        return this.alterarMapaMundi();
+    });
+    
+    // Adiciona o item visual ao inventário
+    this.inventory.addItem('book', () => {
+        this.showItemZoom('book');
+    });
 
-        this.inventory.addItem('book', () => {
-            this.showItemZoom('book');
-        })
-        // Adiciona lógica para quando o puzzle for completado
-        this.time.delayedCall(2000, () => {
+    // Destrói o puzzle
+    this.time.delayedCall(500, () => {
+        if (this.puzzleGame) {
             this.puzzleGame.destroy();
             this.puzzleGame = null;
-            this.setInteractionsEnabled(true);
-        });
+        }
+        this.setInteractionsEnabled(true);
     });
+});
 }
 
     clearItemSprites() {
@@ -729,16 +768,27 @@ startPuzzle() {
     }
 
     showTextBoxWithChoices(message) {
-        this.textBox.setText(message).setVisible(true);
-        this.textBoxBackground.setVisible(true);
-        this.buttonOpen.setVisible(true);
-        this.buttonClose.setVisible(true);
-    }
+    this.textBox.setText(message).setVisible(true);
+    this.textBoxBackground.setVisible(true);
+    
+    // Mostra o botão "Abrir" apenas se for a gaveta E o mapa foi alterado
+if (this.lastClickedObject?.name === "gavetaGrande") {
+    // Só mostra "Abrir" se o mapa foi alterado
+    this.buttonOpen.setVisible(this.gameState.mapaAlterado);
+} else {
+    // Para outros objetos, mostra normalmente
+    this.buttonOpen.setVisible(true);
+}
+    this.buttonClose.setVisible(true);
+}
 
     showTextBoxDialogue(message) {
         this.textBox.setText(message).setVisible(true);
         this.textBoxBackground.setVisible(true);
         this.buttonCloseDialogue.setVisible(true);
+
+        this.buttonOpen.setVisible(false);
+        this.buttonClose.setVisible(false);
     }
 
     //=========================================================================================================
@@ -748,72 +798,81 @@ startPuzzle() {
         this.textBoxBackground.setVisible(false);
         this.buttonOpen.setVisible(false);
         this.buttonClose.setVisible(false);
+        this.buttonCloseDialogue.setVisible(false);
     }
 
     //=========================================================================================================
 
     showItemZoom(itemKey) {
-        // Se já estiver mostrando algo, ignore
-        if (this.zoomView.active) return;
+    if (this.zoomView.active) return;
 
-        this.arrows.left.setVisible(false);
-        this.arrows.right.setVisible(false);
-        this.inventory.toggleInventory();
+    this.arrows.left.setVisible(false);
+    this.arrows.right.setVisible(false);
+    this.inventory.toggleInventory();
 
-        // Ativa o estado de zoom
-        this.zoomView.active = true;
-        this.zoomView.currentItem = itemKey;
+    // Ativa o estado de zoom
+    this.zoomView.active = true;
+    this.zoomView.currentItem = itemKey;
 
-        // Cria um overlay escuro semi-transparente
-        this.zoomView.overlay = this.add.rectangle(
-            this.cameras.main.centerX,
-            this.cameras.main.centerY,
-            this.cameras.main.width,
-            this.cameras.main.height,
-            0x000000,
-            0.8
-        ).setDepth(1000).setInteractive();
+    // Cria um overlay escuro semi-transparente
+    this.zoomView.overlay = this.add.rectangle(
+        this.cameras.main.centerX,
+        this.cameras.main.centerY,
+        this.cameras.main.width,
+        this.cameras.main.height,
+        0x000000,
+        0.8
+    ).setDepth(1000).setInteractive();
 
-        // Cria uma cópia borrada do fundo atual (efeito de desfoque)
-        this.zoomView.blurBg = this.add.image(
-            this.cameras.main.centerX,
-            this.cameras.main.centerY,
-            this.bg.texture.key
-        )
-            .setDisplaySize(this.cameras.main.width, this.cameras.main.height)
-            .setAlpha(0.1)
-            .setDepth(1001)
-            .setBlendMode(Phaser.BlendModes.OVERLAY);
+    // Cria uma cópia borrada do fundo atual
+    this.zoomView.blurBg = this.add.image(
+        this.cameras.main.centerX,
+        this.cameras.main.centerY,
+        this.bg.texture.key
+    )
+        .setDisplaySize(this.cameras.main.width, this.cameras.main.height)
+        .setAlpha(0.1)
+        .setDepth(1001)
+        .setBlendMode(Phaser.BlendModes.OVERLAY);
 
-        // Adiciona o item em grande escala (60% da altura da tela)
-        const itemHeight = this.cameras.main.height * 0.6;
-        this.zoomView.zoomedItem = this.add.image(
-            this.cameras.main.centerX - 100,
-            this.cameras.main.centerY,
-            itemKey
-        )
-            .setDisplaySize(itemHeight * 0.7, itemHeight) // Mantém proporção
-            .setDepth(1002);
+    // Adiciona o item em grande escala
+    const itemHeight = this.cameras.main.height * 0.6;
+    this.zoomView.zoomedItem = this.add.image(
+        this.cameras.main.centerX - 100,
+        this.cameras.main.centerY,
+        itemKey
+    )
+        .setDisplaySize(itemHeight * 0.7, itemHeight)
+        .setDepth(1002);
 
-        // Botão de fechar (X no canto superior direito)
+    // Botão de fechar
+    this.zoomView.closeButton = this.add.text(
+        this.cameras.main.centerX + 150,
+        this.cameras.main.centerY - 200,
+        '[Fechar]',
+        {
+            fontFamily: '"Press Start 2P", monospace',
+            fontSize: '12px',
+            color: '#ff0000',
+            backgroundColor: '#000000',
+            padding: { x: 10, y: 5 },
+            resolution: 3
+        }
+    )
+    .setDepth(1003)
+    .setInteractive({ useHandCursor: true })
+    .on('pointerdown', () => {
+        this.closeItemZoom();
+    });
 
-        this.zoomView.closeButton = this.add.text(
-        )
+    // Fecha ao clicar no overlay
+    this.zoomView.overlay.on('pointerdown', () => {
+        this.closeItemZoom();
+    });
 
-            .setDepth(1003)
-            .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                this.closeItemZoom();
-            });
-
-        // Fecha ao clicar no overlay (fora do item)
-        this.zoomView.overlay.on('pointerdown', () => {
-            this.closeItemZoom();
-        });
-
-        // Desativa interações com o jogo principal
-        this.setInteractionsEnabled(false);
-    }
+    // Desativa interações com o jogo principal
+    this.setInteractionsEnabled(false);
+}
 
     //=========================================================================================================
 

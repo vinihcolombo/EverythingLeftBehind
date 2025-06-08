@@ -1,5 +1,5 @@
 export default class PuzzleGame {
-    constructor(scene, imageKey, inventoryInstance, puzzleSize = 200, rows = 4, cols = 4) {
+    constructor(scene, imageKey, inventoryInstance, puzzleSize = 200, rows = 2, cols = 2) {
         this.inventory = inventoryInstance;
         this.scene = scene;
         this.imageKey = imageKey;
@@ -232,21 +232,30 @@ export default class PuzzleGame {
     }
 
     destroy() {
-        // Limpa todas as peças e texturas
-        this.pieces.forEach(piece => piece.destroy());
-        
-        // Remove texturas temporárias
-        for (let row = 0; row < this.rows; row++) {
-            for (let col = 0; col < this.cols; col++) {
-                const textureKey = `puzzle-piece-${row}-${col}`;
-                if (this.scene.textures.exists(textureKey)) {
-                    this.scene.textures.remove(textureKey);
-                }
+    // Limpa todas as peças
+    this.pieces.forEach(piece => {
+        if (piece) {
+            piece.destroy();
+        }
+    });
+    this.pieces = [];
+    
+    // Remove texturas temporárias
+    for (let row = 0; row < this.rows; row++) {
+        for (let col = 0; col < this.cols; col++) {
+            const textureKey = `puzzle-piece-${row}-${col}`;
+            if (this.scene.textures.exists(textureKey)) {
+                this.scene.textures.remove(textureKey);
             }
         }
-        
-        if (this.container) {
-            this.container.destroy();
-        }
     }
+    
+    // Destrói o container
+    if (this.container) {
+        this.container.destroy();
+        this.container = null;
+    }
+    
+    this.isComplete = false;
+}
 }

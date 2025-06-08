@@ -2,6 +2,7 @@ import { inventorySound } from '../constants.js';
 
 export default class Inventory {
     constructor(scene) {
+        this.items = {};
         this.scene = scene;
         this.isVisible = false;
         this.slots = [];
@@ -196,36 +197,65 @@ export default class Inventory {
 
     //=========================================================================================================
 
-    addItem(itemKey, action = null) {
-        const emptySlot = this.slots.find(slot => slot.item === null);
-        if (emptySlot) {
-            const item = this.scene.add.image(
-                emptySlot.x,
-                emptySlot.y,
-                itemKey
-            )
-                .setDisplaySize(50, 50)
-                .setInteractive()
-                .on('pointerdown', () => {
-                    if (this.isVisible) {
-                        this.executeItemAction(itemKey);
-                    }
-                })
-                .setVisible(this.isVisible)
-                .setDepth(53);
-
-            emptySlot.item = item;
-            this.slotsContainer.add(item);
-
-            // Registra a ação se fornecida
-            if (action) {
-                this.itemActions[itemKey] = action;
-            }
-
+useItem(itemKey) {
+    // Verifica se o item existe e tem uma função de uso
+    if (this.items[itemKey] && this.items[itemKey].use) {
+        // Tenta usar o item
+        const wasUsed = this.items[itemKey].use();
+        if (wasUsed) {
+            // Remove o item usável do registro
+            delete this.items[itemKey];
             return true;
         }
-        return false;
     }
+    return false;
+}
+
+addUsableItem(key, image, useCallback) {
+    this.items[key] = {
+        image: image,
+        use: useCallback
+    };
+    // Não é necessário chamar updateInventoryDisplay() aqui
+    // pois os itens usáveis são armazenados separadamente
+}
+
+    addItem(itemKey, action = null) {
+    const emptySlot = this.slots.find(slot => slot.item === null);
+    if (emptySlot) {
+        const item = this.scene.add.image(
+            emptySlot.x,
+            emptySlot.y,
+            itemKey
+        )
+        .setDisplaySize(50, 50)
+        .setInteractive()
+        .on('pointerdown', () => {
+            if (this.isVisible) {
+                // Verifica se pode usar o item automaticamente
+                if (this.useItem(itemKey)) {
+                    // Remove o item se foi usado com sucesso
+                    this.removeItem(itemKey);
+                } else {
+                    // Se não puder usar, executa a ação padrão (zoom)
+                    if (action) action();
+                }
+            }
+        })
+        .setVisible(this.isVisible)
+        .setDepth(53);
+
+        emptySlot.item = item;
+        this.slotsContainer.add(item);
+
+        if (action) {
+            this.itemActions[itemKey] = action;
+        }
+
+        return true;
+    }
+    return false;
+}
 
     //=========================================================================================================
 
