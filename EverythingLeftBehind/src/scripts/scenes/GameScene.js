@@ -806,11 +806,6 @@ handleCameraUnlock() {
 }
 
 useFunctionalCamera() {
-    console.log('Usando câmera funcional...');
-    this.showZoomedImage('functional_camera');
-}
-
-useFunctionalCamera() {
     // Sua lógica de zoom aqui
     console.log('Usando câmera funcional...');
     this.showZoomedImage('iconInventory');
@@ -1054,6 +1049,9 @@ closeItemZoom() {
     if (this.zoomView.blurBg) this.zoomView.blurBg.destroy();
     if (this.zoomView.closeButton) this.zoomView.closeButton.destroy();
     if (this.zoomView.container) this.zoomView.container.destroy();
+    
+    // Adicione esta linha para destruir explicitamente a imagem ampliada
+    if (this.zoomView.zoomedItem) this.zoomView.zoomedItem.destroy();
 
     // Limpa a descrição se existir
     if (this.zoomView.description) {
