@@ -48,6 +48,8 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('mapa', './assets/images/mapaMundi.png');
         this.load.image('mapaMundiAlterado', './assets/images/mapaMundiAlterado.png');
         this.load.image('bg-pedras', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
+        this.load.image('bg-canetas', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
+        this.load.image('bg-marcapag', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
         // this.load.image('bg-cartas', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
 
         // Carrega os mapas
@@ -63,6 +65,8 @@ export default class GameScene extends Phaser.Scene {
         this.load.json('gaveta', './maps/gavetaComCamera.json');
         this.load.json('mapa', './maps/mapaMundi.json');
         this.load.json('pedras', './maps/pedras.json');
+        this.load.json('canetas', './maps/canetas.json');
+        this.load.json('marcapag', './maps/marcaPaginas.json');
         // this.load.json('cartas', './maps/cartas.json');
 
         // Carrega ícone de seta
@@ -75,7 +79,9 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('Notebook_Item', './assets/images/objects/Notebook_Item.png');
         this.load.image('camera', './assets/images/objects/camera.png');
         this.load.image('marcaPag1', './assets/images/objects/marcaPag1.png');
+        this.load.image('marcaPag2', './assets/images/objects/marcaPag2.png');
         this.load.image('caneta1', './assets/images/objects/caneta1.png');
+        this.load.image('caneta2', './assets/images/objects/caneta2.png');
         this.load.image('polaroid', './assets/images/objects/polaroid.png');
         this.load.image('pedacoMapa', './assets/images/objects/pedacoMapa.png');
         // this.load.image('pilhaCartas', './assets/images/objects/pilhaCartas.png');
@@ -271,7 +277,9 @@ getExpectedBackground() {
         'retrato': 'retrato',
         'mapa': this.gameState.mapaAlterado ? 'mapaMundiAlterado' : 'mapa',
         // 'cartas': 'bg-cartas',
-        'pedras': 'bg-pedras'
+        'pedras': 'bg-pedras',
+        'canetas': 'bg-canetas',
+        'marcapag': 'bg-marcapag'
     };
     return mapToBg[this.currentMapKey] || 'bg1';
 }
@@ -469,12 +477,92 @@ getExpectedBackground() {
                 else if (obj.name === 'gavetaCamera') {
                     this.createCamera(obj);
                 }
+
+                else if (obj.name === "Caneta Roxa" || obj.name === "Caneta Azul" || obj.name === "Caneta Vermelha" || obj.name === "Caneta Rosa") {
+                    this.createCanetaIndividual(obj);
+                }
+
+                else if (obj.name === "Caneta Roxa" || obj.name === "Caneta Azul" || 
+                    obj.name === "Caneta Vermelha" || obj.name === "Caneta Rosa") {
+                    this.createCanetaIndividual(obj);
+                }
+                else if (obj.name.includes("MarcaPag")){
+                    this.createMarcaPaginaIndividual(obj);
+                }
                 else {
                     this.createStandardInteractiveZone(obj);
                 }
             });
         }
     });
+}
+    createCanetaIndividual(obj) {
+    const imgKey = obj.name.includes("Roxa") || obj.name.includes("Rosa") ? 'caneta2' : 'caneta1';
+    
+    const caneta = this.add.image(
+        obj.x + obj.width/2,
+        obj.y + obj.height/2,
+        imgKey
+    )
+    .setDisplaySize(obj.width, obj.height)
+    .setOrigin(0.5)
+    .setDepth(10);
+
+    const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
+        .setOrigin(0)
+        .setInteractive()
+        .on('pointerover', () => this.showTooltip(obj))
+        .on('pointerout', () => this.tooltip.setVisible(false))
+        .on('pointerdown', () => this.handleObjectClick(obj));
+
+    this.roomManager.interactiveZones.push(zone);
+}
+
+createMarcaPaginaIndividual(obj) {
+    // Determina qual imagem usar baseada no nome do objeto
+    let imgKey;
+    switch(obj.name) {
+        case "MarcaPag1":
+            imgKey = 'marcaPag1'; // Imagem para o primeiro marcador
+            break;
+        case "MarcaPag2":
+            imgKey = 'marcaPag2'; // Imagem para o segundo marcador
+            break;
+        case "MarcaPag3":
+            imgKey = 'marcaPag1'; // Imagem para o terceiro marcador
+            break;
+        case "MarcaPag4":
+            imgKey = 'marcaPag2'; // Imagem para o quarto marcador
+            break;
+        default:
+            imgKey = 'marcaPag1'; // Padrão caso não encontre
+    }
+
+    // Cria a imagem do marcador de página
+    const marcaPagina = this.add.image(
+        obj.x + obj.width/2,
+        obj.y + obj.height/2,
+        imgKey
+    )
+    .setDisplaySize(obj.width, obj.height)
+    .setOrigin(0.5)
+    .setDepth(10);
+
+    // Cria a zona interativa
+    const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
+        .setOrigin(0)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerover', () => this.showTooltip({
+            name: obj.name,
+            x: obj.x,
+            y: obj.y,
+            width: obj.width,
+            height: obj.height
+        }))
+        .on('pointerout', () => this.tooltip.setVisible(false))
+        .on('pointerdown', () => this.handleMarcaPaginaClick(obj));
+
+    this.roomManager.interactiveZones.push(zone);
 }
 
     // <--- MÉTODO MODIFICADO para gerenciar this.notebookSprite
@@ -848,6 +936,24 @@ getExpectedBackground() {
         if (obj.name === "03/04/99")
             this.showTextBoxDialogue("Ele me deu essa pedra por pena, foi quando eu quebrei um braço escorregando em uma casca de banana igual uma idiota");
 
+        if (obj.name === "MarcaPag1")
+            this.showTextBoxDialogue("Recado 1 - ano");
+        if (obj.name === "MarcaPag2")
+            this.showTextBoxDialogue("Recaro 2 - ano");
+        if (obj.name === "MarcaPag3")
+            this.showTextBoxDialogue("Recado 3 - ano");
+        if (obj.name === "MarcaPag4")
+            this.showTextBoxDialogue("Recado 4 - ano");
+
+        if (obj.name === "Caneta Roxa")
+            this.showTextBoxDialogue("Recado 1");
+        if (obj.name === "Caneta Azul")
+            this.showTextBoxDialogue("Recado 2");
+        if (obj.name === "Caneta Vermelha")
+            this.showTextBoxDialogue("Recado 3");
+        if (obj.name === "Caneta Rosa")
+            this.showTextBoxDialogue("Recado 4");
+
         if (obj.name === "Chave de Apartamento") {
             this.inventory.addItem('keychain', () => {
                 this.showItemZoom('keychain', "Quarto 372, muitas lembranças daquele apartamento");
@@ -906,8 +1012,9 @@ getExpectedBackground() {
         }
 
         if (obj.name === "Marcas-página") {
-            this.inventory.addItem('Marcas-Página', () => {
-                ;
+            this.inventory.addItem('marcaPag1', () => {
+                this.goBackToPreviousMap();
+                this.loadCustomMap('marcapag', 'bg-marcapag');
             });
             this.removeHitboxForObject(obj);
             this.MarcaPaginasSprite.destroy();
@@ -915,8 +1022,9 @@ getExpectedBackground() {
         }
 
         if (obj.name === "Canetas Tinteiro") {
-            this.inventory.addItem('Canetas Tinteiro', () => {
-                ;
+            this.inventory.addItem('caneta1', () => {
+                this.goBackToPreviousMap();
+                this.loadCustomMap('canetas', 'bg-canetas');
             });
             this.removeHitboxForObject(obj);
             this.CanetasSprite.destroy();
