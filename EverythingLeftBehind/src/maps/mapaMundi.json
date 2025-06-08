@@ -35,7 +35,7 @@
         }, 
         {
          "id":2,
-         "image":"..\/assets\/images\/ParedecomCaixa.png",
+         "image":"..\/assets\/images\/mapaMundi.png",
          "imageheight":240,
          "imagewidth":426,
          "name":"Camada de Imagens 1",
@@ -45,32 +45,36 @@
          "x":0,
          "y":0
         }, 
+        
         {
          "draworder":"topdown",
          "id":3,
-         "name":"caixaSenha",
+         "name":"retrato",
          "objects":[
                 {
-                 "height":50.5263157894737,
-                 "id":1,
-                 "name":"CaixaSenha",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":108.631578947368,
-                 "x":158.315789473684,
-                 "y":160.842105263158
-                }, 
+
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        },
+    {
+         "draworder":"topdown",
+         "id":4,
+         "name":"voltar",
+         "objects":[
                 {
-                 "height":0,
+                 "height":17.625,
                  "id":2,
-                 "name":"",
+                 "name":"voltar",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":0,
-                 "x":526.315789473684,
-                 "y":291.368421052632
+                 "width":17.125,
+                 "x":-0.125,
+                 "y":0
                 }],
          "opacity":1,
          "type":"objectgroup",

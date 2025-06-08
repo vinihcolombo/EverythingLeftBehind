@@ -293,7 +293,7 @@
          "image":"..\/assets\/images\/caixavazia.png",
          "imageheight":275,
          "imagewidth":460,
-         "name":"caixaNorte",
+         "name":"Camada de Imagens 1",
          "opacity":1,
          "type":"imagelayer",
          "visible":true,
@@ -306,15 +306,15 @@
          "name":"Camada de Objetos 1",
          "objects":[
                 {
-                 "height":121.089201877934,
+                 "height":73.6150234741784,
                  "id":1,
-                 "name":"ObjetoCN1",
+                 "name":"Pedaço de Mapa-múndi",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":94.6478873239437,
-                 "x":121.089201877934,
-                 "y":112.676056338028
+                 "width":86.882629107981,
+                 "x":126.197183098592,
+                 "y":106.328638497653
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -328,15 +328,15 @@
          "name":"Camada de Objetos 2",
          "objects":[
                 {
-                 "height":82.6291079812207,
+                 "height":56.81220657277,
                  "id":2,
-                 "name":"ObjetoCN2",
+                 "name":"Fotografia Revelada",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":97.6525821596244,
-                 "x":238.572769953052,
-                 "y":67.906103286385
+                 "width":64.4319248826291,
+                 "x":190.084507042254,
+                 "y":90.028169014085
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -347,25 +347,48 @@
         {
          "draworder":"topdown",
          "id":5,
-         "name":"Camada de Objetos 3",
+         "name":"caixaclara",
          "objects":[
                 {
-                 "height":55.5868544600939,
+                 "height":38.2441314553991,
                  "id":3,
-                 "name":"ObjetoCN3",
+                 "name":"Chave de Apartamento",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":99.1549295774648,
-                 "x":231.962441314554,
-                 "y":167.361502347418
+                 "width":44.8544600938967,
+                 "x":249.544600938967,
+                 "y":71.859154929577
                 }],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
          "x":0,
          "y":0
-        }],
+        },
+        {
+         "draworder":"topdown",
+         "id":5,
+         "name":"voltar",
+         "objects":[
+                {
+                 "height":17.625,
+                 "id":2,
+                 "name":"voltar",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":17.125,
+                 "x":-0.125,
+                 "y":0
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }
+       ],
  "nextlayerid":6,
  "nextobjectid":4,
  "orientation":"orthogonal",
