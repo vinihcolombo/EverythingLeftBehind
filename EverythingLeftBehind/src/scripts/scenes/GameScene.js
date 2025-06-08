@@ -1,4 +1,5 @@
 import PuzzleGame from '../puzzles/foto-rasgada.js';
+import CameraPuzzle from '../puzzles/camera-senha.js';
 import RoomManager from '../managers/RoomManager.js';
 import Inventory from '../ui/Inventory.js';
 import { sizes } from '../constants.js';
@@ -7,6 +8,7 @@ import GameState from './GameState.js';
 export default class GameScene extends Phaser.Scene {
     constructor() {
         super("scene-game");
+        this.CameraPuzzle = null;
         this.roomManager = null;
         this.bg = null;
         this.tooltip = null;
@@ -218,8 +220,15 @@ export default class GameScene extends Phaser.Scene {
 
         this.setInteractionsEnabled(true);
 
+        if (!this.gameState.cameraUnlocked) {
+        this.cameraPuzzle = new CameraPuzzle(this);
+        
+        // Configura o listener para quando o puzzle for completado
+        this.events.once('cameraPuzzleCompleted', () => {
+            this.handleCameraUnlock();
+        });
     }
-
+    }
     
     update () {
     // Verificação de consistência
@@ -311,28 +320,35 @@ getExpectedBackground() {
     //=========================================================================================================
 
     goBackToPreviousMap() {
-    if (this.navigationHistory.length === 0) {
-        this.loadCustomMap('mapa1', 'bg1');
-        return;
-    }
-    
-    const previous = this.navigationHistory.pop();
-    
-    // Limpeza completa antes de carregar o mapa anterior
-    this.roomManager.clearPreviousZones(true);
     this.clearItemSprites();
     
-    // Carrega o mapa anterior
-    this.loadMapObjects(previous.mapKey);
-    this.currentMapKey = previous.mapKey;
-    
-    // Atualiza o background corretamente
-    this.bg.setTexture(previous.bgKey);
-    
-    // Pequeno delay para garantir que tudo foi carregado
-    this.time.delayedCall(50, () => {
-        this.updateArrowsVisibility();
-    });
+    if (this.navigationHistory.length > 0) {
+        const previous = this.navigationHistory.pop();
+        console.log(`[DEBUG] Voltando para: ${previous.mapKey} com bg: ${previous.bgKey}`);
+
+        // 1. Destrói completamente o background atual
+        this.bg.destroy();
+        
+        // 2. Cria um NOVO background
+        this.bg = this.add.image(0, 0, previous.bgKey)
+            .setOrigin(0, 0)
+            .setDisplaySize(this.scale.width, this.scale.height);
+        
+        // 3. Limpa todas as zonas interativas
+        this.roomManager.clearPreviousZones(true); // Força limpeza completa
+        
+        // 4. Recarrega tudo do zero
+        this.loadMapObjects(previous.mapKey);
+        this.currentMapKey = previous.mapKey;
+        
+        // 5. Atualiza visibilidade das setas
+        this.time.delayedCall(50, () => {
+            this.updateArrowsVisibility();
+        });
+    } else {
+        // Fallback para o mapa1
+        this.loadCustomMap('mapa1', 'bg1');
+    }
 }
 
     //=========================================================================================================
@@ -607,7 +623,7 @@ getExpectedBackground() {
 
         if (obj.name === "Chave de Apartamento") {
             this.inventory.addItem('keychain', () => {
-                this.showItemZoom('keychain');
+                this.showItemZoom('keychain', "Quarto 372, muitas lembranças daquele apartamento");
             });
             this.removeHitboxForObject(obj);
             this.ChaveSprite.destroy(); // REMOVER OBJETO QUANDO CLICA
@@ -632,13 +648,16 @@ getExpectedBackground() {
         }
 
         if (obj.name === "gavetaCamera") {
-            this.inventory.addItem('camera', () => {
-                this.showItemZoom('camera');
-            });
-            this.removeHitboxForObject(obj);
-            this.CameraSprite.destroy();
-            return;
+    this.inventory.addItem('camera', () => {
+        if (!this.cameraPuzzle) {
+            this.cameraPuzzle = new CameraPuzzle(this);
         }
+        this.cameraPuzzle.open();
+    });
+    this.removeHitboxForObject(obj);
+    this.CameraSprite.destroy();
+    return;
+}
 
         if (obj.name === "caixaSemQuadro") { // Ou qualquer outro nome que você definir
         this.startPuzzle();
@@ -771,6 +790,34 @@ startPuzzle() {
 });
 }
 
+handleCameraUnlock() {
+    // Atualiza o estado do jogo
+    this.gameState.cameraUnlocked = true;
+    this.gameState.claraStorylineCompleted = true;
+    
+    console.log("Clara storyline completa: ",this.gameState.claraStorylineCompleted);
+
+    this.inventory.removeItem('camera');
+    
+    // Adiciona o novo item ao inventário
+    this.inventory.addItem('camera', () => this.useFunctionalCamera());
+    
+    console.log('Câmera desbloqueada e item atualizado!');
+}
+
+useFunctionalCamera() {
+    console.log('Usando câmera funcional...');
+    this.showZoomedImage('functional_camera');
+}
+
+useFunctionalCamera() {
+    // Sua lógica de zoom aqui
+    console.log('Usando câmera funcional...');
+    this.showZoomedImage('iconInventory');
+}
+
+
+
     clearItemSprites() {
         if (this.ChaveSprite) {
             this.ChaveSprite.destroy();
@@ -861,7 +908,7 @@ startPuzzle() {
 
     //=========================================================================================================
 
-    showItemZoom(itemKey) {
+    showItemZoom(itemKey, description = '') {
     if (this.zoomView.active) return;
 
     this.arrows.left.setVisible(false);
@@ -874,13 +921,14 @@ startPuzzle() {
 
     // Cria um overlay escuro semi-transparente
     this.zoomView.overlay = this.add.rectangle(
-        this.cameras.main.centerX,
-        this.cameras.main.centerY,
-        this.cameras.main.width,
-        this.cameras.main.height,
+        0, 0,
+        this.cameras.main.width * 2, this.cameras.main.height * 2,
         0x000000,
         0.8
-    ).setDepth(1000).setInteractive();
+    )
+        .setOrigin(0)
+        .setDepth(1000)
+        .setInteractive();
 
     // Cria uma cópia borrada do fundo atual
     this.zoomView.blurBg = this.add.image(
@@ -893,20 +941,29 @@ startPuzzle() {
         .setDepth(1001)
         .setBlendMode(Phaser.BlendModes.OVERLAY);
 
+    // Container para organizar os elementos do zoom
+    this.zoomView.container = this.add.container(
+        this.cameras.main.centerX,
+        this.cameras.main.centerY - 50 // Move o container um pouco para cima para dar espaço à descrição
+    ).setDepth(1002);
+
     // Adiciona o item em grande escala
-    const itemHeight = this.cameras.main.height * 0.6;
-    this.zoomView.zoomedItem = this.add.image(
-        this.cameras.main.centerX - 100,
-        this.cameras.main.centerY,
-        itemKey
-    )
+    const itemHeight = this.cameras.main.height * 0.5; // Reduz um pouco o tamanho para caber a descrição
+    this.zoomView.zoomedItem = this.add.image(0, 0, itemKey)
         .setDisplaySize(itemHeight * 0.7, itemHeight)
-        .setDepth(1002);
+        .setInteractive()
+        .on('pointerdown', () => {
+            if (description) {
+                this.showItemDescription(description);
+            }
+        });
+    
+    this.zoomView.container.add(this.zoomView.zoomedItem);
 
     // Botão de fechar
     this.zoomView.closeButton = this.add.text(
         this.cameras.main.centerX + 150,
-        this.cameras.main.centerY - 200,
+        this.cameras.main.centerY - 250, // Move o botão mais para cima
         '[Fechar]',
         {
             fontFamily: '"Press Start 2P", monospace',
@@ -919,9 +976,186 @@ startPuzzle() {
     )
     .setDepth(1003)
     .setInteractive({ useHandCursor: true })
-    .on('pointerdown', () => {
+    .on('pointerdown', (e) => {
+        e.stopPropagation();
         this.closeItemZoom();
     });
+
+    // Fecha somente ao clicar no overlay
+    this.zoomView.overlay.on('pointerdown', (pointer) => {
+        if (!this.zoomView.zoomedItem.getBounds().contains(pointer.x, pointer.y)) {
+            this.closeItemZoom();
+        }
+    });
+
+    // Desativa interações com o jogo principal
+    this.setInteractionsEnabled(false);
+    
+    // Mostra a descrição imediatamente se fornecida
+    if (description) {
+        this.showItemDescription(description);
+    }
+}
+
+showItemDescription(text) {
+    // Remove descrição anterior se existir
+    if (this.zoomView.description) {
+        this.zoomView.description.destroy();
+    }
+
+    // Calcula a posição Y abaixo do item (com margem de 20px)
+    const itemBounds = this.zoomView.zoomedItem.getBounds();
+    let descY = itemBounds.bottom + 20;
+    
+    // Calcula a largura máxima disponível (90% da tela)
+    const maxWidth = this.cameras.main.width * 0.9;
+    
+    // Cria o texto de descrição
+    this.zoomView.description = this.add.text(
+        this.cameras.main.centerX, // Centraliza horizontalmente
+        descY,
+        text,
+        {
+            fontFamily: '"Press Start 2P", monospace',
+            fontSize: '10px',
+            color: '#ffffff',
+            backgroundColor: '#000000',
+            padding: { x: 15, y: 10 },
+            resolution: 3,
+            wordWrap: { width: maxWidth },
+            align: 'center' // Centraliza o texto
+        }
+    )
+    .setOrigin(0.5, 0) // Ancora no centro-topo
+    .setDepth(1004);
+    
+    // Verifica se a descrição está saindo da tela e ajusta se necessário
+    const descBounds = this.zoomView.description.getBounds();
+    if (descBounds.bottom > this.cameras.main.height) {
+        // Se estiver saindo pela parte inferior, reduz o tamanho da fonte
+        let newFontSize = 8;
+        this.zoomView.description.setFontSize(newFontSize + 'px');
+        
+        // Recalcula a posição após ajustar o tamanho
+        const newDescBounds = this.zoomView.description.getBounds();
+        if (newDescBounds.bottom > this.cameras.main.height) {
+            // Se ainda estiver saindo, move para cima
+            const overflow = newDescBounds.bottom - this.cameras.main.height;
+            this.zoomView.description.setY(this.zoomView.description.y - overflow - 10);
+        }
+    }
+}
+
+closeItemZoom() {
+    if (!this.zoomView.active) return;
+
+    // Remove todos os elementos do zoom
+    this.zoomView.overlay.destroy();
+    if (this.zoomView.blurBg) this.zoomView.blurBg.destroy();
+    if (this.zoomView.closeButton) this.zoomView.closeButton.destroy();
+    if (this.zoomView.container) this.zoomView.container.destroy();
+
+    // Limpa a descrição se existir
+    if (this.zoomView.description) {
+        this.zoomView.description.destroy();
+    }
+
+    // Reseta o objeto zoomView
+    this.zoomView = {
+        active: false,
+        currentItem: null,
+        overlay: null,
+        blurBg: null,
+        closeButton: null,
+        container: null,
+        zoomedItem: null,
+        description: null
+    };
+
+    // Restaura a UI
+    this.arrows.left.setVisible(true);
+    this.arrows.right.setVisible(true);
+
+    // Reativa interações com o jogo principal
+    this.setInteractionsEnabled(true);
+}
+
+showZoomedImage(imageKey, options = {}) {
+    if (this.zoomView.active) return;
+
+    // Configurações padrão
+    const config = {
+        x: this.cameras.main.centerX,
+        y: this.cameras.main.centerY,
+        scale: 0.7,
+        closeButton: true,
+        blurBackground: true,
+        overlayAlpha: 0.8,
+        ...options
+    };
+
+    this.arrows.left.setVisible(false);
+    this.arrows.right.setVisible(false);
+    this.inventory.toggleInventory();
+
+    // Ativa o estado de zoom
+    this.zoomView.active = true;
+    this.zoomView.currentItem = imageKey;
+
+    // Cria um overlay escuro semi-transparente
+    this.zoomView.overlay = this.add.rectangle(
+        this.cameras.main.centerX,
+        this.cameras.main.centerY,
+        this.cameras.main.width,
+        this.cameras.main.height,
+        0x000000,
+        config.overlayAlpha
+    ).setDepth(1000).setInteractive();
+
+    // Cria uma cópia borrada do fundo atual se necessário
+    if (config.blurBackground && this.bg) {
+        this.zoomView.blurBg = this.add.image(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            this.bg.texture.key
+        )
+            .setDisplaySize(this.cameras.main.width, this.cameras.main.height)
+            .setAlpha(0.1)
+            .setDepth(1001)
+            .setBlendMode(Phaser.BlendModes.OVERLAY);
+    }
+
+    // Adiciona a imagem em grande escala
+    const itemHeight = this.cameras.main.height * 0.6;
+    this.zoomView.zoomedItem = this.add.image(
+        config.x,
+        config.y,
+        imageKey
+    )
+        .setDisplaySize(itemHeight * config.scale, itemHeight)
+        .setDepth(1002);
+
+    // Botão de fechar se necessário
+    if (config.closeButton) {
+        this.zoomView.closeButton = this.add.text(
+            this.cameras.main.centerX + 150,
+            this.cameras.main.centerY - 200,
+            '[Fechar]',
+            {
+                fontFamily: '"Press Start 2P", monospace',
+                fontSize: '12px',
+                color: '#ff0000',
+                backgroundColor: '#000000',
+                padding: { x: 10, y: 5 },
+                resolution: 3
+            }
+        )
+        .setDepth(1003)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => {
+            this.closeItemZoom();
+        });
+    }
 
     // Fecha ao clicar no overlay
     this.zoomView.overlay.on('pointerdown', () => {
@@ -933,34 +1167,4 @@ startPuzzle() {
 }
 
     //=========================================================================================================
-
-    closeItemZoom() {
-        if (!this.zoomView.active) return;
-
-        // Remove todos os elementos do zoom
-        this.zoomView.overlay.destroy();
-        this.zoomView.blurBg.destroy();
-        this.zoomView.closeButton.destroy();
-
-        // Limpa a referência
-        if (this.zoomView.zoomedItem) {
-            this.zoomView.zoomedItem.destroy();
-        }
-
-        this.zoomView = {
-            active: false,
-            currentItem: null,
-            overlay: null,
-            blurBg: null,
-            closeButton: null,
-            zoomedItem: null
-        };
-
-        this.arrows.left.setVisible(true);
-        this.arrows.right.setVisible(true);
-
-        // Reativa interações com o jogo principal
-        this.setInteractionsEnabled(true);
-    }
-
 }

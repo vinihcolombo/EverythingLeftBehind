@@ -1,5 +1,5 @@
 export default class PuzzleGame {
-    constructor(scene, imageKey, inventoryInstance, puzzleSize = 200, rows = 2, cols = 2) {
+    constructor(scene, imageKey, inventoryInstance, puzzleSize = 200, rows = 1, cols = 1) {
         this.inventory = inventoryInstance;
         this.scene = scene;
         this.imageKey = imageKey;
