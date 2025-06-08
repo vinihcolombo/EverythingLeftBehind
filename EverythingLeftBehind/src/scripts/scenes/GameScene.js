@@ -1,6 +1,7 @@
 import PuzzleGame from '../puzzles/foto-rasgada.js';
 import CameraPuzzle from '../puzzles/camera-senha.js';
 import RetratoPuzzle from '../puzzles/retrato-puzzle.js';
+import CadernoPuzzle from '../puzzles/caderno-helena.js';
 import RoomManager from '../managers/RoomManager.js';
 import Inventory from '../ui/Inventory.js';
 import { sizes } from '../constants.js';
@@ -50,6 +51,14 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('bg-pedras', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
         this.load.image('bg-canetas', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
         this.load.image('bg-marcapag', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
+        this.load.image('notebookLeftPage', './assets/images/objects/notebookEsquerdo.png');
+        this.load.image('notebookRightPage', './assets/images/objects/notebookDireito.png');
+        this.load.image('paperPiece1', './assets/images/objects/paperPiece1.png');
+        this.load.image('bg-caderno', './assets/images/ParedeQuadro_Vazio.png');
+        this.load.image('paperPiece1', './assets/images/objects/paperPiece1.png');
+        this.load.image('paperPiece2', './assets/images/objects/paperPiece1.png');
+        this.load.image('paperPiece3', './assets/images/objects/paperPiece1.png');
+        this.load.image('paperPiece4', './assets/images/objects/paperPiece1.png');
         // this.load.image('bg-cartas', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
 
         // Carrega os mapas
@@ -67,6 +76,7 @@ export default class GameScene extends Phaser.Scene {
         this.load.json('pedras', './maps/pedras.json');
         this.load.json('canetas', './maps/canetas.json');
         this.load.json('marcapag', './maps/marcaPaginas.json');
+        this.load.json('caderno', './maps/caderno.json');
         // this.load.json('cartas', './maps/cartas.json');
 
         // Carrega ícone de seta
@@ -99,8 +109,11 @@ export default class GameScene extends Phaser.Scene {
         this.lastClickedObject = null;
         this.navigationHistory = [];
         // Inicializa o gerenciador de quartos
-        this.roomManager = new RoomManager(this);
+        this.roomManager =  new RoomManager(this);
         this.gameState = new GameState();
+        
+
+        
 
         // Configura o fundo
         this.bg = this.add.image(0, 0, 'bg1').setOrigin(0, 0);
@@ -111,6 +124,7 @@ export default class GameScene extends Phaser.Scene {
         this.createNavigationArrows();
 
         this.inventory = new Inventory(this);
+        this.cadernoPuzzle = new CadernoPuzzle(this, 'notebookOpen');
 
         // Configura o tooltip
         this.tooltip = this.add.text(0, 0, '', {
@@ -248,6 +262,13 @@ export default class GameScene extends Phaser.Scene {
                 this.gameState.rafaelStorylineCompleted = true;
                 console.log("Rafael storyline completa: ", this.gameState.rafaelStorylineCompleted);
             });
+
+
+            this.notebook = this.add.sprite(x, y, 'notebook');
+this.notebook.setInteractive();
+this.notebook.on('pointerdown', () => {
+    this.scene.start('CadernoScene');
+});
     }
     
 
@@ -1004,7 +1025,8 @@ createMarcaPaginaIndividual(obj) {
 
         if (obj.name === "Caderno de Escrita") {
             this.inventory.addItem('notebookOpen', () => {
-                this.showItemZoom('notebookOpen');
+                // Abre o puzzle do caderno ao clicar no inventário
+                this.cadernoPuzzle.create();
             });
             this.removeHitboxForObject(obj);
             this.NotebookSprite.destroy();
@@ -1074,6 +1096,7 @@ createMarcaPaginaIndividual(obj) {
             this.showTextBoxWithChoices("Nossa.. tantas memórias da Clara por aqui..");
             console.log("RafaelStoryline: ", this.gameState.rafaelStorylineCompleted);
             console.log("ClaraStoryline: ", this.gameState.claraStorylineCompleted);
+            console.log("HelenaStoryline: ", this.gameState.helenaStorylineCompleted);
             return;
         }
 

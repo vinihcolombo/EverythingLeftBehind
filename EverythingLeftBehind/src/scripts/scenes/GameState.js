@@ -5,5 +5,6 @@ constructor() {
     this.cameraUnlocked = false;
     this.claraStorylineCompleted = false;
     this.rafaelStorylineCompleted = false; // Adicione esta linha
+    this.helenaStorylineCompleted = false;
 }
 }
