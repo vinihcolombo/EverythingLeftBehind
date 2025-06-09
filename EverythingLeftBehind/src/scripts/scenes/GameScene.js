@@ -61,6 +61,8 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('paperPiece2', './assets/images/objects/paperPiece1.png');
         this.load.image('paperPiece3', './assets/images/objects/paperPiece1.png');
         this.load.image('paperPiece4', './assets/images/objects/paperPiece1.png');
+        this.load.image('bg-caixaMae', './assets/images/caixaMae.png');
+        this.load.image('imagemFinal', './assets/images/imagemFinal.png');
         // this.load.image('bg-cartas', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
 
         // Carrega os mapas
@@ -79,6 +81,8 @@ export default class GameScene extends Phaser.Scene {
         this.load.json('canetas', './maps/canetas.json');
         this.load.json('marcapag', './maps/marcaPaginas.json');
         this.load.json('caderno', './maps/caderno.json');
+        this.load.json('caixaMae', './maps/caixaMae.json');
+        this.load.json('fim', './map/fim.json');
         // this.load.json('cartas', './maps/cartas.json');
 
         // Carrega ícone de seta
@@ -201,6 +205,9 @@ export default class GameScene extends Phaser.Scene {
         else if (this.lastClickedObject.name === "Quadro") {
             this.loadCustomMap('mapa', 'mapa');
         }
+        else if (this.lastClickedObject.name === "Caixa da Mãe") {
+            this.loadCustomMap('fim', 'imagemFinal');
+        }
     }
     this.hideTextBox(); // Esta linha garante que a caixa será fechada
 })
@@ -263,6 +270,10 @@ export default class GameScene extends Phaser.Scene {
             this.events.on('retratoPuzzleCompleted', () => {
                 this.gameState.rafaelStorylineCompleted = true;
                 console.log("Rafael storyline completa: ", this.gameState.rafaelStorylineCompleted);
+                if (this.checkAllStorylinesCompleted()) {
+        this.loadFinalMap();
+    }
+
             });
 
 
@@ -366,6 +377,12 @@ getExpectedBackground() {
 
     //=========================================================================================================
 
+    checkAllStorylinesCompleted() {
+    return this.gameState.claraStorylineCompleted && 
+           this.gameState.rafaelStorylineCompleted && 
+           this.gameState.helenaStorylineCompleted;
+}
+
     goBackToPreviousMap() {
     // Fecha qualquer diálogo aberto
     this.hideTextBox();
@@ -390,6 +407,23 @@ getExpectedBackground() {
     } else {
         this.loadCustomMap('mapa1', 'bg1');
     }
+}
+
+loadFinalMap() {
+    // Desativa interações temporariamente
+    this.setInteractionsEnabled(false);
+    
+    // Mostra mensagem de conclusão (opcional)
+    this.showTextBoxDialogue("Todas as histórias foram reveladas... Algo novo se abre!");
+    
+    // Aguarda um pouco antes de carregar o mapa final
+    this.time.delayedCall(3000, () => {
+        // Carrega o mapa especial de conclusão
+        this.loadCustomMap('caixaMae', 'bg-caixaMae');
+        
+        // Reativa interações
+        this.setInteractionsEnabled(true);
+    });
 }
 
     //=========================================================================================================
@@ -1074,6 +1108,12 @@ createMarcaPaginaIndividual(obj) {
         return;
         }
 
+        if (obj.name === "Caixa da Mãe") {
+            this.showTextBoxWithChoices("Eu estou pronta pra isso? Foi por causa de você que eu voltei aqui mãe...");
+            this.buttonOpen.setVisible(true);
+            this.buttonOpen.setDepth(1000);
+        }
+
         if (obj.name === "gavetaGrande") {
     if (this.gameState.mapaAlterado) {
         // Se o mapa foi alterado, permite abrir a gaveta
@@ -1221,6 +1261,9 @@ handleCameraUnlock() {
     this.inventory.addItem('camera', () => this.useFunctionalCamera());
     
     console.log('Câmera desbloqueada e item atualizado!');
+    if (this.checkAllStorylinesCompleted()) {
+        this.loadFinalMap();
+    }
 }
 
 useFunctionalCamera() {
