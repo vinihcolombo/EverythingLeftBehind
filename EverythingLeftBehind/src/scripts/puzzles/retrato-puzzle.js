@@ -40,6 +40,7 @@ export default class RetratoPuzzle {
             fontSize: '16px',
             color: '#FFFFFF',
             align: 'center',
+            resolution: 3,
             wordWrap: { width: 380 }
         }).setOrigin(0.5).setDepth(1003);
         this.container.add(question);
@@ -50,6 +51,7 @@ export default class RetratoPuzzle {
             fontFamily: '"Press Start 2P"',
             fontSize: '24px',
             color: '#FFFFFF',
+            resolution: 3,
             backgroundColor: '#333333'
         }).setOrigin(0.5).setPadding(10).setDepth(1004);
         this.container.add(this.dateDisplay);
@@ -65,6 +67,7 @@ export default class RetratoPuzzle {
             fontFamily: '"Press Start 2P"',
             fontSize: '16px',
             color: '#00FF00',
+            resolution: 3,
             backgroundColor: '#333333',
             padding: { x: 10, y: 5 }
         })
@@ -80,6 +83,7 @@ export default class RetratoPuzzle {
             fontFamily: '"Press Start 2P"',
             fontSize: '16px',
             color: '#FF0000',
+            resolution: 3,
             backgroundColor: '#333333',
             padding: { x: 5, y: 5 }
         })
@@ -158,9 +162,10 @@ export default class RetratoPuzzle {
 
     checkAnswer() {
     if (this.selectedDate === this.correctDate) {
-        this.scene.showTextBoxDialogue("É isso! Foi nesse dia...");
+        this.scene.cutsceneManager.playPuzzleCompleteCutscene('Tentando congelar seus tempos de ouros, encontrou memórias que doem como gelo queimando a pele.');
         this.scene.gameState.retratoCompleted = true;
         this.close();
+        
         
         // Emite um evento específico para a conclusão do puzzle do retrato
         this.scene.events.emit('retratoPuzzleCompleted');

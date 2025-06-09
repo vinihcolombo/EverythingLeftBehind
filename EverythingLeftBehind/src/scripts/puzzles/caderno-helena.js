@@ -7,7 +7,7 @@ export default class CadernoPuzzle {
         this.placedPieces = new Map();
         this.snapThreshold = 60;
         this.snapDuration = 250;
-        
+
         this.correctPositions = new Map([
             ["Escrita rosa", 0],
             ["Escrita roxa", 1],
@@ -20,9 +20,9 @@ export default class CadernoPuzzle {
         this.scene.setInteractionsEnabled(false);
 
         // Dark overlay with slight transparency
-        this.overlay = this.scene.add.rectangle(0, 0, 
-            this.scene.cameras.main.width, 
-            this.scene.cameras.main.height, 
+        this.overlay = this.scene.add.rectangle(0, 0,
+            this.scene.cameras.main.width,
+            this.scene.cameras.main.height,
             0x000000, 0.6)
             .setOrigin(0)
             .setDepth(1000);
@@ -44,7 +44,7 @@ export default class CadernoPuzzle {
         const pagesLayer = mapData.layers.find(l => l.name === "Páginas");
         const screenCenterX = this.scene.cameras.main.centerX;
         const screenCenterY = this.scene.cameras.main.centerY;
-        
+
         // Adjusted page positions with more separation
         const pagePositions = [
             // Page 1 - Top Left (moved further left)
@@ -56,14 +56,14 @@ export default class CadernoPuzzle {
             // Page 4 - Bottom Right (moved further right and down)
             { x: screenCenterX - 50, y: screenCenterY + 40 }
         ];
-        
+
         pagesLayer.objects.forEach((page, index) => {
             const pos = pagePositions[index];
-            
+
             this.pageZones.push({
                 index: index,
-                x: pos.x - page.width/2,
-                y: pos.y - page.height/2,
+                x: pos.x - page.width / 2,
+                y: pos.y - page.height / 2,
                 width: page.width,
                 height: page.height,
                 centerX: pos.x,
@@ -74,12 +74,12 @@ export default class CadernoPuzzle {
             // Page background
             const pageBg = this.scene.add.rectangle(
                 pos.x, pos.y,
-                page.width, page.height, 
+                page.width, page.height,
                 0xffffff, 0.9
             )
-            .setDepth(1001)
-            .setStrokeStyle(2, 0x000000);
-            
+                .setDepth(1001)
+                .setStrokeStyle(2, 0x000000);
+
             this.pageZones[index].visualElements.push(pageBg);
 
             // Page label
@@ -94,14 +94,14 @@ export default class CadernoPuzzle {
                     resolution: 3
                 }
             ).setOrigin(0.5).setDepth(1002);
-            
+
             this.pageZones[index].visualElements.push(pageLabel);
         });
     }
     createPieces(mapData) {
         const piecesLayer = mapData.layers.find(l => l.name === "Papéis");
         const screenWidth = this.scene.cameras.main.width;
-        
+
         // Adjusted paper positions - azul and roxa moved down further
         const piecePositions = [
             // Escrita rosa
@@ -113,25 +113,25 @@ export default class CadernoPuzzle {
             // Escrita azul (moved down)
             { x: 350, y: 160 }
         ];
-        
+
         piecesLayer.objects.forEach((piece, index) => {
             const pos = piecePositions[index];
             const imgKey = this.getPieceImageKey(piece.name);
-            
+
             const sprite = this.scene.add.image(
                 pos.x, pos.y,
                 imgKey
             )
-            .setDisplaySize(piece.width, piece.height)
-            .setInteractive({ draggable: true })
-            .setDepth(1003)
-            .on('drag', (pointer, dragX, dragY) => {
-                sprite.x = dragX;
-                sprite.y = dragY;
-            })
-            .on('dragend', () => {
-                this.handlePieceDrop(sprite, piece.name);
-            });
+                .setDisplaySize(piece.width, piece.height)
+                .setInteractive({ draggable: true })
+                .setDepth(1003)
+                .on('drag', (pointer, dragX, dragY) => {
+                    sprite.x = dragX;
+                    sprite.y = dragY;
+                })
+                .on('dragend', () => {
+                    this.handlePieceDrop(sprite, piece.name);
+                });
 
             // Color-coded label
             const colorInfo = this.getPieceColorInfo(piece.name);
@@ -165,25 +165,29 @@ export default class CadernoPuzzle {
         const colorMap = {
             "Escrita rosa": {
                 bgColor: '#ffb6c1', // Light pink
+                resolution: 3,
                 textColor: '#000000'
             },
             "Escrita roxa": {
                 bgColor: '#9370db', // Medium purple
+                resolution: 3,
                 textColor: '#ffffff'
             },
             "Escrita vermelha": {
                 bgColor: '#dc143c', // Crimson red
+                resolution: 3,
                 textColor: '#ffffff'
             },
             "Escrita azul": {
                 bgColor: '#4169e1', // Royal blue
+                resolution: 3,
                 textColor: '#ffffff'
             }
         };
-        
-        return colorMap[pieceName] || { 
-            bgColor: '#000000', 
-            textColor: '#ffffff' 
+
+        return colorMap[pieceName] || {
+            bgColor: '#000000',
+            textColor: '#ffffff'
         };
     }
 
@@ -191,11 +195,11 @@ export default class CadernoPuzzle {
         const pieceData = this.pieces.find(p => p.name === pieceName);
         const correctPageIndex = this.correctPositions.get(pieceName);
         const targetZone = this.pageZones[correctPageIndex];
-        
+
         const dx = targetZone.centerX - sprite.x;
         const dy = targetZone.centerY - sprite.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        
+
         if (distance <= this.snapThreshold && !this.placedPieces.has(pieceName)) {
             this.scene.tweens.add({
                 targets: [sprite, pieceData.label],
@@ -222,73 +226,46 @@ export default class CadernoPuzzle {
     }
 
     checkPuzzleComplete() {
-    if (this.placedPieces.size === this.correctPositions.size) {
-        // Remove notebook from inventory
-        if (this.scene.inventory) {
-            this.scene.inventory.removeItem(this.itemKey);
-        }
-        
-        // Show completion message
-        this.completeText = this.scene.add.text(
-            this.scene.cameras.main.centerX,
-            this.scene.cameras.main.centerY - 50,
-            'CADERNO ORGANIZADO!',
-            {
-                fontFamily: '"Press Start 2P"',
-                fontSize: '18px',
-                color: '#00ff00',
-                backgroundColor: '#000000',
-                padding: { x: 20, y: 15 },
-                resolution: 3
+        if (this.placedPieces.size === this.correctPositions.size) {
+            // Remove notebook from inventory
+            if (this.scene.inventory) {
+                this.scene.inventory.removeItem(this.itemKey);
+                this.closePuzzle();
             }
-        ).setOrigin(0.5).setDepth(1005);
-        
-        // Update game state - MARCA A STORYLINE DA HELENA COMO COMPLETA
-        this.scene.gameState.helenaStorylineCompleted = true;
-        
-        // VERIFICA SE TODAS AS STORYLINES ESTÃO COMPLETAS
-        if (this.scene.checkAllStorylinesCompleted()) {
-            this.scene.loadFinalMap();
-        }
 
-        // Add continue button
-        this.continueButton = this.scene.add.text(
-            this.scene.cameras.main.centerX,
-            this.scene.cameras.main.centerY + 50,
-            '[CONTINUAR]',
-            {
-                fontFamily: '"Press Start 2P"',
-                fontSize: '16px',
-                color: '#ffffff',
-                backgroundColor: '#006400',
-                padding: { x: 15, y: 10 },
-                resolution: 3
+            if (this.scene.cutsceneManager) {
+                // Chama a sua cutscene com uma mensagem mais imersiva
+                this.scene.cutsceneManager.playPuzzleCompleteCutscene(
+                    'Ela guardou tudo que podia me lembrar que eu era mais do que diziam ser.',
+                );
             }
-        )
-        .setOrigin(0.5)
-        .setDepth(1006)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => {
-            this.closePuzzle();
-        });
+
+            // Update game state - MARCA A STORYLINE DA HELENA COMO COMPLETA
+            this.scene.gameState.helenaStorylineCompleted = true;
+
+            // VERIFICA SE TODAS AS STORYLINES ESTÃO COMPLETAS
+            if (this.scene.checkAllStorylinesCompleted()) {
+                this.scene.loadFinalMap();
+            }
+
+        }
     }
-}
     cleanupAllElements() {
         // Remove all visual elements
         this.overlay.destroy();
         this.title.destroy();
         this.closeButton.destroy();
-        
+
         if (this.completeText) {
             this.completeText.destroy();
         }
-        
+
         // Remove all pieces
         this.pieces.forEach(piece => {
             piece.sprite.destroy();
             piece.label && piece.label.destroy();
         });
-        
+
         // Remove all page visuals
         this.pageZones.forEach(zone => {
             zone.visualElements.forEach(element => element.destroy());
@@ -319,32 +296,32 @@ export default class CadernoPuzzle {
                 resolution: 3
             }
         )
-        .setDepth(1005)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => {
-            this.closePuzzle();
-        });
+            .setDepth(1005)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.closePuzzle();
+            });
     }
 
     closePuzzle() {
         // Remove all elements
         this.overlay.destroy();
         this.closeButton.destroy();
-        
+
         if (this.completeText) {
             this.completeText.destroy();
         }
-        
+
         if (this.continueButton) {
             this.continueButton.destroy();
         }
-        
+
         // Remove all pieces
         this.pieces.forEach(piece => {
             piece.sprite.destroy();
             if (piece.label) piece.label.destroy();
         });
-        
+
         // Remove all page visuals
         this.pageZones.forEach(zone => {
             if (zone.visualElements) {
@@ -353,10 +330,10 @@ export default class CadernoPuzzle {
                 });
             }
         });
-        
+
         // Re-enable interactions
         this.scene.setInteractionsEnabled(true);
-        
+
         // Optional: trigger any completion callback
         if (this.onCompleteCallback) {
             this.onCompleteCallback();

@@ -4,7 +4,7 @@ constructor() {
     this.mapaAlterado = false;
     this.cameraUnlocked = false;
     this.claraStorylineCompleted = false;
-    this.rafaelStorylineCompleted = false; // Adicione esta linha
+    this.rafaelStorylineCompleted = false;
     this.helenaStorylineCompleted = false;
 }
 }
