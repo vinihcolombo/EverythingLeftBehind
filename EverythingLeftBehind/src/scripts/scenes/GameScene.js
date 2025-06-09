@@ -63,6 +63,7 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('paperPiece4', './assets/images/objects/paperPiece1.png');
         this.load.image('bg-caixaMae', './assets/images/caixaMae.png');
         this.load.image('imagemFinal', './assets/images/imagemFinal.png');
+        this.load.image('fotoClara', './assets/images/fotoClara.png');
         // this.load.image('bg-cartas', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
 
         // Carrega os mapas
@@ -1269,7 +1270,7 @@ handleCameraUnlock() {
 useFunctionalCamera() {
     // Sua lógica de zoom aqui
     console.log('Usando câmera funcional...');
-    this.showZoomedImage('iconInventory');
+    this.showZoomedImage('fotoClara');
 }
 
 
@@ -1579,10 +1580,13 @@ showZoomedImage(imageKey, options = {}) {
     const config = {
         x: this.cameras.main.centerX,
         y: this.cameras.main.centerY,
-        scale: 0.7,
         closeButton: true,
         blurBackground: true,
         overlayAlpha: 0.8,
+        targetWidth: 238,  // Largura desejada
+        targetHeight: 244, // Altura desejada
+        maxDisplayWidth: this.cameras.main.width * 0.8, // Máximo 80% da largura da tela
+        maxDisplayHeight: this.cameras.main.height * 0.8, // Máximo 80% da altura da tela
         ...options
     };
 
@@ -1617,37 +1621,30 @@ showZoomedImage(imageKey, options = {}) {
             .setBlendMode(Phaser.BlendModes.OVERLAY);
     }
 
-    // Adiciona a imagem em grande escala
-    const itemHeight = this.cameras.main.height * 0.6;
+    // Calcula o tamanho de exibição mantendo a proporção
+    const originalRatio = config.targetWidth / config.targetHeight;
+    let displayWidth = config.targetWidth;
+    let displayHeight = config.targetHeight;
+
+    // Ajusta se exceder os limites máximos
+    if (displayWidth > config.maxDisplayWidth) {
+        displayWidth = config.maxDisplayWidth;
+        displayHeight = displayWidth / originalRatio;
+    }
+
+    if (displayHeight > config.maxDisplayHeight) {
+        displayHeight = config.maxDisplayHeight;
+        displayWidth = displayHeight * originalRatio;
+    }
+
+    // Adiciona a imagem com o tamanho calculado
     this.zoomView.zoomedItem = this.add.image(
         config.x,
         config.y,
         imageKey
     )
-        .setDisplaySize(itemHeight * config.scale, itemHeight)
+        .setDisplaySize(displayWidth, displayHeight)
         .setDepth(1002);
-
-    // Botão de fechar se necessário
-    if (config.closeButton) {
-        this.zoomView.closeButton = this.add.text(
-            this.cameras.main.centerX + 150,
-            this.cameras.main.centerY - 200,
-            '[Fechar]',
-            {
-                fontFamily: '"Press Start 2P", monospace',
-                fontSize: '12px',
-                color: '#ff0000',
-                backgroundColor: '#000000',
-                padding: { x: 10, y: 5 },
-                resolution: 3
-            }
-        )
-        .setDepth(1003)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => {
-            this.closeItemZoom();
-        });
-    }
 
     // Fecha ao clicar no overlay
     this.zoomView.overlay.on('pointerdown', () => {
