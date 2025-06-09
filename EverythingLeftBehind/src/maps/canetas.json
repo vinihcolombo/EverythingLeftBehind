@@ -109,6 +109,28 @@
          "y":0
         }, 
         {
+         "draworder":"topdown",
+         "id":8,
+         "name":"voltar",
+         "objects":[
+                {
+                 "height":23.3717686442254,
+                 "id":9,
+                 "name":"voltar",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":22.1833736284173,
+                 "x":0.396131671936025,
+                 "y":0
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
          "id":3,
          "image":"..\/assets\/images\/objects\/caneta2.png",
          "imageheight":96,
@@ -164,11 +186,11 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":8,
- "nextobjectid":6,
+ "nextlayerid":9,
+ "nextobjectid":10,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.11.1-99-gec89c545",
+ "tiledversion":"1.11.2",
  "tileheight":6,
  "tilesets":[],
  "tilewidth":6,

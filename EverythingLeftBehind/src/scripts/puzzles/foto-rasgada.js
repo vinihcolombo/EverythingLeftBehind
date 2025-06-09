@@ -1,11 +1,11 @@
 export default class PuzzleGame {
-    constructor(scene, imageKey, inventoryInstance, puzzleSize = 200, rows = 3, cols = 3) {
+    constructor(scene, imageKey, inventoryInstance, rows = 3, cols = 3) {
         this.inventory = inventoryInstance;
         this.scene = scene;
         this.imageKey = imageKey;
         this.rows = rows;
         this.cols = cols;
-        this.puzzleSize = puzzleSize; // Tamanho quadrado do puzzle
+        this.puzzleSize = 0; // Será definido dinamicamente
         this.pieces = [];
         this.container = null;
         this.isComplete = false;
@@ -27,6 +27,13 @@ export default class PuzzleGame {
         
         // Cria o container do puzzle centralizado
         this.container = this.scene.add.container(centerX, centerY);
+
+        // 2. Lógica adicionada para definir o tamanho do puzzle a partir da imagem.
+        // Pega a imagem de referência a partir da sua chave de textura.
+        const sourceImage = this.scene.textures.get(this.imageKey).getSourceImage();
+        // Assume que a imagem é quadrada e define o tamanho do puzzle.
+        // Se sua imagem não for quadrada, você pode definir this.puzzleWidth e this.puzzleHeight.
+        this.puzzleSize = sourceImage.width;
         
         // Cria a borda do puzzle (área de montagem)
         const border = this.scene.add.rectangle(
@@ -207,7 +214,7 @@ export default class PuzzleGame {
 
     addCloseButton() {
         const closeButton = this.scene.add.text(
-            this.puzzleSize / 2 - 20,
+            this.puzzleSize / 2 + 20,
             -this.puzzleSize / 2 + 20,
             '✕',
             {

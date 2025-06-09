@@ -5,9 +5,11 @@ import RoomManager from '../managers/RoomManager.js';
 import Inventory from '../ui/Inventory.js';
 import { sizes } from '../constants.js';
 import GameState from './GameState.js';
+import CutsceneManager from '../managers/CutsceneManager.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
+        let backButton = null;
         super("scene-game");
         this.CameraPuzzle = null;
         this.roomManager = null;
@@ -20,6 +22,8 @@ export default class GameScene extends Phaser.Scene {
         this.standardRooms = ['mapa1', 'mapa2', 'mapa3', 'mapa4'];
         this.currentMapKey = null;
         this.inspectionScreen = null;
+        this.marcaPaginaSprites = [];
+        this.canetaSprites = [];
 
         //teste zoom
         this.zoomView = {
@@ -51,6 +55,7 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('bg-canetas', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
         this.load.image('bg-marcapag', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
         // this.load.image('bg-cartas', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
+        this.load.image('cutscene', './assets/images/Caixa.png');
 
         // Carrega os mapas
         this.load.json('mapa1', './maps/ParedeNorteDefinitiva.json');
@@ -96,6 +101,7 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     create() {
+        this.cutsceneManager = new CutsceneManager(this);
         this.lastClickedObject = null;
         this.navigationHistory = [];
         // Inicializa o gerenciador de quartos
@@ -138,7 +144,7 @@ export default class GameScene extends Phaser.Scene {
             color: '#ffffff',
             wordWrap: { width: sizes.width - 20 }
         })
-            .setDepth(101)
+            .setDepth(102)
             .setVisible(true);
 
         //=========================================================================================================
@@ -157,41 +163,41 @@ export default class GameScene extends Phaser.Scene {
             resolution: 2,
         })
             .setInteractive({ useHandCursor: true })
-.on('pointerdown', () => {
-    const obj = this.lastClickedObject || this._lastClickedObjectCache;
-    console.log('Tentando abrir objeto:', obj?.name);
-    if (obj.name === "gavetaGrande") {
-        this.loadCustomMap('gaveta', 'gaveta');
-    }
-    if (this.lastClickedObject) {
-        if (this.lastClickedObject.name === "caixaClara") {
-            this.loadCustomMap('caixaclara', 'caixa');
-        }
-        else if (this.lastClickedObject.name === "Caixa sobre Helena") {
-            this.loadCustomMap('caixahelena', 'caixa');
-        }
-        else if (this.lastClickedObject.name === "Caixa do Rafael") {
-            this.loadCustomMap('caixarafael', 'caixa');
-        }
-        else if (this.lastClickedObject.name === "QuadroBanana") {
-            this.loadCustomMap('paredeComCaixa', 'paredeComCaixa');
-        }
-        else if (this.lastClickedObject.name === "PrateleiraArmario") {
-            this.loadCustomMap('retrato', 'retrato');
-        }
-        else if (this.lastClickedObject.name === "gavetaGrande") {
-            this.loadCustomMap('gaveta', 'gaveta');
-        }
-        else if (this.lastClickedObject.name === "Quadro") {
-            this.loadCustomMap('mapa', 'mapa');
-        }
-    }
-    this.hideTextBox(); // Esta linha garante que a caixa será fechada
-})
+            .on('pointerdown', () => {
+                const obj = this.lastClickedObject || this._lastClickedObjectCache;
+                console.log('Tentando abrir objeto:', obj?.name);
+                if (obj.name === "gavetaGrande") {
+                    this.loadCustomMap('gaveta', 'gaveta');
+                }
+                if (this.lastClickedObject) {
+                    if (this.lastClickedObject.name === "caixaClara") {
+                        this.loadCustomMap('caixaclara', 'caixa');
+                    }
+                    else if (this.lastClickedObject.name === "Caixa sobre Helena") {
+                        this.loadCustomMap('caixahelena', 'caixa');
+                    }
+                    else if (this.lastClickedObject.name === "Caixa do Rafael") {
+                        this.loadCustomMap('caixarafael', 'caixa');
+                    }
+                    else if (this.lastClickedObject.name === "QuadroBanana") {
+                        this.loadCustomMap('paredeComCaixa', 'paredeComCaixa');
+                    }
+                    else if (this.lastClickedObject.name === "PrateleiraArmario") {
+                        this.loadCustomMap('retrato', 'retrato');
+                    }
+                    else if (this.lastClickedObject.name === "gavetaGrande") {
+                        this.loadCustomMap('gaveta', 'gaveta');
+                    }
+                    else if (this.lastClickedObject.name === "Quadro") {
+                        this.loadCustomMap('mapa', 'mapa');
+                    }
+                }
+                this.hideTextBox(); // Esta linha garante que a caixa será fechada
+            })
 
 
-.setDepth(101)
-.setVisible(false);
+            .setDepth(101)
+            .setVisible(false);
 
 
         //=========================================================================================================
@@ -235,54 +241,59 @@ export default class GameScene extends Phaser.Scene {
         this.setInteractionsEnabled(true);
 
         if (!this.gameState.cameraUnlocked) {
-        this.cameraPuzzle = new CameraPuzzle(this);
-        
-        // Configura o listener para quando o puzzle for completado
-        this.events.once('cameraPuzzleCompleted', () => {
-            this.handleCameraUnlock();
-        });
-    }
+            this.cameraPuzzle = new CameraPuzzle(this);
 
-            this.retratoPuzzle = new RetratoPuzzle(this, "07/11/1999");
-            this.events.on('retratoPuzzleCompleted', () => {
-                this.gameState.rafaelStorylineCompleted = true;
-                console.log("Rafael storyline completa: ", this.gameState.rafaelStorylineCompleted);
+            // Configura o listener para quando o puzzle for completado
+            this.events.once('cameraPuzzleCompleted', () => {
+                this.handleCameraUnlock();
             });
-    }
-    
+        }
 
-    update () {
-    // Verificação de consistência
-    if (this.bg.texture.key !== this.getExpectedBackground()) {
-        console.warn('Inconsistência detectada! Recriando background...');
-        this.bg.destroy();
-        this.bg = this.add.image(0, 0, this.getExpectedBackground())
-            .setOrigin(0, 0)
-            .setDisplaySize(this.scale.width, this.scale.height);
-    }
-}
+        this.retratoPuzzle = new RetratoPuzzle(this, "07/11/1999");
+        this.events.on('retratoPuzzleCompleted', () => {
+            this.gameState.rafaelStorylineCompleted = true;
+            console.log("Rafael storyline completa: ", this.gameState.rafaelStorylineCompleted);
+        });
+        console.log("Pressione F4 para testar a cutscene de fade.");
+        this.input.keyboard.on('keydown-F4', () => {
+            this.cutsceneManager.playPuzzleCompleteCutscene();
+        });
 
-getExpectedBackground() {
-    // Mapeia currentMapKey para o background esperado
-    const mapToBg = {
-        'mapa1': 'bg1',
-        'mapa2': 'bg2',
-        'mapa3': 'bg3',
-        'mapa4': 'bg4',
-        'gaveta': 'gaveta', // ajuste conforme seus assets
-    'caixaclara': 'caixa',
-        'caixarafael': 'caixa',
-        'caixahelena': 'caixa',
-        'paredeComCaixa': 'paredeComCaixa',
-        'retrato': 'retrato',
-        'mapa': this.gameState.mapaAlterado ? 'mapaMundiAlterado' : 'mapa',
-        // 'cartas': 'bg-cartas',
-        'pedras': 'bg-pedras',
-        'canetas': 'bg-canetas',
-        'marcapag': 'bg-marcapag'
-    };
-    return mapToBg[this.currentMapKey] || 'bg1';
-}
+    }
+
+
+    update() {
+        // Verificação de consistência
+        if (this.bg.texture.key !== this.getExpectedBackground()) {
+            console.warn('Inconsistência detectada! Recriando background...');
+            this.bg.destroy();
+            this.bg = this.add.image(0, 0, this.getExpectedBackground())
+                .setOrigin(0, 0)
+                .setDisplaySize(this.scale.width, this.scale.height);
+        }
+    }
+
+    getExpectedBackground() {
+        // Mapeia currentMapKey para o background esperado
+        const mapToBg = {
+            'mapa1': 'bg1',
+            'mapa2': 'bg2',
+            'mapa3': 'bg3',
+            'mapa4': 'bg4',
+            'gaveta': 'gaveta', // ajuste conforme seus assets
+            'caixaclara': 'caixa',
+            'caixarafael': 'caixa',
+            'caixahelena': 'caixa',
+            'paredeComCaixa': 'paredeComCaixa',
+            'retrato': 'retrato',
+            'mapa': this.gameState.mapaAlterado ? 'mapaMundiAlterado' : 'mapa',
+            // 'cartas': 'bg-cartas',
+            'pedras': 'bg-pedras',
+            'canetas': 'bg-canetas',
+            'marcapag': 'bg-marcapag'
+        };
+        return mapToBg[this.currentMapKey] || 'bg1';
+    }
 
     //=========================================================================================================
 
@@ -311,73 +322,74 @@ getExpectedBackground() {
     //=========================================================================================================
 
     loadCustomMap(mapKey, bgKey) {
-    // Verifica se é o mapa que pode ser alterado
-    if (this.currentMapKey === mapKey) return;
+        // Verifica se é o mapa que pode ser alterado
+        if (this.currentMapKey === mapKey) return;
 
-    if (mapKey === 'mapa' && this.gameState.mapaAlterado) {
-        bgKey = 'mapaMundiAlterado'; // Força o fundo alterado
-    }
-    
-    console.log(`[DEBUG] Carregando mapa: ${mapKey}`);
-    console.log(`Mapa no cache: ${this.cache.json.has(mapKey)}`);
+        if (mapKey === 'mapa' && this.gameState.mapaAlterado) {
+            bgKey = 'mapaMundiAlterado'; // Força o fundo alterado
+        }
 
-    // Resto do método original...
-    if (this.currentMapKey && this.bg.texture) {
-        this.navigationHistory.push({
-            mapKey: this.currentMapKey,
-            bgKey: this.bg.texture.key
-        });
+        console.log(`[DEBUG] Carregando mapa: ${mapKey}`);
+        console.log(`Mapa no cache: ${this.cache.json.has(mapKey)}`);
+
+        // Resto do método original...
+        if (this.currentMapKey && this.bg.texture) {
+            this.navigationHistory.push({
+                mapKey: this.currentMapKey,
+                bgKey: this.bg.texture.key
+            });
+        }
+
+        this.roomManager.clearPreviousZones();
+
+        if (bgKey) {
+            this.updateBackground(bgKey);
+        }
+
+        this.loadMapObjects(mapKey);
+        this.currentMapKey = mapKey;
+
+        this.updateArrowsVisibility();
     }
-    
-    this.roomManager.clearPreviousZones();
-    
-    if (bgKey) {
-        this.updateBackground(bgKey);
-    }
-    
-    this.loadMapObjects(mapKey);
-    this.currentMapKey = mapKey;
-    
-    this.updateArrowsVisibility();
-}
+
 
     //=========================================================================================================
 
     goBackToPreviousMap() {
-    // Fecha qualquer diálogo aberto
-    this.hideTextBox();
-    
-    this.clearItemSprites();
-    
-    if (this.navigationHistory.length > 0) {
-        const previous = this.navigationHistory.pop();
-        console.log(`[DEBUG] Voltando para: ${previous.mapKey} com bg: ${previous.bgKey}`);
+        // Fecha qualquer diálogo aberto
+        this.hideTextBox();
 
-        this.bg.destroy();
-        this.bg = this.add.image(0, 0, previous.bgKey)
-            .setOrigin(0, 0)
-            .setDisplaySize(this.scale.width, this.scale.height);
-        
-        this.roomManager.clearPreviousZones(true);
-        this.loadMapObjects(previous.mapKey);
-        this.currentMapKey = previous.mapKey;
-        
-        this.updateArrowsVisibility();
-    } else {
-        this.loadCustomMap('mapa1', 'bg1');
+        this.clearItemSprites();
+
+        if (this.navigationHistory.length > 0) {
+            const previous = this.navigationHistory.pop();
+            console.log(`[DEBUG] Voltando para: ${previous.mapKey} com bg: ${previous.bgKey}`);
+
+            this.bg.destroy();
+            this.bg = this.add.image(0, 0, previous.bgKey)
+                .setOrigin(0, 0)
+                .setDisplaySize(this.scale.width, this.scale.height);
+
+            this.roomManager.clearPreviousZones(true);
+            this.loadMapObjects(previous.mapKey);
+            this.currentMapKey = previous.mapKey;
+
+            this.updateArrowsVisibility();
+        } else {
+            this.loadCustomMap('mapa1', 'bg1');
+        }
     }
-}
 
     //=========================================================================================================
 
     isStandardRoom() {
-    // Lista de salas que devem ter setas desativadas
-    const nonStandardRooms = ['cartas', 'pedras', 'caixaclara', 'caixahelena', 
-                            'caixarafael', 'paredeComCaixa', 'retrato', 
-                            'gaveta', 'mapa'];
-    return !nonStandardRooms.includes(this.currentMapKey) && 
-           this.standardRooms.includes(this.currentMapKey);
-}
+        // Lista de salas que devem ter setas desativadas
+        const nonStandardRooms = ['cartas', 'pedras', 'caixaclara', 'caixahelena',
+            'caixarafael', 'paredeComCaixa', 'retrato',
+            'gaveta', 'mapa'];
+        return !nonStandardRooms.includes(this.currentMapKey) &&
+            this.standardRooms.includes(this.currentMapKey);
+    }
 
     //=========================================================================================================
 
@@ -411,10 +423,10 @@ getExpectedBackground() {
     //=========================================================================================================
 
     updateArrowsVisibility() {
-    const shouldShowArrows = this.isStandardRoom();
-    this.arrows.left.setVisible(shouldShowArrows);
-    this.arrows.right.setVisible(shouldShowArrows);
-}
+        const shouldShowArrows = this.isStandardRoom();
+        this.arrows.left.setVisible(shouldShowArrows);
+        this.arrows.right.setVisible(shouldShowArrows);
+    }
 
     //=========================================================================================================
 
@@ -425,21 +437,21 @@ getExpectedBackground() {
     //=========================================================================================================
 
     loadMapObjects(mapKey) {
-    console.log(`Carregando objetos do mapa: ${mapKey}`); // Debug
-    
-    const mapData = this.cache.json.get(mapKey);
-    if (!mapData) {
-        console.error(`Mapa ${mapKey} não encontrado no cache!`);
-        return;
-    }
+        console.log(`Carregando objetos do mapa: ${mapKey}`); // Debug
 
-    mapData.layers.forEach(layer => {
-        console.log(`Camada: ${layer.name} (${layer.type})`); // Debug
-        
-        if (layer.type === 'objectgroup') {
-            if (mapKey === 'pedras') {
-                    if (layer.name === '28/12/1998' || layer.name === '24/05/1998' || 
-                        layer.name === '12/03/1998' || layer.name === '07/11/1999' || 
+        const mapData = this.cache.json.get(mapKey);
+        if (!mapData) {
+            console.error(`Mapa ${mapKey} não encontrado no cache!`);
+            return;
+        }
+
+        mapData.layers.forEach(layer => {
+            console.log(`Camada: ${layer.name} (${layer.type})`); // Debug
+
+            if (layer.type === 'objectgroup') {
+                if (mapKey === 'pedras') {
+                    if (layer.name === '28/12/1998' || layer.name === '24/05/1998' ||
+                        layer.name === '12/03/1998' || layer.name === '07/11/1999' ||
                         layer.name === '03/04/1999') {
                         layer.objects.forEach(obj => {
                             this.createStoneInteractiveZone(obj, layer.name);
@@ -447,123 +459,215 @@ getExpectedBackground() {
                         return; // Pula para próxima camada
                     }
                 }
-            layer.objects.forEach(obj => {
-                console.log(`- Objeto: ${obj.name} em (${obj.x},${obj.y})`); // Debug
-                
-                if (obj.name === 'Chave de Apartamento') { // Modifiquei a condição
-                    this.createChave(obj);
-                }
-                else if (obj.name === 'Pedaço de Mapa-múndi') {
-                    this.createMapa(obj);
-                }
-                else if (obj.name === 'Fotografia Revelada') {
-                    this.createFotografia(obj);
-                }
-                else if (obj.name === 'Coleção de Pedras') {
-                    this.createPedra(obj);
-                } 
-                // else if (obj.name === 'Pilha de Cartas') {
-                //     this.createCartas(obj);
-                // }
-                else if (obj.name === 'Caderno de Escrita') {
-                    this.createNotebook(obj);
-                }
-                else if (obj.name === 'Marcas-página') {
-                    this.createMarcaPaginas(obj);
-                }
-                else if (obj.name === 'Canetas Tinteiro') {
-                    this.createCanetas(obj);
-                }
-                else if (obj.name === 'gavetaCamera') {
-                    this.createCamera(obj);
-                }
+                layer.objects.forEach(obj => {
+                    console.log(`- Objeto: ${obj.name} em (${obj.x},${obj.y})`); // Debug
 
-                else if (obj.name === "Caneta Roxa" || obj.name === "Caneta Azul" || obj.name === "Caneta Vermelha" || obj.name === "Caneta Rosa") {
-                    this.createCanetaIndividual(obj);
-                }
+                    if (obj.name === 'Chave de Apartamento') { // Modifiquei a condição
+                        this.createChave(obj);
+                    }
+                    else if (obj.name === 'Pedaço de Mapa-múndi') {
+                        this.createMapa(obj);
+                    }
+                    else if (obj.name === 'Fotografia Revelada') {
+                        this.createFotografia(obj);
+                    }
+                    else if (obj.name === 'Coleção de Pedras') {
+                        this.createPedra(obj);
+                    }
+                    // else if (obj.name === 'Pilha de Cartas') {
+                    //     this.createCartas(obj);
+                    // }
+                    else if (obj.name === 'Caderno de Escrita') {
+                        this.createNotebook(obj);
+                    }
+                    else if (obj.name === 'Marcas-página') {
+                        this.createMarcaPaginas(obj);
+                    }
+                    else if (obj.name === 'Canetas Tinteiro') {
+                        this.createCanetas(obj);
+                    }
+                    else if (obj.name === 'gavetaCamera') {
+                        this.createCamera(obj);
+                    }
 
-                else if (obj.name === "Caneta Roxa" || obj.name === "Caneta Azul" || 
-                    obj.name === "Caneta Vermelha" || obj.name === "Caneta Rosa") {
-                    this.createCanetaIndividual(obj);
-                }
-                else if (obj.name.includes("MarcaPag")){
-                    this.createMarcaPaginaIndividual(obj);
-                }
-                else {
-                    this.createStandardInteractiveZone(obj);
-                }
-            });
-        }
-    });
-}
+                    else if (obj.name === "Caneta Roxa" || obj.name === "Caneta Azul" || obj.name === "Caneta Vermelha" || obj.name === "Caneta Rosa") {
+                        this.createCanetaIndividual(obj);
+                    }
+
+                    else if (obj.name === "Caneta Roxa" || obj.name === "Caneta Azul" ||
+                        obj.name === "Caneta Vermelha" || obj.name === "Caneta Rosa") {
+                        this.createCanetaIndividual(obj);
+                    }
+                    else if (obj.name && obj.name.includes("MarcaPag")) {
+                        this.createMarcaPaginaIndividual(obj);
+                    }
+                    else {
+                        this.createStandardInteractiveZone(obj);
+                    }
+                });
+            }
+        });
+    }
     createCanetaIndividual(obj) {
-    const imgKey = obj.name.includes("Roxa") || obj.name.includes("Rosa") ? 'caneta2' : 'caneta1';
-    
-    const caneta = this.add.image(
-        obj.x + obj.width/2,
-        obj.y + obj.height/2,
-        imgKey
-    )
-    .setDisplaySize(obj.width, obj.height)
-    .setOrigin(0.5)
-    .setDepth(10);
+        const imgKey = obj.name.includes("Roxa") || obj.name.includes("Rosa") ? 'caneta2' : 'caneta1';
 
-    const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
-        .setOrigin(0)
-        .setInteractive()
-        .on('pointerover', () => this.showTooltip(obj))
-        .on('pointerout', () => this.tooltip.setVisible(false))
-        .on('pointerdown', () => this.handleObjectClick(obj));
+        const caneta = this.add.image(
+            obj.x + obj.width / 2,
+            obj.y + obj.height / 2,
+            imgKey
+        )
+            .setDisplaySize(obj.width, obj.height)
+            .setOrigin(0.5)
+            .setDepth(10);
 
-    this.roomManager.interactiveZones.push(zone);
-}
+        // Armazena a referência da caneta
+        this.canetaSprites.push(caneta);
 
-createMarcaPaginaIndividual(obj) {
-    // Determina qual imagem usar baseada no nome do objeto
-    let imgKey;
-    switch(obj.name) {
-        case "MarcaPag1":
-            imgKey = 'marcaPag1'; // Imagem para o primeiro marcador
-            break;
-        case "MarcaPag2":
-            imgKey = 'marcaPag2'; // Imagem para o segundo marcador
-            break;
-        case "MarcaPag3":
-            imgKey = 'marcaPag1'; // Imagem para o terceiro marcador
-            break;
-        case "MarcaPag4":
-            imgKey = 'marcaPag2'; // Imagem para o quarto marcador
-            break;
-        default:
-            imgKey = 'marcaPag1'; // Padrão caso não encontre
+        const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
+            .setOrigin(0)
+            .setInteractive()
+            .on('pointerover', () => this.showTooltip(obj))
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj));
+
+        this.roomManager.interactiveZones.push(zone);
     }
 
-    // Cria a imagem do marcador de página
-    const marcaPagina = this.add.image(
-        obj.x + obj.width/2,
-        obj.y + obj.height/2,
-        imgKey
-    )
-    .setDisplaySize(obj.width, obj.height)
-    .setOrigin(0.5)
-    .setDepth(10);
+    // Adicione este método para limpar os sprites das canetas
+    clearCanetaSprites() {
+        // Destrói todos os sprites de canetas
+        this.canetaSprites.forEach(sprite => {
+            if (sprite && typeof sprite.destroy === 'function') {
+                sprite.destroy();
+            }
+        });
+        // Limpa o array
+        this.canetaSprites = [];
+    }
 
-    // Cria a zona interativa
-    const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
-        .setOrigin(0)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => this.showTooltip({
-            name: obj.name,
-            x: obj.x,
-            y: obj.y,
-            width: obj.width,
-            height: obj.height
-        }))
-        .on('pointerout', () => this.tooltip.setVisible(false))
-        .on('pointerdown', () => this.handleMarcaPaginaClick(obj));
+    // Modifique o método goBackToPreviousMap para incluir a limpeza das canetas
+    goBackToPreviousMap() {
+        // Fecha qualquer diálogo aberto
+        this.hideTextBox();
 
-    this.roomManager.interactiveZones.push(zone);
-}
+        // Limpa todos os sprites
+        this.clearItemSprites();
+        this.clearCanetaSprites(); // Adicionado para limpar as canetas
+
+        if (this.navigationHistory.length > 0) {
+            const previous = this.navigationHistory.pop();
+            console.log(`[DEBUG] Voltando para: ${previous.mapKey} com bg: ${previous.bgKey}`);
+
+            this.bg.destroy();
+            this.bg = this.add.image(0, 0, previous.bgKey)
+                .setOrigin(0, 0)
+                .setDisplaySize(this.scale.width, this.scale.height);
+
+            this.roomManager.clearPreviousZones(true);
+            this.loadMapObjects(previous.mapKey);
+            this.currentMapKey = previous.mapKey;
+
+            this.updateArrowsVisibility();
+        } else {
+            this.loadCustomMap('mapa1', 'bg1');
+        }
+    }
+
+    createMarcaPaginaIndividual(obj) {
+        const targetWidth = 96;
+        const targetHeight = 96;
+        const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
+        const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
+
+        // Determina qual imagem usar baseada no nome do objeto
+        let imgKey;
+        switch (obj.name) {
+            case "MarcaPag1":
+                imgKey = 'marcaPag1';
+                break;
+            case "MarcaPag2":
+                imgKey = 'marcaPag2';
+                break;
+            case "MarcaPag3":
+                imgKey = 'marcaPag1';
+                break;
+            case "MarcaPag4":
+                imgKey = 'marcaPag2';
+                break;
+            default:
+                imgKey = 'marcaPag1';
+        }
+
+        // Cria a imagem do marcador de página
+        const marcaPagina = this.add.image(
+            posX + targetWidth / 2,
+            posY + targetHeight / 2,
+            imgKey
+        )
+            .setDisplaySize(obj.width, obj.height)
+            .setOrigin(0.5)
+            .setDepth(10);
+
+        // Armazena a referência do sprite
+        this.marcaPaginaSprites.push(marcaPagina);
+
+        // Cria a zona interativa
+        const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip({
+                name: obj.name,
+                x: obj.x,
+                y: obj.y,
+                width: obj.width,
+                height: obj.height
+            }))
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handleObjectClick(obj));
+
+        this.roomManager.interactiveZones.push(zone);
+    }
+
+    // Modifique o método goBackToPreviousMap para limpar os sprites
+    goBackToPreviousMap() {
+        // Fecha qualquer diálogo aberto
+        this.hideTextBox();
+
+        // Limpa os sprites dos marcadores de página
+        this.clearMarcaPaginaSprites();
+
+        this.clearItemSprites();
+
+        if (this.navigationHistory.length > 0) {
+            const previous = this.navigationHistory.pop();
+            console.log(`[DEBUG] Voltando para: ${previous.mapKey} com bg: ${previous.bgKey}`);
+
+            this.bg.destroy();
+            this.bg = this.add.image(0, 0, previous.bgKey)
+                .setOrigin(0, 0)
+                .setDisplaySize(this.scale.width, this.scale.height);
+
+            this.roomManager.clearPreviousZones(true);
+            this.loadMapObjects(previous.mapKey);
+            this.currentMapKey = previous.mapKey;
+
+            this.updateArrowsVisibility();
+        } else {
+            this.loadCustomMap('mapa1', 'bg1');
+        }
+    }
+
+    // Adicione este novo método para limpar os sprites
+    clearMarcaPaginaSprites() {
+        // Destrói todos os sprites de marcadores de página
+        this.marcaPaginaSprites.forEach(sprite => {
+            if (sprite && typeof sprite.destroy === 'function') {
+                sprite.destroy();
+            }
+        });
+        // Limpa o array
+        this.marcaPaginaSprites = [];
+    }
 
     // <--- MÉTODO MODIFICADO para gerenciar this.notebookSprite
     createChave(obj) {
@@ -939,7 +1043,7 @@ createMarcaPaginaIndividual(obj) {
         if (obj.name === "MarcaPag1")
             this.showTextBoxDialogue("Recado 1 - ano");
         if (obj.name === "MarcaPag2")
-            this.showTextBoxDialogue("Recaro 2 - ano");
+            this.showTextBoxDialogue("Recado 2 - ano");
         if (obj.name === "MarcaPag3")
             this.showTextBoxDialogue("Recado 3 - ano");
         if (obj.name === "MarcaPag4")
@@ -965,7 +1069,7 @@ createMarcaPaginaIndividual(obj) {
 
         if (obj.name === "Pedaço de Mapa-múndi") {
             this.inventory.addItem('pedacoMapa', () => {
-                this.showItemZoom('pedacoMapa');
+                this.showItemZoom('pedacoMapa', "Isso deve ir em algum lugar..");
             })
             this.removeHitboxForObject(obj);
             this.MapaSprite.destroy();
@@ -984,7 +1088,7 @@ createMarcaPaginaIndividual(obj) {
         if (obj.name === "Coleção de Pedras") {
             this.inventory.addItem('rockCollection', () => {
                 this.goBackToPreviousMap();
-                this.loadCustomMap('pedras', 'pedras')  ;
+                this.loadCustomMap('pedras', 'pedras');
 
             });
             this.removeHitboxForObject(obj);
@@ -1032,35 +1136,35 @@ createMarcaPaginaIndividual(obj) {
         }
 
         if (obj.name === "gavetaCamera") {
-    this.inventory.addItem('camera', () => {
-        if (!this.cameraPuzzle) {
-            this.cameraPuzzle = new CameraPuzzle(this);
+            this.inventory.addItem('camera', () => {
+                if (!this.cameraPuzzle) {
+                    this.cameraPuzzle = new CameraPuzzle(this);
+                }
+                this.cameraPuzzle.open();
+            });
+            this.removeHitboxForObject(obj);
+            this.CameraSprite.destroy();
+            return;
         }
-        this.cameraPuzzle.open();
-    });
-    this.removeHitboxForObject(obj);
-    this.CameraSprite.destroy();
-    return;
-}
 
         if (obj.name === "caixaSemQuadro") { // Ou qualquer outro nome que você definir
-        this.startPuzzle();
-        return;
+            this.startPuzzle();
+            return;
         }
 
         if (obj.name === "gavetaGrande") {
-    if (this.gameState.mapaAlterado) {
-        // Se o mapa foi alterado, permite abrir a gaveta
-        this.showTextBoxWithChoices("Uma gaveta");
-        this.buttonOpen.setVisible(true);
-        this.buttonOpen.setDepth(1000);
-    } else {
-        // Se o mapa NÃO foi alterado, mostra mensagem diferente
-        this.showTextBoxDialogue("A gaveta está trancada. Parece que preciso alterar algo primeiro...");
-        this.buttonOpen.setVisible(false);
-    }
-    return;
-}
+            if (this.gameState.mapaAlterado) {
+                // Se o mapa foi alterado, permite abrir a gaveta
+                this.showTextBoxWithChoices("Uma gaveta");
+                this.buttonOpen.setVisible(true);
+                this.buttonOpen.setDepth(1000);
+            } else {
+                // Se o mapa NÃO foi alterado, mostra mensagem diferente
+                this.showTextBoxDialogue("A gaveta está trancada. Parece que preciso alterar algo primeiro...");
+                this.buttonOpen.setVisible(false);
+            }
+            return;
+        }
 
         this.lastClickedObject = obj;
 
@@ -1132,75 +1236,75 @@ createMarcaPaginaIndividual(obj) {
     //=========================================================================================================
     //=========================================================================================================
 
-alterarMapaMundi() {
-    if (this.currentMapKey === 'mapa') {
-        this.gameState.mapaAlterado = true; // Marca como alterado permanentemente
-        this.updateBackground('mapaMundiAlterado');
-        return true;
-    }
-    return false;
-}
-
-startPuzzle() {
-    // Desativa interações normais
-    this.setInteractionsEnabled(false);
-    
-    // Cria o puzzle centralizado na tela
-    this.puzzleGame = new PuzzleGame(this, 'pedacoMapa', this.inventory);
-    
-    // Posiciona no centro da tela
-    const x = (sizes.width - 600) / 2;
-    const y = (sizes.height - 600) / 2;
-    
-    this.puzzleGame.create(x, y);
-    
-    // Armazena a referência à cena para usar dentro do callback
-    const scene = this;
-    
-    // Configura o callback quando o puzzle for completado
-    this.puzzleGame.setOnComplete(() => {
-    // Adiciona o item usável com verificação de mapa
-    this.inventory.addUsableItem('pedacoMapa', 'pedacoMapa', () => {
-        // Retorna true se o mapa foi alterado, false caso contrário
-        return this.alterarMapaMundi();
-    });
-    
-    // Adiciona o item visual ao inventário
-    this.inventory.addItem('pedacoMapa', () => {
-        this.showItemZoom('pedacoMapa');
-    });
-
-    // Destrói o puzzle
-    this.time.delayedCall(500, () => {
-        if (this.puzzleGame) {
-            this.puzzleGame.destroy();
-            this.puzzleGame = null;
+    alterarMapaMundi() {
+        if (this.currentMapKey === 'mapa') {
+            this.gameState.mapaAlterado = true; // Marca como alterado permanentemente
+            this.updateBackground('mapaMundiAlterado');
+            return true;
         }
-        this.setInteractionsEnabled(true);
-    });
-});
-}
+        return false;
+    }
 
-handleCameraUnlock() {
-    // Atualiza o estado do jogo
-    this.gameState.cameraUnlocked = true;
-    this.gameState.claraStorylineCompleted = true;
-    
-    console.log("Clara storyline completa: ",this.gameState.claraStorylineCompleted);
+    startPuzzle() {
+        // Desativa interações normais
+        this.setInteractionsEnabled(false);
 
-    this.inventory.removeItem('camera');
-    
-    // Adiciona o novo item ao inventário
-    this.inventory.addItem('camera', () => this.useFunctionalCamera());
-    
-    console.log('Câmera desbloqueada e item atualizado!');
-}
+        // Cria o puzzle centralizado na tela
+        this.puzzleGame = new PuzzleGame(this, 'pedacoMapa', this.inventory);
 
-useFunctionalCamera() {
-    // Sua lógica de zoom aqui
-    console.log('Usando câmera funcional...');
-    this.showZoomedImage('iconInventory');
-}
+        // Posiciona no centro da tela
+        const x = (sizes.width - 600) / 2;
+        const y = (sizes.height - 600) / 2;
+
+        this.puzzleGame.create(x, y);
+
+        // Armazena a referência à cena para usar dentro do callback
+        const scene = this;
+
+        // Configura o callback quando o puzzle for completado
+        this.puzzleGame.setOnComplete(() => {
+            // Adiciona o item usável com verificação de mapa
+            this.inventory.addUsableItem('pedacoMapa', 'pedacoMapa', () => {
+                // Retorna true se o mapa foi alterado, false caso contrário
+                return this.alterarMapaMundi();
+            });
+
+            // Adiciona o item visual ao inventário
+            this.inventory.addItem('pedacoMapa', () => {
+                this.showItemZoom('pedacoMapa');
+            });
+
+            // Destrói o puzzle
+            this.time.delayedCall(500, () => {
+                if (this.puzzleGame) {
+                    this.puzzleGame.destroy();
+                    this.puzzleGame = null;
+                }
+                this.setInteractionsEnabled(true);
+            });
+        });
+    }
+
+    handleCameraUnlock() {
+        // Atualiza o estado do jogo
+        this.gameState.cameraUnlocked = true;
+        this.gameState.claraStorylineCompleted = true;
+
+        console.log("Clara storyline completa: ", this.gameState.claraStorylineCompleted);
+
+        this.inventory.removeItem('camera');
+
+        // Adiciona o novo item ao inventário
+        this.inventory.addItem('camera', () => this.useFunctionalCamera());
+
+        console.log('Câmera desbloqueada e item atualizado!');
+    }
+
+    useFunctionalCamera() {
+        // Sua lógica de zoom aqui
+        console.log('Usando câmera funcional...');
+        this.showZoomedImage('iconInventory');
+    }
 
 
 
@@ -1241,7 +1345,7 @@ useFunctionalCamera() {
             this.CameraSprite.destroy();
             this.CameraSprite = null;
         }
-        
+
     }
 
     removeHitboxForObject(obj) {
@@ -1282,7 +1386,7 @@ useFunctionalCamera() {
     showTextBoxWithChoices(message) {
         this.textBox.setText(message).setVisible(true);
         this.textBoxBackground.setVisible(true);
-        
+
         // Mostra o botão "Abrir" apenas se for a gaveta E o mapa foi alterado
         if (this.lastClickedObject.name === "gavetaGrande") {
             // Só mostra "Abrir" se o mapa foi alterado
@@ -1306,224 +1410,39 @@ useFunctionalCamera() {
     //=========================================================================================================
 
     hideTextBox() {
-    this.textBox.setVisible(false);
-    this.textBoxBackground.setVisible(false);
-    this.buttonOpen.setVisible(false);
-    this.buttonClose.setVisible(false);
-    this.buttonCloseDialogue.setVisible(false);
-}
+        this.textBox.setVisible(false);
+        this.textBoxBackground.setVisible(false);
+        this.buttonOpen.setVisible(false);
+        this.buttonClose.setVisible(false);
+        this.buttonCloseDialogue.setVisible(false);
+        this.events.emit('dialogueClosed');
+    }
 
     //=========================================================================================================
 
     showItemZoom(itemKey, description = '') {
-    if (this.zoomView.active) return;
+        if (this.zoomView.active) return;
 
-    this.arrows.left.setVisible(false);
-    this.arrows.right.setVisible(false);
-    this.inventory.toggleInventory();
+        this.arrows.left.setVisible(false);
+        this.arrows.right.setVisible(false);
+        this.inventory.toggleInventory();
 
-    // Ativa o estado de zoom
-    this.zoomView.active = true;
-    this.zoomView.currentItem = itemKey;
+        // Ativa o estado de zoom
+        this.zoomView.active = true;
+        this.zoomView.currentItem = itemKey;
 
-    // Cria um overlay escuro semi-transparente
-    this.zoomView.overlay = this.add.rectangle(
-        0, 0,
-        this.cameras.main.width * 2, this.cameras.main.height * 2,
-        0x000000,
-        0.8
-    )
-        .setOrigin(0)
-        .setDepth(1000)
-        .setInteractive();
+        // Cria um overlay escuro semi-transparente
+        this.zoomView.overlay = this.add.rectangle(
+            0, 0,
+            this.cameras.main.width * 2, this.cameras.main.height * 2,
+            0x000000,
+            0.8
+        )
+            .setOrigin(0)
+            .setDepth(1000)
+            .setInteractive();
 
-    // Cria uma cópia borrada do fundo atual
-    this.zoomView.blurBg = this.add.image(
-        this.cameras.main.centerX,
-        this.cameras.main.centerY,
-        this.bg.texture.key
-    )
-        .setDisplaySize(this.cameras.main.width, this.cameras.main.height)
-        .setAlpha(0.1)
-        .setDepth(1001)
-        .setBlendMode(Phaser.BlendModes.OVERLAY);
-
-    // Container para organizar os elementos do zoom
-    this.zoomView.container = this.add.container(
-        this.cameras.main.centerX,
-        this.cameras.main.centerY - 50 // Move o container um pouco para cima para dar espaço à descrição
-    ).setDepth(1002);
-
-    // Adiciona o item em grande escala
-    const itemHeight = this.cameras.main.height * 0.5; // Reduz um pouco o tamanho para caber a descrição
-    this.zoomView.zoomedItem = this.add.image(0, 0, itemKey)
-        .setDisplaySize(itemHeight * 0.7, itemHeight)
-        .setInteractive()
-        .on('pointerdown', () => {
-            if (description) {
-                this.showItemDescription(description);
-            }
-        });
-    
-    this.zoomView.container.add(this.zoomView.zoomedItem);
-
-    // Botão de fechar
-    this.zoomView.closeButton = this.add.text(
-        this.cameras.main.centerX + 150,
-        this.cameras.main.centerY - 250, // Move o botão mais para cima
-        '[Fechar]',
-        {
-            fontFamily: '"Press Start 2P", monospace',
-            fontSize: '12px',
-            color: '#ff0000',
-            backgroundColor: '#000000',
-            padding: { x: 10, y: 5 },
-            resolution: 3
-        }
-    )
-    .setDepth(1003)
-    .setInteractive({ useHandCursor: true })
-    .on('pointerdown', (e) => {
-        e.stopPropagation();
-        this.closeItemZoom();
-    });
-
-    // Fecha somente ao clicar no overlay
-    this.zoomView.overlay.on('pointerdown', (pointer) => {
-        if (!this.zoomView.zoomedItem.getBounds().contains(pointer.x, pointer.y)) {
-            this.closeItemZoom();
-        }
-    });
-
-    // Desativa interações com o jogo principal
-    this.setInteractionsEnabled(false);
-    
-    // Mostra a descrição imediatamente se fornecida
-    if (description) {
-        this.showItemDescription(description);
-    }
-}
-
-showItemDescription(text) {
-    // Remove descrição anterior se existir
-    if (this.zoomView.description) {
-        this.zoomView.description.destroy();
-    }
-
-    // Calcula a posição Y abaixo do item (com margem de 20px)
-    const itemBounds = this.zoomView.zoomedItem.getBounds();
-    let descY = itemBounds.bottom + 20;
-    
-    // Calcula a largura máxima disponível (90% da tela)
-    const maxWidth = this.cameras.main.width * 0.9;
-    
-    // Cria o texto de descrição
-    this.zoomView.description = this.add.text(
-        this.cameras.main.centerX, // Centraliza horizontalmente
-        descY,
-        text,
-        {
-            fontFamily: '"Press Start 2P", monospace',
-            fontSize: '10px',
-            color: '#ffffff',
-            backgroundColor: '#000000',
-            padding: { x: 15, y: 10 },
-            resolution: 3,
-            wordWrap: { width: maxWidth },
-            align: 'center' // Centraliza o texto
-        }
-    )
-    .setOrigin(0.5, 0) // Ancora no centro-topo
-    .setDepth(1004);
-    
-    // Verifica se a descrição está saindo da tela e ajusta se necessário
-    const descBounds = this.zoomView.description.getBounds();
-    if (descBounds.bottom > this.cameras.main.height) {
-        // Se estiver saindo pela parte inferior, reduz o tamanho da fonte
-        let newFontSize = 8;
-        this.zoomView.description.setFontSize(newFontSize + 'px');
-        
-        // Recalcula a posição após ajustar o tamanho
-        const newDescBounds = this.zoomView.description.getBounds();
-        if (newDescBounds.bottom > this.cameras.main.height) {
-            // Se ainda estiver saindo, move para cima
-            const overflow = newDescBounds.bottom - this.cameras.main.height;
-            this.zoomView.description.setY(this.zoomView.description.y - overflow - 10);
-        }
-    }
-}
-
-closeItemZoom() {
-    if (!this.zoomView.active) return;
-
-    // Remove todos os elementos do zoom
-    this.zoomView.overlay.destroy();
-    if (this.zoomView.blurBg) this.zoomView.blurBg.destroy();
-    if (this.zoomView.closeButton) this.zoomView.closeButton.destroy();
-    if (this.zoomView.container) this.zoomView.container.destroy();
-    
-    // Adicione esta linha para destruir explicitamente a imagem ampliada
-    if (this.zoomView.zoomedItem) this.zoomView.zoomedItem.destroy();
-
-    // Limpa a descrição se existir
-    if (this.zoomView.description) {
-        this.zoomView.description.destroy();
-    }
-
-    // Reseta o objeto zoomView
-    this.zoomView = {
-        active: false,
-        currentItem: null,
-        overlay: null,
-        blurBg: null,
-        closeButton: null,
-        container: null,
-        zoomedItem: null,
-        description: null
-    };
-
-    // Restaura a UI
-    this.arrows.left.setVisible(true);
-    this.arrows.right.setVisible(true);
-
-    // Reativa interações com o jogo principal
-    this.setInteractionsEnabled(true);
-}
-
-showZoomedImage(imageKey, options = {}) {
-    if (this.zoomView.active) return;
-
-    // Configurações padrão
-    const config = {
-        x: this.cameras.main.centerX,
-        y: this.cameras.main.centerY,
-        scale: 0.7,
-        closeButton: true,
-        blurBackground: true,
-        overlayAlpha: 0.8,
-        ...options
-    };
-
-    this.arrows.left.setVisible(false);
-    this.arrows.right.setVisible(false);
-    this.inventory.toggleInventory();
-
-    // Ativa o estado de zoom
-    this.zoomView.active = true;
-    this.zoomView.currentItem = imageKey;
-
-    // Cria um overlay escuro semi-transparente
-    this.zoomView.overlay = this.add.rectangle(
-        this.cameras.main.centerX,
-        this.cameras.main.centerY,
-        this.cameras.main.width,
-        this.cameras.main.height,
-        0x000000,
-        config.overlayAlpha
-    ).setDepth(1000).setInteractive();
-
-    // Cria uma cópia borrada do fundo atual se necessário
-    if (config.blurBackground && this.bg) {
+        // Cria uma cópia borrada do fundo atual
         this.zoomView.blurBg = this.add.image(
             this.cameras.main.centerX,
             this.cameras.main.centerY,
@@ -1533,23 +1452,30 @@ showZoomedImage(imageKey, options = {}) {
             .setAlpha(0.1)
             .setDepth(1001)
             .setBlendMode(Phaser.BlendModes.OVERLAY);
-    }
 
-    // Adiciona a imagem em grande escala
-    const itemHeight = this.cameras.main.height * 0.6;
-    this.zoomView.zoomedItem = this.add.image(
-        config.x,
-        config.y,
-        imageKey
-    )
-        .setDisplaySize(itemHeight * config.scale, itemHeight)
-        .setDepth(1002);
+        // Container para organizar os elementos do zoom
+        this.zoomView.container = this.add.container(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY - 50 // Move o container um pouco para cima para dar espaço à descrição
+        ).setDepth(1002);
 
-    // Botão de fechar se necessário
-    if (config.closeButton) {
+        // Adiciona o item em grande escala
+        const itemHeight = this.cameras.main.height * 0.5; // Reduz um pouco o tamanho para caber a descrição
+        this.zoomView.zoomedItem = this.add.image(0, 0, itemKey)
+            .setDisplaySize(itemHeight * 0.7, itemHeight)
+            .setInteractive()
+            .on('pointerdown', () => {
+                if (description) {
+                    this.showItemDescription(description);
+                }
+            });
+
+        this.zoomView.container.add(this.zoomView.zoomedItem);
+
+        // Botão de fechar
         this.zoomView.closeButton = this.add.text(
             this.cameras.main.centerX + 150,
-            this.cameras.main.centerY - 200,
+            this.cameras.main.centerY - 250, // Move o botão mais para cima
             '[Fechar]',
             {
                 fontFamily: '"Press Start 2P", monospace',
@@ -1560,21 +1486,200 @@ showZoomedImage(imageKey, options = {}) {
                 resolution: 3
             }
         )
-        .setDepth(1003)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => {
-            this.closeItemZoom();
+            .setDepth(1003)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', (e) => {
+                e.stopPropagation();
+                this.closeItemZoom();
+            });
+
+        // Fecha somente ao clicar no overlay
+        this.zoomView.overlay.on('pointerdown', (pointer) => {
+            if (!this.zoomView.zoomedItem.getBounds().contains(pointer.x, pointer.y)) {
+                this.closeItemZoom();
+            }
         });
+
+        // Desativa interações com o jogo principal
+        this.setInteractionsEnabled(false);
+
+        // Mostra a descrição imediatamente se fornecida
+        if (description) {
+            this.showItemDescription(description);
+        }
     }
 
-    // Fecha ao clicar no overlay
-    this.zoomView.overlay.on('pointerdown', () => {
-        this.closeItemZoom();
-    });
+    showItemDescription(text) {
+        // Remove descrição anterior se existir
+        if (this.zoomView.description) {
+            this.zoomView.description.destroy();
+        }
 
-    // Desativa interações com o jogo principal
-    this.setInteractionsEnabled(false);
-}
+        // Calcula a posição Y abaixo do item (com margem de 20px)
+        const itemBounds = this.zoomView.zoomedItem.getBounds();
+        let descY = itemBounds.bottom + 20;
+
+        // Calcula a largura máxima disponível (90% da tela)
+        const maxWidth = this.cameras.main.width * 0.9;
+
+        // Cria o texto de descrição
+        this.zoomView.description = this.add.text(
+            this.cameras.main.centerX, // Centraliza horizontalmente
+            descY,
+            text,
+            {
+                fontFamily: '"Press Start 2P", monospace',
+                fontSize: '10px',
+                color: '#ffffff',
+                backgroundColor: '#000000',
+                padding: { x: 15, y: 10 },
+                resolution: 3,
+                wordWrap: { width: maxWidth },
+                align: 'center' // Centraliza o texto
+            }
+        )
+            .setOrigin(0.5, 0) // Ancora no centro-topo
+            .setDepth(1004);
+
+        // Verifica se a descrição está saindo da tela e ajusta se necessário
+        const descBounds = this.zoomView.description.getBounds();
+        if (descBounds.bottom > this.cameras.main.height) {
+            // Se estiver saindo pela parte inferior, reduz o tamanho da fonte
+            let newFontSize = 8;
+            this.zoomView.description.setFontSize(newFontSize + 'px');
+
+            // Recalcula a posição após ajustar o tamanho
+            const newDescBounds = this.zoomView.description.getBounds();
+            if (newDescBounds.bottom > this.cameras.main.height) {
+                // Se ainda estiver saindo, move para cima
+                const overflow = newDescBounds.bottom - this.cameras.main.height;
+                this.zoomView.description.setY(this.zoomView.description.y - overflow - 10);
+            }
+        }
+    }
+
+    closeItemZoom() {
+        if (!this.zoomView.active) return;
+
+        // Remove todos os elementos do zoom
+        this.zoomView.overlay.destroy();
+        if (this.zoomView.blurBg) this.zoomView.blurBg.destroy();
+        if (this.zoomView.closeButton) this.zoomView.closeButton.destroy();
+        if (this.zoomView.container) this.zoomView.container.destroy();
+
+        // Adicione esta linha para destruir explicitamente a imagem ampliada
+        if (this.zoomView.zoomedItem) this.zoomView.zoomedItem.destroy();
+
+        // Limpa a descrição se existir
+        if (this.zoomView.description) {
+            this.zoomView.description.destroy();
+        }
+
+        // Reseta o objeto zoomView
+        this.zoomView = {
+            active: false,
+            currentItem: null,
+            overlay: null,
+            blurBg: null,
+            closeButton: null,
+            container: null,
+            zoomedItem: null,
+            description: null
+        };
+
+        // Restaura a UI
+        this.arrows.left.setVisible(true);
+        this.arrows.right.setVisible(true);
+
+        // Reativa interações com o jogo principal
+        this.setInteractionsEnabled(true);
+    }
+
+    showZoomedImage(imageKey, options = {}) {
+        if (this.zoomView.active) return;
+
+        // Configurações padrão
+        const config = {
+            x: this.cameras.main.centerX,
+            y: this.cameras.main.centerY,
+            scale: 0.7,
+            closeButton: true,
+            blurBackground: true,
+            overlayAlpha: 0.8,
+            ...options
+        };
+
+        this.arrows.left.setVisible(false);
+        this.arrows.right.setVisible(false);
+        this.inventory.toggleInventory();
+
+        // Ativa o estado de zoom
+        this.zoomView.active = true;
+        this.zoomView.currentItem = imageKey;
+
+        // Cria um overlay escuro semi-transparente
+        this.zoomView.overlay = this.add.rectangle(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY,
+            this.cameras.main.width,
+            this.cameras.main.height,
+            0x000000,
+            config.overlayAlpha
+        ).setDepth(1000).setInteractive();
+
+        // Cria uma cópia borrada do fundo atual se necessário
+        if (config.blurBackground && this.bg) {
+            this.zoomView.blurBg = this.add.image(
+                this.cameras.main.centerX,
+                this.cameras.main.centerY,
+                this.bg.texture.key
+            )
+                .setDisplaySize(this.cameras.main.width, this.cameras.main.height)
+                .setAlpha(0.1)
+                .setDepth(1001)
+                .setBlendMode(Phaser.BlendModes.OVERLAY);
+        }
+
+        // Adiciona a imagem em grande escala
+        const itemHeight = this.cameras.main.height * 0.6;
+        this.zoomView.zoomedItem = this.add.image(
+            config.x,
+            config.y,
+            imageKey
+        )
+            .setDisplaySize(itemHeight * config.scale, itemHeight)
+            .setDepth(1002);
+
+        // Botão de fechar se necessário
+        if (config.closeButton) {
+            this.zoomView.closeButton = this.add.text(
+                this.cameras.main.centerX + 150,
+                this.cameras.main.centerY - 200,
+                '[Fechar]',
+                {
+                    fontFamily: '"Press Start 2P", monospace',
+                    fontSize: '12px',
+                    color: '#ff0000',
+                    backgroundColor: '#000000',
+                    padding: { x: 10, y: 5 },
+                    resolution: 3
+                }
+            )
+                .setDepth(1003)
+                .setInteractive({ useHandCursor: true })
+                .on('pointerdown', () => {
+                    this.closeItemZoom();
+                });
+        }
+
+        // Fecha ao clicar no overlay
+        this.zoomView.overlay.on('pointerdown', () => {
+            this.closeItemZoom();
+        });
+
+        // Desativa interações com o jogo principal
+        this.setInteractionsEnabled(false);
+    }
 
     //=========================================================================================================
 }   
