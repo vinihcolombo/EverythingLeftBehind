@@ -1,5 +1,5 @@
 export default class PuzzleGame {
-    constructor(scene, imageKey, inventoryInstance, puzzleSize = 200, rows = 3, cols = 3) {
+    constructor(scene, imageKey, inventoryInstance, puzzleSize = 96, rows = 3, cols = 3) {
         this.inventory = inventoryInstance;
         this.scene = scene;
         this.imageKey = imageKey;
@@ -104,16 +104,28 @@ export default class PuzzleGame {
 
         this.scene.input.setDraggable(piece);
 
-        piece.on('dragstart', () => {
-            this.scene.children.bringToTop(piece);
+        piece.on('dragstart', (pointer) => {
+            this.container.bringToTop(piece);
+
+            // Calcula e armazena o "offset" (diferença) entre o centro da peça e o ponto clicado
+            const offsetX = piece.x - (pointer.x - this.container.x);
+            const offsetY = piece.y - (pointer.y - this.container.y);
+            piece.setData('dragOffset', { x: offsetX, y: offsetY });
         });
 
-        piece.on('drag', (pointer, dragX, dragY) => {
-            piece.x = dragX; // Removida a subtração do container.x/y
-            piece.y = dragY;
+        piece.on('drag', (pointer) => {
+            // Pega o offset armazenado
+            const offset = piece.getData('dragOffset');
+
+            // Aplica o offset à posição do mouse para que a peça não "salte"
+            piece.x = (pointer.x - this.container.x) + offset.x;
+            piece.y = (pointer.y - this.container.y) + offset.y;
         });
 
         piece.on('dragend', () => {
+            // Limpa o offset quando o arrasto termina
+            piece.setData('dragOffset', null);
+
             this.checkPiecePosition(piece);
             this.checkPuzzleCompletion();
         });
@@ -216,8 +228,8 @@ export default class PuzzleGame {
 
     addCloseButton() {
         const closeButton = this.scene.add.text(
-            this.puzzleSize / 2 - 20,
-            -this.puzzleSize / 2 + 20,
+            this.puzzleSize / 2 + 20,
+            -this.puzzleSize / 2 + 18,
             '✕',
             {
                 fontFamily: 'Arial',
