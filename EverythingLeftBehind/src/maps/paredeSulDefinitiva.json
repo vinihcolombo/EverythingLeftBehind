@@ -267,6 +267,50 @@
         }, 
         {
          "draworder":"topdown",
+         "id":5,
+         "name":"coisas",
+         "objects":[
+                {
+                 "height":40,
+                 "id":5,
+                 "name":"Gaveta velha",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":95.2727272727273,
+                 "x":32.3636363636364,
+                 "y":156.363636363636
+                }, 
+                {
+                 "height":46.7272727272727,
+                 "id":6,
+                 "name":"Gaveta fechada",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":100.545454545455,
+                 "x":30.3636363636364,
+                 "y":36
+                }, 
+                {
+                 "height":14.7273,
+                 "id":8,
+                 "name":"Gaveta fechada",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":100.545,
+                 "x":29.8790151515151,
+                 "y":138.181804545455
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":3,
          "name":"Camada de Objetos 1",
          "objects":[
@@ -293,15 +337,37 @@
          "name":"Camada de Objetos 2",
          "objects":[
                 {
-                 "height":57.0892018779343,
+                 "height":49.8392018779343,
                  "id":2,
                  "name":"PrateleiraArmario",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":106.065727699531,
-                 "x":56.4882629107981,
-                 "y":79.924882629108
+                 "width":101.815727699531,
+                 "x":29.4882629107981,
+                 "y":85.424882629108
+                }, 
+                {
+                 "height":40,
+                 "id":3,
+                 "name":"Teia",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":56.5,
+                 "x":364,
+                 "y":-1
+                }, 
+                {
+                 "height":30.5,
+                 "id":4,
+                 "name":"Teia",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":17,
+                 "x":135.5,
+                 "y":165.5
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -309,8 +375,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":5,
- "nextobjectid":3,
+ "nextlayerid":6,
+ "nextobjectid":9,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

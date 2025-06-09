@@ -254,6 +254,39 @@
          "y":0
         }, 
         {
+         "draworder":"topdown",
+         "id":4,
+         "name":"rasgo",
+         "objects":[
+                {
+                 "height":90,
+                 "id":2,
+                 "name":"Rasgo",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":89.5,
+                 "x":251.5,
+                 "y":35
+                }, 
+                {
+                 "height":51.5,
+                 "id":3,
+                 "name":"Rasgo",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":97.5,
+                 "x":52,
+                 "y":0.5
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
          "id":2,
          "image":"..\/assets\/images\/paredeNorte_0.png",
          "imageheight":240,
@@ -271,15 +304,15 @@
          "name":"Caixa",
          "objects":[
                 {
-                 "height":70.0093896713615,
+                 "height":60.7593896713615,
                  "id":1,
                  "name":"Caixa sobre Helena",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":75.1173708920188,
-                 "x":298.967136150235,
-                 "y":141.220657276995
+                 "width":69.8673708920188,
+                 "x":316.717136150235,
+                 "y":144.220657276995
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -287,8 +320,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":4,
- "nextobjectid":2,
+ "nextlayerid":5,
+ "nextobjectid":4,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

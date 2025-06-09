@@ -267,19 +267,52 @@
         }, 
         {
          "draworder":"topdown",
+         "id":5,
+         "name":"escada",
+         "objects":[
+                {
+                 "height":143,
+                 "id":11,
+                 "name":"Escada",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":76,
+                 "x":83.3333333333333,
+                 "y":41.3333333333333
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":3,
          "name":"QuadroBananaMaca",
          "objects":[
                 {
-                 "height":68.5070422535211,
+                 "height":65.4513907419017,
                  "id":1,
-                 "name":"QuadroBanana",
+                 "name":"Quadro frutas",
+                 "rotation":356.947459408206,
+                 "type":"",
+                 "visible":true,
+                 "width":46.8326375829843,
+                 "x":286.959172512744,
+                 "y":85.5120480934295
+                }, 
+                {
+                 "height":27.25,
+                 "id":9,
+                 "name":"Teia",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":51.6807511737089,
-                 "x":286.647887323944,
-                 "y":83.830985915493
+                 "width":16.5,
+                 "x":21,
+                 "y":165.625
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -302,6 +335,61 @@
                  "width":67.6056338028169,
                  "x":39.3615023474178,
                  "y":155.042253521127
+                }, 
+                {
+                 "height":77.0889892053773,
+                 "id":4,
+                 "name":"Quadro da \u00e1rvore",
+                 "rotation":358.482572833646,
+                 "type":"",
+                 "visible":true,
+                 "width":57.8305492327218,
+                 "x":183.032894156237,
+                 "y":22.7391324764179
+                }, 
+                {
+                 "height":40.2541900049458,
+                 "id":5,
+                 "name":"Quadro macabro",
+                 "rotation":1.09681845661638,
+                 "type":"",
+                 "visible":true,
+                 "width":91.0147228899796,
+                 "x":178.386476904356,
+                 "y":110.868532778903
+                }, 
+                {
+                 "height":44.8661128603805,
+                 "id":6,
+                 "name":"Quadro da lua",
+                 "rotation":359.206158997717,
+                 "type":"",
+                 "visible":true,
+                 "width":62.8731841797136,
+                 "x":277.94822108272,
+                 "y":26.1851424746345
+                }, 
+                {
+                 "height":32.6759310703093,
+                 "id":8,
+                 "name":"Quadro da Luna",
+                 "rotation":4.56479763374336,
+                 "type":"",
+                 "visible":true,
+                 "width":27.4462955972701,
+                 "x":348.320851748461,
+                 "y":95.9002650034073
+                }, 
+                {
+                 "height":52.1818181818182,
+                 "id":13,
+                 "name":"Rasgo",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":33.6363636363636,
+                 "x":2.90909090909091,
+                 "y":83.2727272727273
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -309,8 +397,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":5,
- "nextobjectid":4,
+ "nextlayerid":6,
+ "nextobjectid":15,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

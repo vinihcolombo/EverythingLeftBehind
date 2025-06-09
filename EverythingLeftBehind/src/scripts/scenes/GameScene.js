@@ -183,7 +183,7 @@ export default class GameScene extends Phaser.Scene {
             .on('pointerdown', () => {
                 const obj = this.lastClickedObject || this._lastClickedObjectCache;
                 console.log('Tentando abrir objeto:', obj?.name);
-                if (obj.name === "gavetaGrande") {
+                if (obj.name === "Gaveta grande") {
                     this.loadCustomMap('gaveta', 'gaveta');
                 }
                 if (this.lastClickedObject) {
@@ -196,13 +196,13 @@ export default class GameScene extends Phaser.Scene {
                     else if (this.lastClickedObject.name === "Caixa do Rafael") {
                         this.loadCustomMap('caixarafael', 'caixa');
                     }
-                    else if (this.lastClickedObject.name === "QuadroBanana") {
+                    else if (this.lastClickedObject.name === "Quadro frutas") {
                         this.loadCustomMap('paredeComCaixa', 'paredeComCaixa');
                     }
                     else if (this.lastClickedObject.name === "PrateleiraArmario") {
                         this.loadCustomMap('retrato', 'retrato');
                     }
-                    else if (this.lastClickedObject.name === "gavetaGrande") {
+                    else if (this.lastClickedObject.name === "Gaveta grande") {
                         this.loadCustomMap('gaveta', 'gaveta');
                     }
                     else if (this.lastClickedObject.name === "Quadro") {
@@ -993,6 +993,33 @@ export default class GameScene extends Phaser.Scene {
         this._lastClickedObjectCache = obj;
         console.log('lastClickedObject definido como:', this.lastClickedObject);
 
+        if (obj.name === "Teia")
+            this.showTextBoxDialogue("Tô surpresa que não tem mais dessas por esse porão velho.");
+        
+        if (obj.name === "Rasgo")
+            this.showTextBoxDialogue("Os anos deixam marcas, mesmo onde ninguém vê. Ou não quer ver.");
+
+        if (obj.name === "Gaveta fechada")
+            this.showTextBoxDialogue("Não agora. Não sei se tô pronta pra lembrar.");
+
+        if (obj.name === "Gaveta velha")
+            this.showTextBoxDialogue("*Squik* *Squik* - Ugh.. Melhor deixar quieto. ");
+
+        if (obj.name === "Quadro da árvore")
+            this.showTextBoxDialogue("Mamãe plantou essa árvore no dia em que eu nasci.. e eu achei que ela ia durar pra sempre.");
+
+        if (obj.name === "Quadro macabro")
+            this.showTextBoxDialogue("Que medonho. Não me lembro de ter visto isso aqui antes. Talvez a escuridão do porão esteja me deixando doida.");
+
+        if (obj.name === "Quadro da lua")
+            this.showTextBoxDialogue("Não via esse quadro faz tanto tempo...");
+
+        if (obj.name === "Escada")
+            this.showTextBoxDialogue("Ainda não terminei aqui dentro.");
+
+        if (obj.name === "Quadro da Luna")
+            this.showTextBoxDialogue("É quem tá me mantendo de pé nessa confusão");
+
         if (obj.name === "28/12/98")
             this.showTextBoxDialogue("Esta veio da praia onde fizemos uma viagem de fim de semana, será que ele se lembra do pôr do sol?");
         if (obj.name === "24/05/98")
@@ -1125,7 +1152,7 @@ export default class GameScene extends Phaser.Scene {
             this.buttonOpen.setDepth(1000);
         }
 
-        if (obj.name === "gavetaGrande") {
+        if (obj.name === "Gaveta grande") {
             if (this.gameState.mapaAlterado) {
                 // Se o mapa foi alterado, permite abrir a gaveta
                 this.showTextBoxWithChoices("Uma gaveta");
@@ -1133,7 +1160,7 @@ export default class GameScene extends Phaser.Scene {
                 this.buttonOpen.setDepth(1000);
             } else {
                 // Se o mapa NÃO foi alterado, mostra mensagem diferente
-                this.showTextBoxDialogue("A gaveta está trancada. Parece que preciso alterar algo primeiro...");
+                this.showTextBoxDialogue("Tem algo importante que preciso daqui, mas está trancada.");
                 this.buttonOpen.setVisible(false);
             }
             return;
@@ -1148,15 +1175,15 @@ export default class GameScene extends Phaser.Scene {
         //=========================================================================================================
 
         if (obj.name === "caixaClara") {
-            this.showTextBoxWithChoices("Nossa.. tantas memórias da Clara por aqui..");
+            this.showTextBoxWithChoices("Clara. Tão vibrante, tão cheia de vida. Será que essa caixa ainda pulsa?");
             console.log("RafaelStoryline: ", this.gameState.rafaelStorylineCompleted);
             console.log("ClaraStoryline: ", this.gameState.claraStorylineCompleted);
             console.log("HelenaStoryline: ", this.gameState.helenaStorylineCompleted);
             return;
         }
 
-        if (obj.name === "QuadroBanana") {
-            this.showTextBoxWithChoices("Placeholder...");
+        if (obj.name === "Quadro frutas") {
+            this.showTextBoxWithChoices("Tão cheias de vida. A helena odiava maçãs.");
             return;
         }
 
@@ -1170,18 +1197,18 @@ export default class GameScene extends Phaser.Scene {
             return;
         }
 
-        if (obj.name === "gavetaGrande") {
+        if (obj.name === "Gaveta grande") {
             this.showTextBoxWithChoices("Uma gaveta");
             return;
         }
 
         if (obj.name === "Caixa sobre Helena") {
-            this.showTextBoxWithChoices("Irmã");
+            this.showTextBoxWithChoices("A primeira. Quem começou comigo.. Tenho saudades de você irmã.");
             return;
         }
 
         if (obj.name === "Caixa do Rafael") {
-            this.showTextBoxWithChoices("aaaaaaa");
+            this.showTextBoxWithChoices("Rafael. Um amigo. Ou mais que isso. O que será que ficou da gente aqui dentro?");
             return;
         }
 
@@ -1387,7 +1414,7 @@ export default class GameScene extends Phaser.Scene {
         this.textBoxBackground.setVisible(true);
 
         // Mostra o botão "Abrir" apenas se for a gaveta E o mapa foi alterado
-        if (this.lastClickedObject.name === "gavetaGrande") {
+        if (this.lastClickedObject.name === "Gaveta grande") {
             // Só mostra "Abrir" se o mapa foi alterado
             this.buttonOpen.setVisible(this.gameState.mapaAlterado);
         } else {

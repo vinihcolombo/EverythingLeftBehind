@@ -267,13 +267,79 @@
         }, 
         {
          "draworder":"topdown",
+         "id":5,
+         "name":"coisas",
+         "objects":[
+                {
+                 "height":26.3333333333333,
+                 "id":3,
+                 "name":"Teia",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":21.3333333333333,
+                 "x":253,
+                 "y":167
+                }, 
+                {
+                 "height":31.375,
+                 "id":5,
+                 "name":"Teia",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":17.875,
+                 "x":51.625,
+                 "y":81.125
+                }, 
+                {
+                 "height":13.8181818181818,
+                 "id":6,
+                 "name":"Gaveta fechada",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":71.6363636363636,
+                 "x":292.181818181818,
+                 "y":174
+                }, 
+                {
+                 "height":13.8181818181818,
+                 "id":7,
+                 "name":"Gaveta fechada",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":72,
+                 "x":292,
+                 "y":190.181818181818
+                }, 
+                {
+                 "height":40,
+                 "id":8,
+                 "name":"Gaveta fechada",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":44.1818181818182,
+                 "x":370.363636363636,
+                 "y":168.909090909091
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }, 
+        {
+         "draworder":"topdown",
          "id":3,
          "name":"gaveta",
          "objects":[
                 {
                  "height":20.1314553990611,
                  "id":1,
-                 "name":"gavetaGrande",
+                 "name":"Gaveta grande",
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -309,8 +375,8 @@
          "x":0,
          "y":0
         }],
- "nextlayerid":5,
- "nextobjectid":3,
+ "nextlayerid":6,
+ "nextobjectid":10,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",
