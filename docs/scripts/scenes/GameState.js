@@ -1,10 +1,10 @@
 export default class GameState {
-    // Em GameState.js
-constructor() {
-    this.mapaAlterado = false;
-    this.cameraUnlocked = false;
-    this.claraStorylineCompleted = false;
-    this.rafaelStorylineCompleted = false;
-    this.helenaStorylineCompleted = false;
-}
+    constructor() {
+        this.mapaAlterado = false;
+        this.cameraUnlocked = false;
+        this.mapaPuzzleCompleted = false;
+        this.claraStorylineCompleted = false;
+        this.rafaelStorylineCompleted = false;
+        this.helenaStorylineCompleted = false;
+    }
 }

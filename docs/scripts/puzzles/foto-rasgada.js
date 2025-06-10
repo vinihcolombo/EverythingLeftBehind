@@ -1,3 +1,5 @@
+
+
 export default class PuzzleGame {
     constructor(scene, imageKey, inventoryInstance, puzzleSize = 96, rows = 3, cols = 3) {
         this.inventory = inventoryInstance;
@@ -5,13 +7,16 @@ export default class PuzzleGame {
         this.imageKey = imageKey;
         this.rows = rows;
         this.cols = cols;
-        this.puzzleSize = puzzleSize; // Tamanho quadrado do puzzle
+        this.puzzleSize = puzzleSize;
         this.pieces = [];
         this.container = null;
         this.isComplete = false;
         this.onCompleteCallback = null;
-
-        // Área onde as peças podem ser espalhadas (toda a tela)
+        
+        // Acesso ao GameState (usando o da scene ou criando novo)
+        this.gameState = scene.gameState || new GameState();
+        this.alreadyCompleted = this.gameState.mapaPuzzleCompleted;
+        
         this.scatterArea = {
             x: 0,
             y: 0,
@@ -21,6 +26,9 @@ export default class PuzzleGame {
     }
 
     create() {
+        if (this.alreadyCompleted) {
+            return;
+        }
         // Centraliza o puzzle na tela
         const centerX = this.scene.cameras.main.centerX;
         const centerY = this.scene.cameras.main.centerY;
@@ -48,6 +56,13 @@ export default class PuzzleGame {
 
         // Adiciona botão de fechar
         this.addCloseButton();
+
+        setTimeout(() => {
+        const canvas = document.querySelector('canvas');
+        if (canvas) {
+            canvas.style.display = 'none'; // Ou canvas.remove() para deletar completamente
+        }
+    }, 100);
     }
 
     createPuzzlePieces() {
@@ -198,6 +213,7 @@ export default class PuzzleGame {
 
         if (allCorrect && !this.isComplete) {
             this.isComplete = true;
+            this.gameState.mapaPuzzleCompleted = true; 
 
             // Efeito visual de conclusão
             this.pieces.forEach(piece => {

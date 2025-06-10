@@ -1,3 +1,4 @@
+import GameState from './GameState.js';
 import PuzzleGame from '../puzzles/foto-rasgada.js';
 import CameraPuzzle from '../puzzles/camera-senha.js';
 import RetratoPuzzle from '../puzzles/retrato-puzzle.js';
@@ -5,7 +6,6 @@ import CadernoPuzzle from '../puzzles/caderno-helena.js';
 import RoomManager from '../managers/RoomManager.js';
 import Inventory from '../ui/Inventory.js';
 import { sizes } from '../constants.js';
-import GameState from './GameState.js';
 import CutsceneManager from '../managers/CutsceneManager.js';
 
 export default class GameScene extends Phaser.Scene {
@@ -24,6 +24,7 @@ export default class GameScene extends Phaser.Scene {
         this.inspectionScreen = null;
         this.canetasSprites = []; // Armazena todas as canetas
         this.marcadoresSprites = []; // Armazena todos os marcadores
+        this.isDialogOpen = false;
 
         //teste zoom
         this.zoomView = {
@@ -554,10 +555,7 @@ export default class GameScene extends Phaser.Scene {
                         this.createCanetaIndividual(obj);
                     }
 
-                    else if (obj.name === "Caneta Roxa" || obj.name === "Caneta Azul" ||
-                        obj.name === "Caneta Vermelha" || obj.name === "Caneta Rosa") {
-                        this.createCanetaIndividual(obj);
-                    }
+
                     else if (obj.name && obj.name.includes("MarcaPag")) {
                         this.createMarcaPaginaIndividual(obj);
                     }
@@ -621,7 +619,7 @@ export default class GameScene extends Phaser.Scene {
             .setInteractive({ useHandCursor: true })
             .on('pointerover', () => this.showTooltip(obj))
             .on('pointerout', () => this.tooltip.setVisible(false))
-            .on('pointerdown', () => this.handleMarcaPaginaClick(obj));
+            .on('pointerdown', () => this.handleObjectClick(obj));
 
         // Armazena a referência
         this.marcadoresSprites.push({
@@ -1034,7 +1032,7 @@ export default class GameScene extends Phaser.Scene {
         if (obj.name === "MarcaPag1")
             this.showTextBoxDialogue("Recado 1 - ano");
         if (obj.name === "MarcaPag2")
-            this.showTextBoxDialogue("Recaro 2 - ano");
+            this.showTextBoxDialogue("Recado 2 - ano");
         if (obj.name === "MarcaPag3")
             this.showTextBoxDialogue("Recado 3 - ano");
         if (obj.name === "MarcaPag4")
@@ -1142,8 +1140,13 @@ export default class GameScene extends Phaser.Scene {
         }
 
         if (obj.name === "caixaSemQuadro") { // Ou qualquer outro nome que você definir
-            this.startPuzzle();
-            return;
+            if (this.gameState.mapaPuzzleCompleted) {
+                this.showTextBoxDialogue("A caixa está vazia agora");
+                return;
+            } else {
+                this.startPuzzle();
+                return;
+            }
         }
 
         if (obj.name === "Caixa da Mãe") {
@@ -1323,56 +1326,84 @@ export default class GameScene extends Phaser.Scene {
 
 
     clearItemSprites() {
-        // Objetos gerais
-        if (this.ChaveSprite) {
-            this.ChaveSprite.destroy();
-            this.ChaveSprite = null;
-        }
-        if (this.MapaSprite) {
-            this.MapaSprite.destroy();
-            this.MapaSprite = null;
-        }
-        if (this.FotografiaSprite) {
-            this.FotografiaSprite.destroy();
-            this.FotografiaSprite = null;
-        }
-        if (this.PedraSprite) {
-            this.PedraSprite.destroy();
-            this.PedraSprite = null;
-        }
-        if (this.NotebookSprite) {
-            this.NotebookSprite.destroy();
-            this.NotebookSprite = null;
-        }
-        if (this.CameraSprite) {
-            this.CameraSprite.destroy();
-            this.CameraSprite = null;
-        }
-
-        // Canetas e marca-páginas (adicionar esses arrays no constructor)
-        this.clearCanetas();
-        this.clearMarcadores();
+    // Objetos gerais
+    if (this.ChaveSprite) {
+        this.ChaveSprite.destroy();
+        this.ChaveSprite = null;
     }
+    if (this.MapaSprite) {
+        this.MapaSprite.destroy();
+        this.MapaSprite = null;
+    }
+    if (this.FotografiaSprite) {
+        this.FotografiaSprite.destroy();
+        this.FotografiaSprite = null;
+    }
+    if (this.PedraSprite) {
+        this.PedraSprite.destroy();
+        this.PedraSprite = null;
+    }
+    if (this.NotebookSprite) {
+        this.NotebookSprite.destroy();
+        this.NotebookSprite = null;
+    }
+    if (this.CameraSprite) {
+        this.CameraSprite.destroy();
+        this.CameraSprite = null;
+    }
+    if (this.CanetasSprite) {
+        this.CanetasSprite.destroy();
+        this.CanetasSprite = null;
+    }
+    if (this.MarcaPaginasSprite) {
+        this.MarcaPaginasSprite.destroy();
+        this.MarcaPaginasSprite = null;
+    }
+
+    // Limpa canetas individuais
+    this.clearCanetas();
+    
+    // Limpa marcadores individuais
+    this.clearMarcadores();
+}
 
     clearCanetas() {
-        if (this.canetasSprites) {
-            this.canetasSprites.forEach(caneta => {
-                if (caneta.sprite) caneta.sprite.destroy();
-                if (caneta.zone) caneta.zone.destroy();
-            });
-            this.canetasSprites = [];
-        }
+    if (this.canetasSprites && this.canetasSprites.length > 0) {
+        this.canetasSprites.forEach(caneta => {
+            if (caneta.sprite) {
+                caneta.sprite.destroy();
+            }
+            if (caneta.zone) {
+                // Remove da lista de zonas interativas primeiro
+                const zoneIndex = this.roomManager.interactiveZones.indexOf(caneta.zone);
+                if (zoneIndex !== -1) {
+                    this.roomManager.interactiveZones.splice(zoneIndex, 1);
+                }
+                caneta.zone.destroy();
+            }
+        });
+        this.canetasSprites = [];
     }
+}
 
-    clearMarcadores() {
-        if (this.marcadoresSprites) {
-            this.marcadoresSprites.forEach(marcador => {
-                if (marcador.sprite) marcador.sprite.destroy();
-                if (marcador.zone) marcador.zone.destroy();
-            });
-            this.marcadoresSprites = [];
-        }
+clearMarcadores() {
+    if (this.marcadoresSprites && this.marcadoresSprites.length > 0) {
+        this.marcadoresSprites.forEach(marcador => {
+            if (marcador.sprite) {
+                marcador.sprite.destroy();
+            }
+            if (marcador.zone) {
+                // Remove da lista de zonas interativas primeiro
+                const zoneIndex = this.roomManager.interactiveZones.indexOf(marcador.zone);
+                if (zoneIndex !== -1) {
+                    this.roomManager.interactiveZones.splice(zoneIndex, 1);
+                }
+                marcador.zone.destroy();
+            }
+        });
+        this.marcadoresSprites = [];
     }
+}
 
     removeHitboxForObject(obj) {
         // Encontra a zona correspondente ao objeto clicado
@@ -1410,6 +1441,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     showTextBoxWithChoices(message) {
+        if (this.isDialogOpen) return;
+
+        this.isDialogOpen = true;
         this.textBox.setText(message).setVisible(true);
         this.textBoxBackground.setVisible(true);
 
@@ -1425,6 +1459,9 @@ export default class GameScene extends Phaser.Scene {
     }
 
     showTextBoxDialogue(message) {
+        if (this.isDialogOpen) return;
+
+        this.isDialogOpen = true;
         this.textBox.setText(message).setVisible(true);
         this.textBoxBackground.setVisible(true);
         this.buttonCloseDialogue.setVisible(true);
@@ -1436,6 +1473,7 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     hideTextBox() {
+        this.isDialogOpen = false;
         this.textBox.setVisible(false);
         this.textBoxBackground.setVisible(false);
         this.buttonOpen.setVisible(false);
