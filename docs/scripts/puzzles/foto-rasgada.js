@@ -181,6 +181,7 @@ export default class PuzzleGame {
         ctx.strokeRect(0, 0, this.pieceWidth, this.pieceHeight);
 
         texture.refresh();
+        
         return textureKey;
     }
 

@@ -42,6 +42,12 @@ export default class Inventory {
         this.isVisible = false;
     }
 
+    enable() {
+        this.toggleButton.setInteractionsEnabled();
+
+        this.isVisible = true;
+    }   
+
     //=========================================================================================================
 
     createToggleButton() {

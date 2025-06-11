@@ -422,21 +422,27 @@ export default class GameScene extends Phaser.Scene {
     }
 
     loadFinalMap() {
-        // Desativa interações temporariamente
-        this.setInteractionsEnabled(false);
-
-        // Mostra mensagem de conclusão (opcional)
-        this.showTextBoxDialogue("Todas as histórias foram reveladas... Algo novo se abre!");
-
-        // Aguarda um pouco antes de carregar o mapa final
-        this.time.delayedCall(5000, () => {
-            // Carrega o mapa especial de conclusão
-            this.loadCustomMap('caixaMae', 'bg-caixaMae');
-
-            // Reativa interações
-            this.setInteractionsEnabled(true);
-        });
+    // Se houver diálogo aberto, agenda nova tentativa
+    if (this.isDialogOpen) {
+        this.time.delayedCall(500, this.loadFinalMap, [], this);
+        return;
     }
+
+    // Desativa interações temporariamente
+    this.setInteractionsEnabled(false);
+
+    // Mostra mensagem de conclusão
+    this.showTextBoxDialogue("Todas as histórias foram reveladas... Algo novo se abre!");
+
+    // Aguarda um pouco antes de carregar o mapa final
+    this.time.delayedCall(5000, () => {
+        // Carrega o mapa especial de conclusão
+        this.loadCustomMap('caixaMae', 'bg-caixaMae');
+        
+        // Reativa interações
+        this.setInteractionsEnabled(true);
+    });
+}
 
     //=========================================================================================================
 
@@ -994,22 +1000,22 @@ export default class GameScene extends Phaser.Scene {
             this.showTextBoxDialogue("Ele me deu essa pedra por pena, foi quando eu quebrei um braço escorregando em uma casca de banana igual uma idiota");
 
         if (obj.name === "MarcaPag1")
-            this.showTextBoxDialogue("Recado 1 - ano");
+            this.showTextBoxDialogue("Você não escreve sozinha. Eu to com você em cada palavra não dita. - Feliz 12!"); //Recado 1
         if (obj.name === "MarcaPag2")
-            this.showTextBoxDialogue("Recado 2 - ano");
+            this.showTextBoxDialogue("Suas palavras são como uma bússola, confie nelas, mesmo quando o caminho parecer escuro. - Feliz 15!"); //Recado 2
         if (obj.name === "MarcaPag3")
-            this.showTextBoxDialogue("Recado 3 - ano");
+            this.showTextBoxDialogue("Seu dom não é apenas escrever, você toca a mente das pessoas com letras. - Feliz 16!"); //Recado 3
         if (obj.name === "MarcaPag4")
-            this.showTextBoxDialogue("Recado 4 - ano");
+            this.showTextBoxDialogue("Nem tudo que é deixado é esquecido. - Feliz 18!"); //Recado 4
 
         if (obj.name === "Caneta Roxa")
-            this.showTextBoxDialogue("Recado 1");
+            this.showTextBoxDialogue("Suas palavras são como uma bússola, confie nelas, mesmo quando o caminho parecer escuro."); //Recado 2
         if (obj.name === "Caneta Azul")
-            this.showTextBoxDialogue("Recado 2");
+            this.showTextBoxDialogue("Nem tudo que é deixado é esquecido."); //Recado 4
         if (obj.name === "Caneta Vermelha")
-            this.showTextBoxDialogue("Recado 3");
+            this.showTextBoxDialogue("Seu dom não é apenas escrever, você toca a mente das pessoas com letras."); //Recado 3
         if (obj.name === "Caneta Rosa")
-            this.showTextBoxDialogue("Recado 4");
+            this.showTextBoxDialogue("Você não escreve sozinha. Eu to com você em cada palavra não dita."); //Recado 1
 
         if (obj.name === "Chave de Apartamento") {
             this.inventory.addItem('keychain', () => {
@@ -1240,11 +1246,13 @@ export default class GameScene extends Phaser.Scene {
             // Adiciona o item usável com verificação de mapa
             this.inventory.addUsableItem('pedacoMapa', 'pedacoMapa', () => {
                 // Retorna true se o mapa foi alterado, false caso contrário
+                this.inventory.toggleInventory();
                 return this.alterarMapaMundi();
             });
 
             // Adiciona o item visual ao inventário
             this.inventory.addItem('pedacoMapa', () => {
+                this.inventory.toggleInventory();
                 this.showItemZoom('pedacoMapa');
             });
 
@@ -1270,7 +1278,7 @@ export default class GameScene extends Phaser.Scene {
 
         // Adiciona o novo item ao inventário
         this.inventory.addItem('camera', () => this.useFunctionalCamera());
-
+            this.inventory.toggleInventory();
         console.log('Câmera desbloqueada e item atualizado!');
         if (this.checkAllStorylinesCompleted()) {
             this.loadFinalMap();

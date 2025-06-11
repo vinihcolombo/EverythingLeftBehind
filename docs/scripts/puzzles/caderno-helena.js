@@ -84,12 +84,12 @@ export default class CadernoPuzzle {
 
             // Page label
             const pageLabel = this.scene.add.text(
-                pos.x, pos.y - 60,  // Moved label further above page
+                pos.x, pos.y - 40,  // Moved label further above page
                 `PÁGINA ${index + 1}`,
                 {
                     fontFamily: '"Press Start 2P"',
                     fontSize: '12px',
-                    color: '#000000',
+                    color: '#ffffff',
                     padding: { x: 20, y: 2 },
                     resolution: 3
                 }
@@ -105,13 +105,13 @@ export default class CadernoPuzzle {
         // Adjusted paper positions - azul and roxa moved down further
         const piecePositions = [
             // Escrita rosa
-            { x: 300, y: 40 },
+            { x: 250, y: 60 },
             // Escrita roxa (moved down)
-            { x: 300, y: 120 },
+            { x: 250, y: 150 },
             // Escrita vermelha
-            { x: 350, y: 80 },
+            { x: 350, y: 100 },
             // Escrita azul (moved down)
-            { x: 350, y: 160 }
+            { x: 350, y: 190 }
         ];
 
         piecesLayer.objects.forEach((piece, index) => {
@@ -140,7 +140,7 @@ export default class CadernoPuzzle {
                 piece.name.toUpperCase(),
                 {
                     fontFamily: '"Press Start 2P"',
-                    fontSize: '10px',
+                    fontSize: '8px',
                     color: colorInfo.textColor,
                     backgroundColor: colorInfo.bgColor,
                     padding: { x: 5, y: 2 },
@@ -158,6 +158,7 @@ export default class CadernoPuzzle {
                 originalY: pos.y
             });
         });
+        this.scene.inventory.hideAndDisable();
     }
 
     getPieceColorInfo(pieceName) {
@@ -166,7 +167,7 @@ export default class CadernoPuzzle {
             "Escrita rosa": {
                 bgColor: '#ffb6c1', // Light pink
                 resolution: 3,
-                textColor: '#000000'
+                textColor: '#ffffff'
             },
             "Escrita roxa": {
                 bgColor: '#9370db', // Medium purple
@@ -285,14 +286,14 @@ export default class CadernoPuzzle {
 
     createCloseButton() {
         this.closeButton = this.scene.add.text(
-            this.scene.cameras.main.width - 50, 30,
+            5, 5,
             '[X]',
             {
                 fontFamily: '"Press Start 2P"',
-                fontSize: '16px',
+                fontSize: '12px',
                 color: '#ff0000',
                 backgroundColor: '#000000',
-                padding: { x: 10, y: 5 },
+                padding: { x: 5, y: 5 },
                 resolution: 3
             }
         )
@@ -338,5 +339,6 @@ export default class CadernoPuzzle {
         if (this.onCompleteCallback) {
             this.onCompleteCallback();
         }
+        this.scene.inventory.enable();
     }
 }
