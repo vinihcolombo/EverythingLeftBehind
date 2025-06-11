@@ -298,6 +298,12 @@ export default class GameScene extends Phaser.Scene {
             this.loadCustomMap('caixaMae', 'bg-caixaMae');
             // this.cutsceneManager.playPuzzleCompleteCutscene("teste",);
         });
+
+        this.input.keyboard.on('keydown-F3', () => {
+            console.log("RafaelStoryline: ", this.gameState.rafaelStorylineCompleted);
+            console.log("ClaraStoryline: ", this.gameState.claraStorylineCompleted);
+            console.log("HelenaStoryline: ", this.gameState.helenaStorylineCompleted);
+        })
     }
 
 
@@ -390,6 +396,8 @@ export default class GameScene extends Phaser.Scene {
         this.loadMapObjects(mapKey);
         this.currentMapKey = mapKey;
 
+        this.checkAndAddBackButton(mapKey);
+
         this.updateArrowsVisibility();
     }
 
@@ -404,6 +412,11 @@ export default class GameScene extends Phaser.Scene {
     goBackToPreviousMap() {
         // Fecha qualquer diálogo aberto
         this.hideTextBox();
+
+        if (this.backButton) {
+        this.backButton.destroy();
+        this.backButton = null;
+    }
 
         // Limpa todos os sprites temporários
         this.clearItemSprites();
@@ -473,6 +486,41 @@ export default class GameScene extends Phaser.Scene {
 
     //=========================================================================================================
 
+    checkAndAddBackButton(mapKey) {
+    // Remove a seta anterior se existir
+    if (this.backButton) {
+        this.backButton.destroy();
+        this.backButton = null;
+    }
+
+    const mapData = this.cache.json.get(mapKey);
+    if (!mapData) return;
+
+    // Verifica se há um objeto "voltar" no mapa
+    const hasBackButton = mapData.layers.some(layer => {
+        return layer.type === 'objectgroup' && 
+               layer.objects.some(obj => obj.name === 'voltar');
+    });
+
+    if (hasBackButton) {
+        // Cria a imagem da seta de voltar
+        this.backButton = this.add.image(50, 50, 'seta')
+            .setAngle(180)
+            .setInteractive({ useHandCursor: true })
+            .setDepth(100)
+            .on('pointerdown', () => this.goBackToPreviousMap());
+        
+        // Adiciona efeito de hover
+        this.backButton.on('pointerover', () => {
+            this.backButton.setScale(1.1);
+        });
+        
+        this.backButton.on('pointerout', () => {
+            this.backButton.setScale(1);
+        });
+    }
+}
+
     createNavigationArrows() {
         // Seta esquerda
         this.arrows.left = this.add.image(20, this.scale.height / 2, 'seta')
@@ -481,6 +529,7 @@ export default class GameScene extends Phaser.Scene {
             .setAngle(180)
             .setInteractive({ useHandCursor: true })
             .setDepth(1002)
+            .setAlpha(0.5)
             .on('pointerdown', () => {
                 if (this.inventory.isVisible == false) {
                     this.roomManager.prevRoom(); // Comportamento normal
@@ -493,6 +542,7 @@ export default class GameScene extends Phaser.Scene {
             .setDisplaySize(25, 25)
             .setInteractive({ useHandCursor: true })
             .setDepth(1002)
+            .setAlpha(0.5)
             .on('pointerdown', () => {
                 if (this.inventory.isVisible == false) {
                     this.roomManager.nextRoom(); // Comportamento normal
@@ -1237,11 +1287,12 @@ handlePedraClick(obj) {
         //=========================================================================================================
 
         if (obj.name === "caixaClara") {
-            this.showTextBoxWithChoices("Clara. Tão vibrante, tão cheia de vida. Será que essa caixa ainda pulsa?");
-            console.log("RafaelStoryline: ", this.gameState.rafaelStorylineCompleted);
-            console.log("ClaraStoryline: ", this.gameState.claraStorylineCompleted);
-            console.log("HelenaStoryline: ", this.gameState.helenaStorylineCompleted);
-            return;
+            if (this.gameState.claraStorylineCompleted){
+                this.showTextBoxDialogue("A caixa já está organizada");
+            } else {
+                this.showTextBoxWithChoices("Clara. Tão vibrante, tão cheia de vida. Será que essa caixa ainda pulsa?");
+                return;
+            }
         }
 
         if (obj.name === "Quadro frutas") {
@@ -1265,13 +1316,22 @@ handlePedraClick(obj) {
         }
 
         if (obj.name === "Caixa sobre Helena") {
-            this.showTextBoxWithChoices("A primeira. Quem começou comigo.. Tenho saudades de você irmã.");
-            return;
+            if (this.gameState.helenaStorylineCompleted) {
+                this.showTextBoxDialogue("Essa caixa já está organizada");
+                return;
+            } else {
+                this.showTextBoxWithChoices("A primeira. Quem começou comigo.. Tenho saudades de você irmã.");
+                return;
+            }
         }
 
         if (obj.name === "Caixa do Rafael") {
-            this.showTextBoxWithChoices("Rafael. Um amigo. Ou mais que isso. O que será que ficou da gente aqui dentro?");
-            return;
+            if (this.gameState.rafaelStorylineCompleted) {
+                this.showTextBoxDialogue("Essa caixa já está organizada");
+            } else {
+                this.showTextBoxWithChoices("Rafael. Um amigo. Ou mais que isso. O que será que ficou da gente aqui dentro?");
+                return;
+            }
         }
 
         if (obj.name === "Quadro") {
@@ -1380,6 +1440,7 @@ handlePedraClick(obj) {
     useFunctionalCamera() {
         // Sua lógica de zoom aqui
         console.log('Usando câmera funcional...');
+        this.toggleInventory;
         this.showZoomedImage('fotoClara');
     }
 
