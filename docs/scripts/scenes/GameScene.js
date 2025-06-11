@@ -526,9 +526,6 @@ export default class GameScene extends Phaser.Scene {
                     if (obj.name === 'Chave de Apartamento') { // Modifiquei a condição
                         this.createChave(obj);
                     }
-                    else if (obj.name === 'Pedaço de Mapa-múndi') {
-                        this.createMapa(obj);
-                    }
                     else if (obj.name === 'Fotografia Revelada') {
                         this.createFotografia(obj);
                     }
@@ -805,40 +802,7 @@ export default class GameScene extends Phaser.Scene {
         this.roomManager.interactiveZones.push(zone);
     }
 
-    createMapa(obj) {
-        const targetWidth = 96;
-        const targetHeight = 96;
-        const posX = obj.x + (obj.width / 2) - (targetWidth / 2);
-        const posY = obj.y + (obj.height / 2) - (targetHeight / 2);
-
-        // Destrói o sprite anterior do caderno, se existir
-        if (this.MapaSprite) {
-            this.MapaSprite.destroy();
-            this.MapaSprite = null;
-        }
-
-        // Cria o sprite e armazena a referência
-        this.MapaSprite = this.add.image( // "MapaSprite" É A FUNÇÃO PARA CHAMAR O REMOVER OBJETO QUANDO CLICA
-            posX + targetWidth / 2,
-            posY + targetHeight / 2,
-            'pedacoMapa'
-        )
-            .setDisplaySize(targetWidth, targetHeight)
-            .setOrigin(0.5, 0.5)
-            .setDepth(10);
-
-        const zone = this.add.zone(
-            obj.x, obj.y,
-            obj.width, obj.height
-        )
-            .setOrigin(0)
-            .setInteractive({ useHandCursor: true })
-            .on('pointerover', () => this.showTooltip({ name: 'Pedaço de Mapa-múndi', x: obj.x, y: obj.y, width: obj.width, height: obj.height })) // Passa objeto com propriedades para tooltip
-            .on('pointerout', () => this.tooltip.setVisible(false))
-            .on('pointerdown', () => this.handleObjectClick(obj)); // Passa o obj do Tiled
-
-        this.roomManager.interactiveZones.push(zone);
-    }
+    
 
     // createCartas(obj) {
     //     const targetWidth = 96;
@@ -1050,24 +1014,17 @@ export default class GameScene extends Phaser.Scene {
         if (obj.name === "Chave de Apartamento") {
             this.inventory.addItem('keychain', () => {
                 this.showItemZoom('keychain', "Quarto 372, muitas lembranças daquele apartamento");
+                this.inventory.toggleInventory();
             });
             this.removeHitboxForObject(obj);
             this.ChaveSprite.destroy(); // REMOVER OBJETO QUANDO CLICA
             return;
         }
 
-        if (obj.name === "Pedaço de Mapa-múndi") {
-            this.inventory.addItem('pedacoMapa', () => {
-                this.showItemZoom('pedacoMapa');
-            })
-            this.removeHitboxForObject(obj);
-            this.MapaSprite.destroy();
-            return;
-        }
-
         if (obj.name === "Fotografia Revelada") {
             this.inventory.addItem('polaroid', () => {
                 this.showItemZoom('polaroid');
+                this.inventory.toggleInventory();
             })
             this.removeHitboxForObject(obj);
             this.FotografiaSprite.destroy();
@@ -1078,6 +1035,7 @@ export default class GameScene extends Phaser.Scene {
             this.inventory.addItem('rockCollection', () => {
                 this.goBackToPreviousMap();
                 this.loadCustomMap('pedras', 'pedras');
+                this.inventory.toggleInventory();
 
             });
             this.removeHitboxForObject(obj);
@@ -1099,6 +1057,7 @@ export default class GameScene extends Phaser.Scene {
             this.inventory.addItem('notebookOpen', () => {
                 // Abre o puzzle do caderno ao clicar no inventário
                 this.cadernoPuzzle.create();
+                this.inventory.toggleInventory();
             });
             this.removeHitboxForObject(obj);
             this.NotebookSprite.destroy();
@@ -1110,6 +1069,7 @@ export default class GameScene extends Phaser.Scene {
                 // Carrega o mapa de canetas
                 this.goBackToPreviousMap();
                 this.loadCustomMap('canetas', 'bg-canetas');
+                this.inventory.toggleInventory();
             });
             this.removeHitboxForObject(obj);
             if (this.CanetasSprite) this.CanetasSprite.destroy();
@@ -1121,6 +1081,7 @@ export default class GameScene extends Phaser.Scene {
                 // Carrega o mapa de marcadores
                 this.goBackToPreviousMap();
                 this.loadCustomMap('marcapag', 'bg-marcapag');
+                this.inventory.toggleInventory();
             });
             this.removeHitboxForObject(obj);
             if (this.MarcaPaginasSprite) this.MarcaPaginasSprite.destroy();

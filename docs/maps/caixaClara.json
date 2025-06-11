@@ -299,29 +299,7 @@
          "visible":true,
          "x":0,
          "y":0
-        }, 
-        {
-         "draworder":"topdown",
-         "id":3,
-         "name":"Camada de Objetos 1",
-         "objects":[
-                {
-                 "height":73.6150234741784,
-                 "id":1,
-                 "name":"Pedaço de Mapa-múndi",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":86.882629107981,
-                 "x":126.197183098592,
-                 "y":106.328638497653
-                }],
-         "opacity":1,
-         "type":"objectgroup",
-         "visible":true,
-         "x":0,
-         "y":0
-        }, 
+        },
         {
          "draworder":"topdown",
          "id":4,
