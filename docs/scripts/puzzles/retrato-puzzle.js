@@ -195,7 +195,5 @@ export default class RetratoPuzzle {
         
         this.active = false;
         this.scene.setInteractionsEnabled(true);
-
-        this,scene.inventory.enable();
     }
 }

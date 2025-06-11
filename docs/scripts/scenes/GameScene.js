@@ -24,6 +24,7 @@ export default class GameScene extends Phaser.Scene {
         this.inspectionScreen = null;
         this.canetasSprites = []; // Armazena todas as canetas
         this.marcadoresSprites = []; // Armazena todos os marcadores
+        this.pedrasSprites = [];
         this.isDialogOpen = false;
 
         //teste zoom
@@ -421,16 +422,23 @@ export default class GameScene extends Phaser.Scene {
         }
     }
 
+    sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+        
     loadFinalMap() {
     // Se houver diálogo aberto, agenda nova tentativa
     if (this.isDialogOpen) {
-        this.time.delayedCall(500, this.loadFinalMap, [], this);
+        console.log("Diálogo aberto, adiando mapa final");
+        this.sleep(2000).then(() => { this.loadFinalMap(); });         
         return;
     }
+    else{
 
     // Desativa interações temporariamente
     this.setInteractionsEnabled(false);
 
+    console.log("Carregando mapa final");
     // Mostra mensagem de conclusão
     this.showTextBoxDialogue("Todas as histórias foram reveladas... Algo novo se abre!");
 
@@ -442,6 +450,7 @@ export default class GameScene extends Phaser.Scene {
         // Reativa interações
         this.setInteractionsEnabled(true);
     });
+    }
 }
 
     //=========================================================================================================
@@ -569,6 +578,36 @@ export default class GameScene extends Phaser.Scene {
             }
         });
     }
+    
+    createPedraIndividual(obj) {
+    // Cria o sprite da pedra - você precisará ter uma imagem/textura chamada 'pedra' no seu cache
+    const sprite = this.add.image(
+        obj.x + obj.width / 2,
+        obj.y + obj.height / 2,
+        'pedra' // Substitua pelo nome da sua textura
+    )
+    .setDisplaySize(obj.width, obj.height)
+    .setOrigin(0.5)
+    .setDepth(10);
+
+    // Cria a zona interativa
+    const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
+        .setOrigin(0)
+        .setInteractive()
+        .on('pointerover', () => this.showTooltip(obj))
+        .on('pointerout', () => this.tooltip.setVisible(false))
+        .on('pointerdown', () => this.handlePedraClick(obj));
+
+    // Armazena a referência
+    this.pedrasSprites.push({
+        sprite: sprite,
+        zone: zone,
+        originalObj: obj
+    });
+
+    this.roomManager.interactiveZones.push(zone);
+}
+
     createCanetaIndividual(obj) {
         const imgKey = obj.name.includes("Roxa") || obj.name.includes("Rosa") ? 'caneta2' : 'caneta1';
 
@@ -1278,7 +1317,6 @@ export default class GameScene extends Phaser.Scene {
 
         // Adiciona o novo item ao inventário
         this.inventory.addItem('camera', () => this.useFunctionalCamera());
-            this.inventory.toggleInventory();
         console.log('Câmera desbloqueada e item atualizado!');
         if (this.checkAllStorylinesCompleted()) {
             this.loadFinalMap();

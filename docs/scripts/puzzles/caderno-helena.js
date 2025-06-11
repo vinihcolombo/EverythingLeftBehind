@@ -339,6 +339,5 @@ export default class CadernoPuzzle {
         if (this.onCompleteCallback) {
             this.onCompleteCallback();
         }
-        this.scene.inventory.enable();
     }
 }
