@@ -1091,10 +1091,6 @@ handlePedraClick(obj) {
     //=========================================================================================================
 
     handleObjectClick(obj) {
-        //         if (obj.name === "caixa pequena") {
-        //     this.loadCustomMap('caixaclara', 'caixaclara');
-        //     this.showTextBox("Você abriu a caixa pequena.");
-        // }
 
         console.log('[DEBUG] Objeto clicado:', obj.name);
         this.lastClickedObject = obj;
@@ -1105,16 +1101,16 @@ handlePedraClick(obj) {
             this.showTextBoxDialogue("Tô surpresa que não tem mais dessas por esse porão velho.");
         
         if (obj.name === "Rasgo")
-            this.showTextBoxDialogue("Os anos deixam marcas, mesmo onde ninguém vê. Ou não quer ver.");
+            this.showTextBoxDialogue("Os anos deixam marcas, não sei quando esses buracos começaram a surguir.");
 
         if (obj.name === "Gaveta fechada")
-            this.showTextBoxDialogue("Não agora. Não sei se tô pronta pra lembrar.");
+            this.showTextBoxDialogue("*Creeak* Não consigo abrir essa gaveta parece estar trancada. ");
 
         if (obj.name === "Gaveta velha")
-            this.showTextBoxDialogue("*Squik* *Squik* - Ugh.. Melhor deixar quieto. ");
+            this.showTextBoxDialogue("*Creeak* *Creeak* - Ugh.. Melhor deixar quieto. ");
 
         if (obj.name === "Quadro da árvore")
-            this.showTextBoxDialogue("Mamãe plantou essa árvore no dia em que eu nasci.. e eu achei que ela ia durar pra sempre.");
+            this.showTextBoxDialogue("Mamãe e eu plantamos essa arvore quando eu era pequena, ela não creceu muito depois que mamãe pintou esse quadro.");
 
         if (obj.name === "Quadro macabro")
             this.showTextBoxDialogue("Que medonho. Não me lembro de ter visto isso aqui antes. Talvez a escuridão do porão esteja me deixando doida.");
@@ -1133,7 +1129,7 @@ handlePedraClick(obj) {
         if (obj.name === "24/05/98")
             this.showTextBoxDialogue("...Que dia maldito...");
         if (obj.name === "12/03/98")
-            this.showTextBoxDialogue("Essa aqui a gente achou enquanto andava pelas ruas depois do meu aniversário, você me deu esta pedra dizendo que eu era especial...");
+            this.showTextBoxDialogue("Essa aqui achamos enquanto andavamos pelas ruas depois do meu aniversário, você me deu esta pedra dizendo que eu era.. especial...");
         if (obj.name === "07/11/99")
             this.showTextBoxDialogue("Nesse dia a gente matou aula pela última vez, a gente tava tão feliz, eu não sabia que nosso caminho se separava em breve");
         if (obj.name === "03/04/99")
@@ -1159,7 +1155,7 @@ handlePedraClick(obj) {
 
         if (obj.name === "Chave de Apartamento") {
             this.inventory.addItem('keychain', () => {
-                this.showItemZoom('keychain', "Quarto 372, muitas lembranças daquele apartamento");
+                this.showItemZoom('keychain', "Quarto 372, tenho tantas lembranças com Clara naquele apartamento...");
                 this.inventory.toggleInventory();
             });
             this.removeHitboxForObject(obj);
@@ -1188,16 +1184,6 @@ handlePedraClick(obj) {
             this.PedraSprite.destroy();
             return;
         }
-
-        // if (obj.name === "Pilha de Cartas") {
-        //     this.inventory.addItem('pilhaCartas', () => {
-        //         this.goBackToPreviousMap();
-        //         this.loadCustomMap('cartas', 'cartas');
-        //     })
-        //     this.removeHitboxForObject(obj);
-        //     this.CartasSprite.destroy();
-        //     return;
-        // }
 
         if (obj.name === "Caderno de Escrita") {
             this.inventory.addItem('notebookOpen', () => {
@@ -1290,13 +1276,13 @@ handlePedraClick(obj) {
             if (this.gameState.claraStorylineCompleted){
                 this.showTextBoxDialogue("A caixa já está organizada");
             } else {
-                this.showTextBoxWithChoices("Clara. Tão vibrante, tão cheia de vida. Será que essa caixa ainda pulsa?");
+                this.showTextBoxWithChoices("Clara. É estranho ainda guardar suas coisas? Parece que se eu me livrar dessas coisas, algum pedaço de mim some junto. Talvez em outro lugar continuamos juntas...");
                 return;
             }
         }
 
         if (obj.name === "Quadro frutas") {
-            this.showTextBoxWithChoices("Tão cheias de vida. A helena odiava maçãs.");
+            this.showTextBoxWithChoices("A helena odiava maçãs. Mas eu adoro elas até hoje.");
             return;
         }
 
@@ -1329,7 +1315,7 @@ handlePedraClick(obj) {
             if (this.gameState.rafaelStorylineCompleted) {
                 this.showTextBoxDialogue("Essa caixa já está organizada");
             } else {
-                this.showTextBoxWithChoices("Rafael. Um amigo. Ou mais que isso. O que será que ficou da gente aqui dentro?");
+                this.showTextBoxWithChoices("Rafael. Meu melhor amigo... se ao menos eu tivesse corajem de fala, talvez as coisas seriam diferentes. O que será que sobrou aqui dentro?");
                 return;
             }
         }

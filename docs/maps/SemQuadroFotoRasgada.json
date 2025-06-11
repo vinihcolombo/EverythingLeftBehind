@@ -271,46 +271,46 @@
          "name":"Sem Quadro (Foto Rasgada)",
          "objects":[
                 {
-                 "height":51.981220657277,
+                 "height":44.0266752027316,
                  "id":1,
                  "name":"caixaSemQuadro",
                  "rotation":0,
                  "type":"",
                  "visible":true,
-                 "width":103.361502347418,
+                 "width":100.236502347418,
                  "x":162.854460093897,
-                 "y":161.652582159624
+                 "y":165.107127614169
                 }],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
          "x":0,
          "y":0
-        },
+        }, 
         {
-          "draworder":"topdown",
-          "id":5,
-          "name":"voltar",
-          "objects":[
-                 {
-                  "height":25.625,
-                  "id":2,
-                  "name":"voltar",
-                  "rotation":0,
-                  "type":"",
-                  "visible":true,
-                  "width":26.125,
-                  "x":-0.125,
-                  "y":0
-                 }],
-          "opacity":1,
-          "type":"objectgroup",
-          "visible":true,
-          "x":0,
-          "y":0
-         }],
+         "draworder":"topdown",
+         "id":5,
+         "name":"voltar",
+         "objects":[
+                {
+                 "height":25.625,
+                 "id":2,
+                 "name":"voltar",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":26.125,
+                 "x":-0.125,
+                 "y":0
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
+        }],
  "nextlayerid":4,
- "nextobjectid":2,
+ "nextobjectid":3,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

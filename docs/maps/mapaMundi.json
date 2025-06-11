@@ -45,22 +45,18 @@
          "x":0,
          "y":0
         }, 
-        
         {
          "draworder":"topdown",
          "id":3,
          "name":"retrato",
-         "objects":[
-                {
-
-                }],
+         "objects":[],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
          "x":0,
          "y":0
-        },
-    {
+        }, 
+        {
          "draworder":"topdown",
          "id":4,
          "name":"voltar",
@@ -83,7 +79,7 @@
          "y":0
         }],
  "nextlayerid":4,
- "nextobjectid":3,
+ "nextobjectid":4,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.2",

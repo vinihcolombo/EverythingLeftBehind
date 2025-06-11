@@ -282,17 +282,6 @@
                  "y":167
                 }, 
                 {
-                 "height":31.375,
-                 "id":5,
-                 "name":"Teia",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":17.875,
-                 "x":51.625,
-                 "y":81.125
-                }, 
-                {
                  "height":13.8181818181818,
                  "id":6,
                  "name":"Gaveta fechada",
@@ -359,15 +348,15 @@
          "name":"Quadro",
          "objects":[
                 {
-                 "height":79.3239436619718,
+                 "height":77.1421254801536,
                  "id":2,
                  "name":"Quadro",
-                 "rotation":0,
+                 "rotation":1.26878898866827,
                  "type":"",
                  "visible":true,
-                 "width":127.399061032864,
-                 "x":72.112676056338,
-                 "y":37.8591549295775
+                 "width":124.853606487409,
+                 "x":72.0729598188767,
+                 "y":37.7590388774882
                 }],
          "opacity":1,
          "type":"objectgroup",
