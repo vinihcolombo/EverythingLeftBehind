@@ -290,16 +290,16 @@
         }, 
         {
          "id":2,
-         "image":"..\/assets\/images\/caixavazia.png",
-         "imageheight":275,
-         "imagewidth":460,
+         "image":"..\/assets\/images\/Caixa.png",
+         "imageheight":240,
+         "imagewidth":426,
          "name":"Camada de Imagens 1",
          "opacity":1,
          "type":"imagelayer",
          "visible":true,
          "x":0,
          "y":0
-        },
+        }, 
         {
          "draworder":"topdown",
          "id":4,
@@ -343,7 +343,7 @@
          "visible":true,
          "x":0,
          "y":0
-        },
+        }, 
         {
          "draworder":"topdown",
          "id":5,
@@ -365,13 +365,12 @@
          "visible":true,
          "x":0,
          "y":0
-        }
-       ],
+        }],
  "nextlayerid":6,
  "nextobjectid":4,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.11.2",
+ "tiledversion":"1.11.1-99-gec89c545",
  "tileheight":1,
  "tilesets":[],
  "tilewidth":1,

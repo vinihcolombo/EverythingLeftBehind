@@ -101,6 +101,17 @@
                  "width":59.2254220456803,
                  "x":225.479642502483,
                  "y":60.0714995034757
+                }, 
+                {
+                 "height":17.625,
+                 "id":6,
+                 "name":"voltar",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":17.125,
+                 "x":0,
+                 "y":0
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -109,7 +120,7 @@
          "y":0
         }],
  "nextlayerid":3,
- "nextobjectid":6,
+ "nextobjectid":7,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.11.1-99-gec89c545",

@@ -236,7 +236,7 @@ export default class CadernoPuzzle {
 
             if (this.scene.cutsceneManager) {
                 // Chama a sua cutscene com uma mensagem mais imersiva
-                this.scene.cutsceneManager.playPuzzleCompleteCutscene(
+                this.scene.cutsceneManager.playStorylineCompleteCutscene(
                     'Ela guardou tudo que podia me lembrar que eu era mais do que diziam ser.',
                 );
             }
@@ -247,6 +247,7 @@ export default class CadernoPuzzle {
             // VERIFICA SE TODAS AS STORYLINES ESTÃO COMPLETAS
             if (this.scene.checkAllStorylinesCompleted()) {
                 this.scene.loadFinalMap();
+                this.scene.clearItemSprites();
             }
 
         }
