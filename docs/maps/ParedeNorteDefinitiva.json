@@ -268,17 +268,6 @@
                  "width":89.5,
                  "x":251.5,
                  "y":35
-                }, 
-                {
-                 "height":51.5,
-                 "id":3,
-                 "name":"Rasgo",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":97.5,
-                 "x":52,
-                 "y":0.5
                 }],
          "opacity":1,
          "type":"objectgroup",

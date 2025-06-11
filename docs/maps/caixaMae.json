@@ -54,42 +54,66 @@
          "y":0
         }, 
         {
-         "draworder":"topdown",
-         "id":2,
-         "name":"Object Layer 1",
-         "objects":[
-                {
-                 "height":61.3333333333333,
-                 "id":1,
-                 "name":"Caixa da M\u00e3e",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":60.6666666666667,
-                 "x":179.333333333333,
-                 "y":148
-                }],
-         "opacity":1,
-         "type":"objectgroup",
-         "visible":true,
-         "x":0,
-         "y":0
-        }, 
-        {
          "id":3,
-         "image":"",
+         "image":"..\/assets\/images\/caixaMae.png",
+         "imageheight":240,
+         "imagewidth":426,
          "name":"Image Layer 1",
          "opacity":1,
          "type":"imagelayer",
          "visible":true,
          "x":0,
          "y":0
+        }, 
+        {
+         "draworder":"topdown",
+         "id":2,
+         "name":"Object Layer 1",
+         "objects":[
+                {
+                 "height":58.7878787878788,
+                 "id":1,
+                 "name":"Caixa da M\u00e3e",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":60.6666666666667,
+                 "x":181.696969696969,
+                 "y":148
+                }, 
+                {
+                 "height":101.625,
+                 "id":3,
+                 "name":"Quadro Mamae",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":70,
+                 "x":85.8181818181818,
+                 "y":21.6477272727273
+                }, 
+                {
+                 "height":66.4280303030303,
+                 "id":4,
+                 "name":"Prateleiras",
+                 "rotation":0,
+                 "type":"",
+                 "visible":true,
+                 "width":103.75,
+                 "x":257,
+                 "y":25.4469696969697
+                }],
+         "opacity":1,
+         "type":"objectgroup",
+         "visible":true,
+         "x":0,
+         "y":0
         }],
  "nextlayerid":4,
- "nextobjectid":3,
+ "nextobjectid":5,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.11.1-99-gec89c545",
+ "tiledversion":"1.11.2",
  "tileheight":6,
  "tilesets":[],
  "tilewidth":6,
