@@ -67,6 +67,7 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('bg-caixaMae', './assets/images/caixaMae.png');
         this.load.image('imagemFinal', './assets/images/imagemFinal.png');
         this.load.image('fotoClara', './assets/images/fotoClara.png');
+        this.load.image('pedra', './assets/images/objects/Pedra.png');
         // this.load.image('bg-cartas', './assets/images/ParedeQuadro_Vazio.png'); //Placeholder
 
         // Carrega os mapas
@@ -213,6 +214,9 @@ export default class GameScene extends Phaser.Scene {
                     else if (this.lastClickedObject.name === "Caixa da Mãe") {
                         this.loadCustomMap('fim', 'imagemFinal');
                         this.inventory.hideAndDisable();
+                        this.hideTextBox();
+                        this.cutsceneManager.MaeDialogue("Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",'',6000);
+                        // this.cutsceneManager.playStorylineCompleteCutscene("Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",);
                     }
                 }
                 this.hideTextBox(); // Esta linha garante que a caixa será fechada
@@ -291,7 +295,8 @@ export default class GameScene extends Phaser.Scene {
 
         console.log("Pressione F4 para testar a cutscene de fade.");
         this.input.keyboard.on('keydown-F4', () => {
-            this.cutsceneManager.playPuzzleCompleteCutscene();
+            this.loadCustomMap('caixaMae', 'bg-caixaMae');
+            // this.cutsceneManager.playPuzzleCompleteCutscene("teste",);
         });
     }
 
@@ -428,29 +433,31 @@ export default class GameScene extends Phaser.Scene {
         
     loadFinalMap() {
     // Se houver diálogo aberto, agenda nova tentativa
-    if (this.isDialogOpen) {
-        console.log("Diálogo aberto, adiando mapa final");
-        this.sleep(2000).then(() => { this.loadFinalMap(); });         
-        return;
-    }
-    else{
-
-    // Desativa interações temporariamente
-    this.setInteractionsEnabled(false);
-
-    console.log("Carregando mapa final");
-    // Mostra mensagem de conclusão
-    this.showTextBoxDialogue("Todas as histórias foram reveladas... Algo novo se abre!");
-
-    // Aguarda um pouco antes de carregar o mapa final
-    this.time.delayedCall(5000, () => {
-        // Carrega o mapa especial de conclusão
-        this.loadCustomMap('caixaMae', 'bg-caixaMae');
-        
-        // Reativa interações
-        this.setInteractionsEnabled(true);
-    });
-    }
+    this.sleep(1000).then(() =>{
+        if (this.isDialogOpen) {
+            console.log("Diálogo aberto, adiando mapa final");
+            this.sleep(2000).then(() => { this.loadFinalMap(); });         
+            return;
+        }
+        else{
+    
+        // Desativa interações temporariamente
+        this.setInteractionsEnabled(false);
+    
+        console.log("Carregando mapa final");
+        // Mostra mensagem de conclusão
+        this.showTextBoxDialogue("Todas as histórias foram reveladas... Algo novo se abre!");
+    
+        // Aguarda um pouco antes de carregar o mapa final
+        this.time.delayedCall(5000, () => {
+            // Carrega o mapa especial de conclusão
+            this.loadCustomMap('caixaMae', 'bg-caixaMae');
+            
+            // Reativa interações
+            this.setInteractionsEnabled(true);
+        });
+        }
+    })
 }
 
     //=========================================================================================================
@@ -530,14 +537,28 @@ export default class GameScene extends Phaser.Scene {
                         layer.name === '12/03/1998' || layer.name === '07/11/1999' ||
                         layer.name === '03/04/1999') {
                         layer.objects.forEach(obj => {
-                            this.createStoneInteractiveZone(obj, layer.name);
+                            this.createPedraIndividual(obj);
                         });
                         return; // Pula para próxima camada
                     }
                 }
+
+                
+
                 layer.objects.forEach(obj => {
                     console.log(`- Objeto: ${obj.name} em (${obj.x},${obj.y})`); // Debug
 
+                    if (mapKey === 'pedras') {
+                        if (layer.name === 'Pedra1' || layer.name === 'Pedra2' || 
+                            layer.name === 'Pedra3' || layer.name === 'Pedra4' || 
+                            layer.name === 'Pedra5') {
+                            layer.objects.forEach(obj => {
+                                this.createPedraIndividual(obj);
+                            });
+                            return;
+                        }
+                    }
+                
                     if (obj.name === 'Chave de Apartamento') { // Modifiquei a condição
                         this.createChave(obj);
                     }
@@ -567,7 +588,6 @@ export default class GameScene extends Phaser.Scene {
                         this.createCanetaIndividual(obj);
                     }
 
-
                     else if (obj.name && obj.name.includes("MarcaPag")) {
                         this.createMarcaPaginaIndividual(obj);
                     }
@@ -580,11 +600,25 @@ export default class GameScene extends Phaser.Scene {
     }
     
     createPedraIndividual(obj) {
-    // Cria o sprite da pedra - você precisará ter uma imagem/textura chamada 'pedra' no seu cache
+    // Determina qual textura usar baseado no nome da pedra
+    let imgKey;
+    switch(obj.name) {
+        case "28/12/98": 
+        case "24/05/98": 
+        case "12/03/98": 
+        case "07/11/99": 
+        case "03/04/99":
+            imgKey = 'pedra'; // Usa a mesma textura para todas ou pode criar variações
+            break;
+        default:
+            imgKey = 'pedra';
+    }
+
+    // Cria o sprite da pedra
     const sprite = this.add.image(
         obj.x + obj.width / 2,
         obj.y + obj.height / 2,
-        'pedra' // Substitua pelo nome da sua textura
+        imgKey
     )
     .setDisplaySize(obj.width, obj.height)
     .setOrigin(0.5)
@@ -593,7 +627,7 @@ export default class GameScene extends Phaser.Scene {
     // Cria a zona interativa
     const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
         .setOrigin(0)
-        .setInteractive()
+        .setInteractive({ useHandCursor: true })
         .on('pointerover', () => this.showTooltip(obj))
         .on('pointerout', () => this.tooltip.setVisible(false))
         .on('pointerdown', () => this.handlePedraClick(obj));
@@ -606,6 +640,23 @@ export default class GameScene extends Phaser.Scene {
     });
 
     this.roomManager.interactiveZones.push(zone);
+}
+
+// Método para lidar com o clique nas pedras
+handlePedraClick(obj) {
+    console.log(`Pedra clicada: ${obj.name}`);
+    
+    // Mensagens específicas para cada pedra
+    const messages = {
+        "28/12/98": "Esta veio da praia onde fizemos uma viagem de fim de semana, será que ele se lembra do pôr do sol?",
+        "24/05/98": "...Que dia maldito...",
+        "12/03/98": "Essa aqui a gente achou enquanto andava pelas ruas depois do meu aniversário, você me deu esta pedra dizendo que eu era especial...",
+        "07/11/99": "Nesse dia a gente matou aula pela última vez, a gente tava tão feliz, eu não sabia que nosso caminho se separava em breve",
+        "03/04/99": "Ele me deu essa pedra por pena, foi quando eu quebrei um braço escorregando em uma casca de banana igual uma idiota"
+    };
+
+    // Mostra a mensagem correspondente ou uma padrão
+    this.showTextBoxDialogue(messages[obj.name] || `Pedra com a data: ${obj.name}`);
 }
 
     createCanetaIndividual(obj) {
@@ -1164,9 +1215,11 @@ export default class GameScene extends Phaser.Scene {
         if (obj.name === "Gaveta grande") {
             if (this.gameState.mapaAlterado) {
                 // Se o mapa foi alterado, permite abrir a gaveta
-                this.showTextBoxWithChoices("Uma gaveta");
-                this.buttonOpen.setVisible(true);
-                this.buttonOpen.setDepth(1000);
+                if(this.isDialogOpen === false){
+                    this.showTextBoxWithChoices("Uma gaveta");
+                    this.buttonOpen.setVisible(true);
+                    this.buttonOpen.setDepth(1000);
+                }
             } else {
                 // Se o mapa NÃO foi alterado, mostra mensagem diferente
                 this.showTextBoxDialogue("Tem algo importante que preciso daqui, mas está trancada.");
@@ -1372,7 +1425,28 @@ export default class GameScene extends Phaser.Scene {
     
     // Limpa marcadores individuais
     this.clearMarcadores();
+
+    this.clearPedras();
 }
+
+    clearPedras() {
+        if (this.pedrasSprites && this.pedrasSprites.length > 0) {
+            this.pedrasSprites.forEach(pedra => {
+                if (pedra.sprite) {
+                    pedra.sprite.destroy();
+                }
+                if (pedra.zone) {
+                    // Remove da lista de zonas interativas primeiro
+                    const zoneIndex = this.roomManager.interactiveZones.indexOf(pedra.zone);
+                    if (zoneIndex !== -1) {
+                        this.roomManager.interactiveZones.splice(zoneIndex, 1);
+                    }
+                    pedra.zone.destroy();
+                }
+            });
+            this.pedrasSprites = [];
+        }
+    }
 
     clearCanetas() {
     if (this.canetasSprites && this.canetasSprites.length > 0) {

@@ -201,7 +201,7 @@ export default class CameraPuzzle {
             this.scene.time.delayedCall(1500, () => {
                 this.close();
                 // Dispara a cutscene diretamente
-                this.scene.cutsceneManager.playPuzzleCompleteCutscene(
+                this.scene.cutsceneManager.playStorylineCompleteCutscene(
                     "Cada memória dela documenta um amor que não sobreviveu ao tempo.",
                     () => {
                         // Callback pós-cutscene

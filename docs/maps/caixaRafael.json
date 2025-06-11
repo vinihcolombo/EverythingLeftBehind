@@ -299,29 +299,7 @@
          "visible":true,
          "x":0,
          "y":0
-        }, 
-        {
-         "draworder":"topdown",
-         "id":3,
-         "name":"Pilha de Cartas",
-         "objects":[
-                {
-                 "height":91.258215962441,
-                 "id":1,
-                 "name":"Pilha de Cartas",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":60.8403755868545,
-                 "x":225.577464788732,
-                 "y":88.389671361502
-                }],
-         "opacity":1,
-         "type":"objectgroup",
-         "visible":true,
-         "x":0,
-         "y":0
-        }, 
+        },  
         {
          "draworder":"topdown",
          "id":4,

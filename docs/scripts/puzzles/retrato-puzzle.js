@@ -164,7 +164,7 @@ export default class RetratoPuzzle {
 
     checkAnswer() {
     if (this.selectedDate === this.correctDate) {
-        this.scene.cutsceneManager.playPuzzleCompleteCutscene('Tentando congelar seus tempos de ouros, encontrou memórias que doem como gelo queimando a pele.');
+        this.scene.cutsceneManager.playStorylineCompleteCutscene('Tentando congelar seus tempos de ouros, encontrou memórias que doem como gelo queimando a pele.',);
         this.scene.gameState.retratoCompleted = true;
         this.close();
         
