@@ -122,29 +122,28 @@ export default class GameScene extends Phaser.Scene {
 
     create() {
         // Inicie a música padrão
-        this.musicManager.playDefaultMusic();
-        // this.cutsceneManager = new CutsceneManager(this);
-
+        this.cutsceneManager = new CutsceneManager(this, this.musicManager);
+        
         this.lastClickedObject = null;
         this.navigationHistory = [];
         // Inicializa o gerenciador de quartos
         this.roomManager = new RoomManager(this);
         this.gameState = new GameState();
-
-
-
-
+        
+        
+        
+        
         // Configura o fundo
         this.bg = this.add.image(0, 0, 'bg1').setOrigin(0, 0);
         this.bg.displayWidth = this.scale.width;
         this.bg.displayHeight = this.scale.height;
-
+        
         // Cria as setas de navegação
         this.createNavigationArrows();
 
         this.inventory = new Inventory(this);
         this.cadernoPuzzle = new CadernoPuzzle(this, 'notebookOpen');
-
+        
         // Configura o tooltip
         this.tooltip = this.add.text(0, 0, '', {
             fontFamily: '"Press Start 2P", monospace',
@@ -160,24 +159,24 @@ export default class GameScene extends Phaser.Scene {
 
         // Caixa de diálogo inferior
         this.textBoxBackground = this.add.rectangle(0, sizes.height - 60, sizes.width, 60, 0x000000, 0.8)
-            .setOrigin(0, 0)
-            .setDepth(100)
+        .setOrigin(0, 0)
+        .setDepth(100)
             .setVisible(false);
 
-        this.textBox = this.add.text(10, sizes.height - 55, '', {
-            fontFamily: '"Press Start 2P", monospace',
-            fontSize: '8px',
-            resolution: 3,
-            color: '#ffffff',
+            this.textBox = this.add.text(10, sizes.height - 55, '', {
+                fontFamily: '"Press Start 2P", monospace',
+                fontSize: '8px',
+                resolution: 3,
+                color: '#ffffff',
             wordWrap: { width: sizes.width - 20 }
         })
-            .setDepth(101)
-            .setVisible(true);
-
+        .setDepth(101)
+        .setVisible(true);
+        
         //=========================================================================================================
         //              HITBOXES
         //=========================================================================================================
-
+        
         // Botões na ESQUERDA
         this.buttonOpen = this.add.text(0, sizes.height - 25, '[Abrir]', {
             fontFamily: '"Press Start 2P", monospace',
@@ -222,25 +221,53 @@ export default class GameScene extends Phaser.Scene {
                         this.loadCustomMap('fim', 'imagemFinal');
                         this.inventory.hideAndDisable();
                         this.hideTextBox();
-                        this.cutsceneManager.MaeDialogue("Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...", '', 6000);
+                        // Usando o sistema de fila corretamente
+                        this.cutsceneManager.queueCutscene('puzzle', 
+                            "Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",
+                            () => {
+                                console.log("Primeira cutscene terminada");
+                                // Sequência de diálogos
+                                this.cutsceneManager.queueCutscene('storyline', "Ao abrir essa última caixa, você entende.");
+                                this.cutsceneManager.queueCutscene('storyline', "Não era só sobre memórias. Era sobre cuidado. Sobre continuar te segurando, mesmo depois de partir.");
+                                this.cutsceneManager.queueCutscene('storyline', "Cada caixa que você abriu até aqui te lembrou de quem esteve com você. Essa... só te lembra de quem você é.");
+                                this.cutsceneManager.queueCutscene('storyline', "Você não está mais perdida. Você só estava voltando pra casa.");
+                            }
+                        );
                         // this.cutsceneManager.playStorylineCompleteCutscene("Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",);
                     }
                 }
                 this.hideTextBox(); // Esta linha garante que a caixa será fechada
             })
-
-
+            
+            
+            .setDepth(101)
+            .setVisible(false);
+            
+            
+            //=========================================================================================================
+            //=========================================================================================================
+            //=========================================================================================================
+            
+            this.buttonClose = this.add.text(60, sizes.height - 25, '[Fechar]', {
+                fontFamily: '"Press Start 2P", monospace',
+                fontSize: '8px',
+                color: '#ff0000',
+                padding: { x: 6, y: 2 },
+                stroke: '#000000',
+                strokeThickness: 2,
+            align: 'center',
+            resolution: 3,
+        })
+        .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.hideTextBox();
+            })
             .setDepth(101)
             .setVisible(false);
 
-
-        //=========================================================================================================
-        //=========================================================================================================
-        //=========================================================================================================
-
-        this.buttonClose = this.add.text(60, sizes.height - 25, '[Fechar]', {
-            fontFamily: '"Press Start 2P", monospace',
-            fontSize: '8px',
+            this.buttonCloseDialogue = this.add.text(0, sizes.height - 25, '[Fechar]', {
+                fontFamily: '"Press Start 2P", monospace',
+                fontSize: '8px',
             color: '#ff0000',
             padding: { x: 6, y: 2 },
             stroke: '#000000',
@@ -248,41 +275,24 @@ export default class GameScene extends Phaser.Scene {
             align: 'center',
             resolution: 3,
         })
-            .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                this.hideTextBox();
-            })
-            .setDepth(101)
-            .setVisible(false);
-
-        this.buttonCloseDialogue = this.add.text(0, sizes.height - 25, '[Fechar]', {
-            fontFamily: '"Press Start 2P", monospace',
-            fontSize: '8px',
-            color: '#ff0000',
-            padding: { x: 6, y: 2 },
-            stroke: '#000000',
-            strokeThickness: 2,
-            align: 'center',
-            resolution: 3,
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => {
+            this.hideTextBox();
         })
-            .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                this.hideTextBox();
-            })
-            .setDepth(101)
-            .setVisible(false);
-
+        .setDepth(101)
+        .setVisible(false);
+        
         this.setInteractionsEnabled(true);
-
+        
         if (!this.gameState.cameraUnlocked) {
             this.cameraPuzzle = new CameraPuzzle(this);
-
+            
             // Configura o listener para quando o puzzle for completado
             this.events.once('cameraPuzzleCompleted', () => {
                 this.handleCameraUnlock();
             });
         }
-
+        
         this.retratoPuzzle = new RetratoPuzzle(this, "07/11/1999");
         this.events.on('retratoPuzzleCompleted', () => {
             this.gameState.rafaelStorylineCompleted = true;
@@ -290,16 +300,16 @@ export default class GameScene extends Phaser.Scene {
             if (this.checkAllStorylinesCompleted()) {
                 this.loadFinalMap();
             }
-
+            
         });
-
-
+        
+        
         // this.notebook = this.add.sprite(x, y, 'notebook');
         // this.notebook.setInteractive();
         // this.notebook.on('pointerdown', () => {
-        //     this.scene.start('CadernoScene');
-        // });
-
+            //     this.scene.start('CadernoScene');
+            // });
+            
         console.log("Pressione F4 para testar a cutscene de fade.");
         this.input.keyboard.on('keydown-F4', () => {
             this.loadCustomMap('caixaMae', 'bg-caixaMae');
@@ -310,10 +320,18 @@ export default class GameScene extends Phaser.Scene {
             console.log("RafaelStoryline: ", this.gameState.rafaelStorylineCompleted);
             console.log("ClaraStoryline: ", this.gameState.claraStorylineCompleted);
             console.log("HelenaStoryline: ", this.gameState.helenaStorylineCompleted);
+            this.inventory.addItem('camera', () => {
+                if (!this.cameraPuzzle) {
+                    this.cameraPuzzle = new CameraPuzzle(this);
+                }
+                this.cameraPuzzle.open();
+            });
+
         })
+        this.musicManager.playDefaultMusic();
     }
-
-
+    
+    
     update() {
         // Verificação de consistência
         if (this.bg.texture.key !== this.getExpectedBackground()) {
@@ -1361,7 +1379,7 @@ export default class GameScene extends Phaser.Scene {
             this.gameState.mapaAlterado = true;
 
             // Cutscene especial de mapa alterado
-            this.cutsceneManager.playPuzzleCompleteCutscene(
+            this.cutsceneManager._startPuzzleCutscene(
                 "…Que som foi esse? Parece que uma gaveta se destrancou.",
                 () => {
                     // Callback executado após a cutscene

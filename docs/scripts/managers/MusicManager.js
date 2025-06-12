@@ -7,15 +7,27 @@ export default class MusicManager {
         this.musicTracks = {
             default: 'main_theme',
             finalMap: 'final_theme',
-            // cutscene: 'cutscene_theme'
+            lembra: 'cutscene_theme',
+            capa: 'menu_theme'
         };
+        MusicManager._instance = this;
+    }
+
+    static getInstance(scene) {
+        if (!MusicManager._instance) {
+            new MusicManager(scene);
+        } else if (scene) {
+            // Atualiza a cena para garantir acesso ao sound
+            MusicManager._instance.scene = scene;
+        }
+        return MusicManager._instance;
     }
 
     preload() {
         // Carregue todas as músicas do jogo
-        this.scene.load.audio(this.musicTracks.default, 'assets/music/Ambient.mp3');
-        // this.scene.load.audio(this.musicTracks.cutscene, 'assets/music/Theme6.mp3');
-        this.scene.load.audio(this.musicTracks.finalMap, 'assets/music/Final.mp3');
+        this.scene.load.audio(this.musicTracks.default, './assets/music/Ambient.mp3');
+        this.scene.load.audio(this.musicTracks.finalMap, './assets/music/Final.mp3');
+        this.scene.load.audio(this.musicTracks.lembra, './assets/music/Lembra.mp3');
     }
 
     playDefaultMusic() {
@@ -23,12 +35,16 @@ export default class MusicManager {
         this._playMusic(this.musicTracks.default);
     }
 
-    // playCutsceneMusic() {
-    //     this._playMusic(this.musicTracks.cutscene);
-    // }
+    playCutsceneMusic() {
+        this._playMusic(this.musicTracks.lembra);
+    }
 
     playFinalMapMusic() {
         this._playMusic(this.musicTracks.finalMap);
+    }
+
+    playMenuMusic(){
+        this._playMusic(this.musicTracks.capa);
     }
 
     _playMusic(trackKey) {
@@ -79,6 +95,11 @@ export default class MusicManager {
         });
     }
 
+    toggleMute() {
+        this.isMuted = !this.isMuted;
+        this.setVolume(this.volume);
+    }
+
     setVolume(volume) {
         this.volume = Phaser.Math.Clamp(volume, 0, 1);
         if (this.currentTrack) {
@@ -87,10 +108,5 @@ export default class MusicManager {
                 music.setVolume(this.isMuted ? 0 : this.volume);
             }
         }
-    }
-
-    toggleMute() {
-        this.isMuted = !this.isMuted;
-        this.setVolume(this.volume); // Atualiza o volume com o estado de mudo
     }
 }

@@ -54,7 +54,7 @@ export default class CameraPuzzle {
             '🔒',
             {
                 fontFamily: '"Press Start 2P", monospace',
-                fontSize: '10px',
+                fontSize: '8px',
                 color: '#FFFFFF'
             }
         ).setOrigin(0.5);
@@ -66,7 +66,7 @@ export default class CameraPuzzle {
             '0 0 0',
             {
                 fontFamily: 'monospace',
-                fontSize: '18px',  // Fonte menor
+                fontSize: '16px',  // Fonte menor
                 color: '#00FF00',
                 backgroundColor: '#000000',
                 padding: { x: 5, y: 0 }
@@ -83,7 +83,7 @@ export default class CameraPuzzle {
             'TENTAR',
             {
                 fontFamily: '"Press Start 2P", monospace',
-                fontSize: '10px',
+                fontSize: '8px',
                 color: '#FFFFFF',
                 backgroundColor: '#4CAF50',
                 padding: { x: 5, y: 3 }
@@ -113,7 +113,7 @@ export default class CameraPuzzle {
             '×',  // Símbolo mais compacto
             {
                 fontFamily: 'Arial',
-                fontSize: '12px',
+                fontSize: '16px',
                 color: '#FFFFFF',
                 backgroundColor: '#FF0000',
                 padding: { x: 5, y: 0 }
@@ -130,7 +130,7 @@ export default class CameraPuzzle {
         // Estilo unificado para os botões
         const btnStyle = {
             fontFamily: 'monospace',
-            fontSize: '14px',
+            fontSize: '16px',
             color: '#FFFFFF',
             backgroundColor: '#444444',
             padding: { x: 3, y: 2 },
@@ -201,7 +201,7 @@ export default class CameraPuzzle {
             this.scene.time.delayedCall(1500, () => {
                 this.close();
                 // Dispara a cutscene diretamente
-                this.scene.cutsceneManager.playStorylineCompleteCutscene(
+                this.scene.cutsceneManager._startStorylineCutscene(
                     "Cada memória dela documenta um amor que não sobreviveu ao tempo.",
                     () => {
                         // Callback pós-cutscene

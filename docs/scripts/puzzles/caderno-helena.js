@@ -37,7 +37,6 @@ export default class CadernoPuzzle {
         const mapData = this.scene.cache.json.get('cadernoPuzzle');
         this.createPages(mapData);
         this.createPieces(mapData);
-        this.createCloseButton();
     }
 
     createPages(mapData) {
@@ -56,6 +55,7 @@ export default class CadernoPuzzle {
             // Page 4 - Bottom Right (moved further right and down)
             { x: screenCenterX - 50, y: screenCenterY + 40 }
         ];
+        this.createCloseButton();
 
         pagesLayer.objects.forEach((page, index) => {
             const pos = pagePositions[index];
@@ -88,7 +88,7 @@ export default class CadernoPuzzle {
                 `PÁGINA ${index + 1}`,
                 {
                     fontFamily: '"Press Start 2P"',
-                    fontSize: '12px',
+                    fontSize: '8px',
                     color: '#ffffff',
                     padding: { x: 20, y: 2 },
                     resolution: 3
@@ -236,7 +236,7 @@ export default class CadernoPuzzle {
 
             if (this.scene.cutsceneManager) {
                 // Chama a sua cutscene com uma mensagem mais imersiva
-                this.scene.cutsceneManager.playStorylineCompleteCutscene(
+                this.scene.cutsceneManager._startStorylineCutscene(
                     'Ela guardou tudo que podia me lembrar que eu era mais do que diziam ser.',
                 );
             }
@@ -291,7 +291,7 @@ export default class CadernoPuzzle {
             '[X]',
             {
                 fontFamily: '"Press Start 2P"',
-                fontSize: '12px',
+                fontSize: '8px',
                 color: '#ff0000',
                 backgroundColor: '#000000',
                 padding: { x: 5, y: 5 },
@@ -308,22 +308,26 @@ export default class CadernoPuzzle {
     closePuzzle() {
         // Remove all elements
         this.overlay.destroy();
-        this.closeButton.destroy();
 
-        if (this.completeText) {
-            this.completeText.destroy();
-        }
-
-        if (this.continueButton) {
-            this.continueButton.destroy();
-        }
-
-        // Remove all pieces
-        this.pieces.forEach(piece => {
-            piece.sprite.destroy();
+        if (this.placedPieces.size === this.correctPositions.size)
+            this.closeButton.destroy();
+        else{
+            this.closeButton.destroy();
+            
+            if (this.completeText) {
+                this.completeText.destroy();
+            }
+            
+            if (this.continueButton) {
+                this.continueButton.destroy();
+            }
+            
+            // Remove all pieces
+            this.pieces.forEach(piece => {
+                piece.sprite.destroy();
             if (piece.label) piece.label.destroy();
         });
-
+        
         // Remove all page visuals
         this.pageZones.forEach(zone => {
             if (zone.visualElements) {
@@ -339,6 +343,7 @@ export default class CadernoPuzzle {
         // Optional: trigger any completion callback
         if (this.onCompleteCallback) {
             this.onCompleteCallback();
+        }
         }
     }
 }
