@@ -1099,6 +1099,12 @@ handlePedraClick(obj) {
 
         if (obj.name === "Teia")
             this.showTextBoxDialogue("Tô surpresa que não tem mais dessas por esse porão velho.");
+
+        if (obj.name === "Quadro Mamae")
+            this.showTextBoxDialogue("É um quadro da mamãe de quando ela era mais nova, ele fico perfeito nessa parede.");
+
+        if (obj.name === "Prateleiras")
+            this.showTextBoxDialogue("Algumas prateleiras com objetos que achei nas caixas antes de redecorar esse lugar todo.");
         
         if (obj.name === "Rasgo")
             this.showTextBoxDialogue("Os anos deixam marcas, não sei quando esses buracos começaram a surguir.");

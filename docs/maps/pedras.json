@@ -61,7 +61,7 @@
                 {
                  "height":50,
                  "id":1,
-                 "name":"28/12/98",
+                 "name":"28\/12\/98",
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -80,18 +80,17 @@
          "id":3,
          "name":"Pedra2",
          "objects":[
-              {
+                {
                  "height":50,
                  "id":4,
-                 "name":"24/05/98",
+                 "name":"24\/05\/98",
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":55.5,
                  "x":250.75,
                  "y":75
-                }
-         ],
+                }],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
@@ -103,18 +102,17 @@
          "id":4,
          "name":"Pedra3",
          "objects":[
-              {
+                {
                  "height":50,
                  "id":5,
-                 "name":"12/03/98",
+                 "name":"12\/03\/98",
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":55.5,
                  "x":180.75,
                  "y":75
-                }
-         ],
+                }],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
@@ -126,18 +124,17 @@
          "id":5,
          "name":"Pedra4",
          "objects":[
-              {
+                {
                  "height":50,
                  "id":6,
-                 "name":"07/11/99",
+                 "name":"07\/11\/99",
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":55.5,
                  "x":104.25,
                  "y":74
-                }
-         ],
+                }],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
@@ -149,25 +146,24 @@
          "id":6,
          "name":"Pedra5",
          "objects":[
-              {
+                {
                  "height":50,
                  "id":7,
-                 "name":"03/04/99",
+                 "name":"03\/04\/99",
                  "rotation":0,
                  "type":"",
                  "visible":true,
                  "width":55.5,
                  "x":34.75,
                  "y":74.5
-                }
-         ],
+                }],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
          "x":0,
          "y":0
-        },
-       {
+        }, 
+        {
          "draworder":"topdown",
          "id":8,
          "name":"voltar",
@@ -180,8 +176,8 @@
                  "type":"",
                  "visible":true,
                  "width":17.125,
-                 "x":-0.125,
-                 "y":0
+                 "x":5.26268362681195,
+                 "y":-21.9651717093102
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -193,7 +189,7 @@
  "nextobjectid":16,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.11.1-99-gec89c545",
+ "tiledversion":"1.11.2",
  "tileheight":6,
  "tilesets":[],
  "tilewidth":6,
