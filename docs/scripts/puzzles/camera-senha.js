@@ -79,7 +79,7 @@ export default class CameraPuzzle {
 
         // Botão de submit minimalista
         const submitBtn = this.scene.add.text(
-            0, 110,  // Posição mais alta
+            0, 100,  // Posição mais alta
             'TENTAR',
             {
                 fontFamily: '"Press Start 2P", monospace',
@@ -95,7 +95,7 @@ export default class CameraPuzzle {
 
         // Mensagem compacta
         this.messageText = this.scene.add.text(
-            0, 120,  // Posição mais alta
+            0, -100,  // Posição mais alta
             '',
             {
                 fontFamily: '"Press Start 2P", monospace',
