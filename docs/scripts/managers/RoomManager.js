@@ -4,8 +4,8 @@ export default class RoomManager {
     constructor(scene) {
         this.scene = scene;
         this.currentRoom = 1;
-        this.maxRooms = 4;
-        this.interactiveZones = []; // Armazena todas as zonas interativas
+        this.maxRooms = 4; // Usaremos isso para identificar o mapa final
+        this.interactiveZones = []; 
     }
 
     //=========================================================================================================
@@ -21,10 +21,8 @@ export default class RoomManager {
         }
 
         this.currentRoom = roomNumber;
-        // Limpa as zonas interativas anteriores
         this.clearPreviousZones();
 
-        // Atualiza a cena
         const mapKey = `mapa${roomNumber}`;
         this.scene.updateBackground(`bg${roomNumber}`);
         this.scene.loadMapObjects(`mapa${roomNumber}`);
@@ -42,36 +40,35 @@ export default class RoomManager {
     //=========================================================================================================
 
     clearPreviousZones(forceDestroy = false) {
-    this.interactiveZones.forEach(zone => {
-        zone.destroy(); // Destrói completamente
-    });
-    this.interactiveZones = [];
-    
-    if (forceDestroy) {
-        // Limpeza adicional para garantir
-        this.scene.children.each(child => {
-            if (child instanceof Phaser.GameObjects.Zone) {
-                child.destroy();
-            }
+        this.interactiveZones.forEach(zone => {
+            zone.destroy();
         });
+        this.interactiveZones = [];
+        
+        if (forceDestroy) {
+            this.scene.children.each(child => {
+                if (child instanceof Phaser.GameObjects.Zone) {
+                    child.destroy();
+                }
+            });
+        }
     }
-}
 
     //=========================================================================================================
 
     nextRoom() {
+        // Seu código para nextRoom continua o mesmo
         const totalRooms = this.scene.standardRooms.length;
         this.loadRoom((this.currentRoom % totalRooms) + 1);
-        clickSound.currentTime = 0;
-        clickSound.play();
+        this.playSound(); // Mantive sua chamada de som de clique
     }
 
     //=========================================================================================================
 
     prevRoom() {
+        // Seu código para prevRoom continua o mesmo
         const totalRooms = this.scene.standardRooms.length;
         this.loadRoom(((this.currentRoom - 2 + totalRooms) % totalRooms) + 1);
-        clickSound.currentTime = 0;
-        clickSound.play();
+        this.playSound(); // Mantive sua chamada de som de clique
     }
 }

@@ -7,6 +7,7 @@ import RoomManager from '../managers/RoomManager.js';
 import Inventory from '../ui/Inventory.js';
 import { sizes } from '../constants.js';
 import CutsceneManager from '../managers/CutsceneManager.js';
+import MusicManager from '../managers/MusicManager.js';
 
 export default class GameScene extends Phaser.Scene {
     constructor() {
@@ -112,32 +113,37 @@ export default class GameScene extends Phaser.Scene {
         this.load.image('slot', './assets/images/Slot.png');
         this.load.image('inventory', './assets/images/InventoryOverlay.png');
         this.load.image('iconInventory', './assets/images/inventoryicon.png');
+
+        this.musicManager = new MusicManager(this);
+        this.musicManager.preload();
     }
 
     //=========================================================================================================
 
     create() {
-        this.cutsceneManager = new CutsceneManager(this);
+        // Inicie a música padrão
+        this.cutsceneManager = new CutsceneManager(this, this.musicManager);
+        
         this.lastClickedObject = null;
         this.navigationHistory = [];
         // Inicializa o gerenciador de quartos
         this.roomManager = new RoomManager(this);
         this.gameState = new GameState();
-
-
-
-
+        
+        
+        
+        
         // Configura o fundo
         this.bg = this.add.image(0, 0, 'bg1').setOrigin(0, 0);
         this.bg.displayWidth = this.scale.width;
         this.bg.displayHeight = this.scale.height;
-
+        
         // Cria as setas de navegação
         this.createNavigationArrows();
 
         this.inventory = new Inventory(this);
         this.cadernoPuzzle = new CadernoPuzzle(this, 'notebookOpen');
-
+        
         // Configura o tooltip
         this.tooltip = this.add.text(0, 0, '', {
             fontFamily: '"Press Start 2P", monospace',
@@ -153,24 +159,24 @@ export default class GameScene extends Phaser.Scene {
 
         // Caixa de diálogo inferior
         this.textBoxBackground = this.add.rectangle(0, sizes.height - 60, sizes.width, 60, 0x000000, 0.8)
-            .setOrigin(0, 0)
-            .setDepth(100)
+        .setOrigin(0, 0)
+        .setDepth(100)
             .setVisible(false);
 
-        this.textBox = this.add.text(10, sizes.height - 55, '', {
-            fontFamily: '"Press Start 2P", monospace',
-            fontSize: '8px',
-            resolution: 3,
-            color: '#ffffff',
+            this.textBox = this.add.text(10, sizes.height - 55, '', {
+                fontFamily: '"Press Start 2P", monospace',
+                fontSize: '8px',
+                resolution: 3,
+                color: '#ffffff',
             wordWrap: { width: sizes.width - 20 }
         })
-            .setDepth(101)
-            .setVisible(true);
-
+        .setDepth(101)
+        .setVisible(true);
+        
         //=========================================================================================================
         //              HITBOXES
         //=========================================================================================================
-
+        
         // Botões na ESQUERDA
         this.buttonOpen = this.add.text(0, sizes.height - 25, '[Abrir]', {
             fontFamily: '"Press Start 2P", monospace',
@@ -180,7 +186,7 @@ export default class GameScene extends Phaser.Scene {
             stroke: '#000000',
             strokeThickness: 2,
             align: 'center',
-            resolution: 2,
+            resolution: 3,
         })
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => {
@@ -215,67 +221,78 @@ export default class GameScene extends Phaser.Scene {
                         this.loadCustomMap('fim', 'imagemFinal');
                         this.inventory.hideAndDisable();
                         this.hideTextBox();
-                        this.cutsceneManager.MaeDialogue("Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",'',6000);
+                        // Usando o sistema de fila corretamente
+                        this.cutsceneManager.queueCutscene('puzzle', 
+                            "Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",
+                            () => {
+                                console.log("Primeira cutscene terminada");
+                                // Sequência de diálogos
+                                this.cutsceneManager.queueCutscene('storyline', "Ao abrir essa última caixa, você entende.");
+                                this.cutsceneManager.queueCutscene('storyline', "Não era só sobre memórias. Era sobre cuidado. Sobre continuar te segurando, mesmo depois de partir.");
+                                this.cutsceneManager.queueCutscene('storyline', "Cada caixa que você abriu até aqui te lembrou de quem esteve com você. Essa... só te lembra de quem você é.");
+                                this.cutsceneManager.queueCutscene('storyline', "Você não está mais perdida. Você só estava voltando pra casa.");
+                            }
+                        );
                         // this.cutsceneManager.playStorylineCompleteCutscene("Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",);
                     }
                 }
                 this.hideTextBox(); // Esta linha garante que a caixa será fechada
             })
-
-
+            
+            
             .setDepth(101)
             .setVisible(false);
-
-
-        //=========================================================================================================
-        //=========================================================================================================
-        //=========================================================================================================
-
-        this.buttonClose = this.add.text(60, sizes.height - 25, '[Fechar]', {
-            fontFamily: '"Press Start 2P", monospace',
-            fontSize: '8px',
-            color: '#ff0000',
-            padding: { x: 6, y: 2 },
-            stroke: '#000000',
-            strokeThickness: 2,
+            
+            
+            //=========================================================================================================
+            //=========================================================================================================
+            //=========================================================================================================
+            
+            this.buttonClose = this.add.text(60, sizes.height - 25, '[Fechar]', {
+                fontFamily: '"Press Start 2P", monospace',
+                fontSize: '8px',
+                color: '#ff0000',
+                padding: { x: 6, y: 2 },
+                stroke: '#000000',
+                strokeThickness: 2,
             align: 'center',
-            resolution: 2,
+            resolution: 3,
         })
-            .setInteractive({ useHandCursor: true })
+        .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => {
                 this.hideTextBox();
             })
             .setDepth(101)
             .setVisible(false);
 
-        this.buttonCloseDialogue = this.add.text(0, sizes.height - 25, '[Fechar]', {
-            fontFamily: '"Press Start 2P", monospace',
-            fontSize: '8px',
+            this.buttonCloseDialogue = this.add.text(0, sizes.height - 25, '[Fechar]', {
+                fontFamily: '"Press Start 2P", monospace',
+                fontSize: '8px',
             color: '#ff0000',
             padding: { x: 6, y: 2 },
             stroke: '#000000',
             strokeThickness: 2,
             align: 'center',
-            resolution: 2,
+            resolution: 3,
         })
-            .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => {
-                this.hideTextBox();
-            })
-            .setDepth(101)
-            .setVisible(false);
-
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => {
+            this.hideTextBox();
+        })
+        .setDepth(101)
+        .setVisible(false);
+        
         this.setInteractionsEnabled(true);
-
+        
         if (!this.gameState.cameraUnlocked) {
             this.cameraPuzzle = new CameraPuzzle(this);
-
+            
             // Configura o listener para quando o puzzle for completado
             this.events.once('cameraPuzzleCompleted', () => {
                 this.handleCameraUnlock();
             });
         }
-
+        
         this.retratoPuzzle = new RetratoPuzzle(this, "07/11/1999");
         this.events.on('retratoPuzzleCompleted', () => {
             this.gameState.rafaelStorylineCompleted = true;
@@ -283,16 +300,16 @@ export default class GameScene extends Phaser.Scene {
             if (this.checkAllStorylinesCompleted()) {
                 this.loadFinalMap();
             }
-
+            
         });
-
-
+        
+        
         // this.notebook = this.add.sprite(x, y, 'notebook');
         // this.notebook.setInteractive();
         // this.notebook.on('pointerdown', () => {
-        //     this.scene.start('CadernoScene');
-        // });
-
+            //     this.scene.start('CadernoScene');
+            // });
+            
         console.log("Pressione F4 para testar a cutscene de fade.");
         this.input.keyboard.on('keydown-F4', () => {
             this.loadCustomMap('caixaMae', 'bg-caixaMae');
@@ -303,10 +320,18 @@ export default class GameScene extends Phaser.Scene {
             console.log("RafaelStoryline: ", this.gameState.rafaelStorylineCompleted);
             console.log("ClaraStoryline: ", this.gameState.claraStorylineCompleted);
             console.log("HelenaStoryline: ", this.gameState.helenaStorylineCompleted);
+            this.inventory.addItem('camera', () => {
+                if (!this.cameraPuzzle) {
+                    this.cameraPuzzle = new CameraPuzzle(this);
+                }
+                this.cameraPuzzle.open();
+            });
+
         })
+        this.musicManager.playDefaultMusic();
     }
-
-
+    
+    
     update() {
         // Verificação de consistência
         if (this.bg.texture.key !== this.getExpectedBackground()) {
@@ -345,26 +370,36 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     setInteractionsEnabled(state) {
-        // Se estiver em zoom, sempre desativa interações normais
-        if (this.zoomView.active) state = false;
-
-        // Ativa/desativa todas as zonas interativas
-        this.roomManager.interactiveZones.forEach(zone => {
-            zone.input.enabled = state;
-        });
-
-        // Ativa/desativa as setas
-        this.arrows.left.setInteractive({ enabled: state });
-        this.arrows.right.setInteractive({ enabled: state });
-
-        // Tooltip só aparece se interações estiverem ativas
-        this.tooltip.setVisible(false);
-
-        // Ativa/desativa o inventário (exceto se estiver em zoom)
-        if (this.inventory) {
-            this.inventory.toggleButton.setInteractive({ enabled: !this.zoomView.active });
-        }
+    // Se estiver em zoom ou em qualquer puzzle, desativa interações normais
+    const isAnyPuzzleActive = (this.retratoPuzzle && this.retratoPuzzle.active) || 
+                            (this.cadernoPuzzle && this.cadernoPuzzle.active) ||
+                            (this.cameraPuzzle && this.cameraPuzzle.active);
+    
+    if (this.zoomView.active || isAnyPuzzleActive) {
+        state = false;
     }
+
+    // Ativa/desativa todas as zonas interativas
+    this.roomManager.interactiveZones.forEach(zone => {
+        zone.input.enabled = state;
+    });
+
+    // Ativa/desativa as setas (considerando o estado do puzzle)
+    const arrowsVisible = state && this.isStandardRoom() && !isAnyPuzzleActive;
+    
+    this.arrows.left.setVisible(arrowsVisible);
+    this.arrows.right.setVisible(arrowsVisible);
+
+    // Tooltip só aparece se interações estiverem ativas
+    this.tooltip.setVisible(false);
+
+    // Ativa/desativa o inventário (exceto se estiver em zoom ou no puzzle)
+    if (this.inventory) {
+        this.inventory.toggleButton.setInteractive({ 
+            enabled: !this.zoomView.active && !isAnyPuzzleActive
+        });
+    }
+}
 
     //=========================================================================================================
 
@@ -378,6 +413,10 @@ export default class GameScene extends Phaser.Scene {
 
         console.log(`[DEBUG] Carregando mapa: ${mapKey}`);
         console.log(`Mapa no cache: ${this.cache.json.has(mapKey)}`);
+
+        if (mapKey === 'caixaMae') { // Substitua 'mapaFinal' pela chave do seu mapa final
+            this.musicManager.playFinalMapMusic();
+        }
 
         // Resto do método original...
         if (this.currentMapKey && this.bg.texture) {
@@ -414,9 +453,9 @@ export default class GameScene extends Phaser.Scene {
         this.hideTextBox();
 
         if (this.backButton) {
-        this.backButton.destroy();
-        this.backButton = null;
-    }
+            this.backButton.destroy();
+            this.backButton = null;
+        }
 
         // Limpa todos os sprites temporários
         this.clearItemSprites();
@@ -443,35 +482,35 @@ export default class GameScene extends Phaser.Scene {
     sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-        
+
     loadFinalMap() {
-    // Se houver diálogo aberto, agenda nova tentativa
-    this.sleep(1000).then(() =>{
-        if (this.isDialogOpen) {
-            console.log("Diálogo aberto, adiando mapa final");
-            this.sleep(2000).then(() => { this.loadFinalMap(); });         
-            return;
-        }
-        else{
-    
-        // Desativa interações temporariamente
-        this.setInteractionsEnabled(false);
-    
-        console.log("Carregando mapa final");
-        // Mostra mensagem de conclusão
-        this.showTextBoxDialogue("Todas as histórias foram reveladas... Algo novo se abre!");
-    
-        // Aguarda um pouco antes de carregar o mapa final
-        this.time.delayedCall(5000, () => {
-            // Carrega o mapa especial de conclusão
-            this.loadCustomMap('caixaMae', 'bg-caixaMae');
-            
-            // Reativa interações
-            this.setInteractionsEnabled(true);
-        });
-        }
-    })
-}
+        // Se houver diálogo aberto, agenda nova tentativa
+        this.sleep(1000).then(() => {
+            if (this.isDialogOpen) {
+                console.log("Diálogo aberto, adiando mapa final");
+                this.sleep(2000).then(() => { this.loadFinalMap(); });
+                return;
+            }
+            else {
+
+                // Desativa interações temporariamente
+                this.setInteractionsEnabled(false);
+
+                console.log("Carregando mapa final");
+                // Mostra mensagem de conclusão
+                this.showTextBoxDialogue("Todas as histórias foram reveladas... Algo novo se abre!");
+
+                // Aguarda um pouco antes de carregar o mapa final
+                this.time.delayedCall(5000, () => {
+                    // Carrega o mapa especial de conclusão
+                    this.loadCustomMap('caixaMae', 'bg-caixaMae');
+
+                    // Reativa interações
+                    this.setInteractionsEnabled(true);
+                });
+            }
+        })
+    }
 
     //=========================================================================================================
 
@@ -487,39 +526,39 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     checkAndAddBackButton(mapKey) {
-    // Remove a seta anterior se existir
-    if (this.backButton) {
-        this.backButton.destroy();
-        this.backButton = null;
-    }
+        // Remove a seta anterior se existir
+        if (this.backButton) {
+            this.backButton.destroy();
+            this.backButton = null;
+        }
 
-    const mapData = this.cache.json.get(mapKey);
-    if (!mapData) return;
+        const mapData = this.cache.json.get(mapKey);
+        if (!mapData) return;
 
-    // Verifica se há um objeto "voltar" no mapa
-    const hasBackButton = mapData.layers.some(layer => {
-        return layer.type === 'objectgroup' && 
-               layer.objects.some(obj => obj.name === 'voltar');
-    });
-
-    if (hasBackButton) {
-        // Cria a imagem da seta de voltar
-        this.backButton = this.add.image(50, 50, 'seta')
-            .setAngle(180)
-            .setInteractive({ useHandCursor: true })
-            .setDepth(100)
-            .on('pointerdown', () => this.goBackToPreviousMap());
-        
-        // Adiciona efeito de hover
-        this.backButton.on('pointerover', () => {
-            this.backButton.setScale(1.1);
+        // Verifica se há um objeto "voltar" no mapa
+        const hasBackButton = mapData.layers.some(layer => {
+            return layer.type === 'objectgroup' &&
+                layer.objects.some(obj => obj.name === 'voltar');
         });
-        
-        this.backButton.on('pointerout', () => {
-            this.backButton.setScale(1);
-        });
+
+        if (hasBackButton) {
+            // Cria a imagem da seta de voltar
+            this.backButton = this.add.image(50, 50, 'seta')
+                .setAngle(180)
+                .setInteractive({ useHandCursor: true })
+                .setDepth(100)
+                .on('pointerdown', () => this.goBackToPreviousMap());
+
+            // Adiciona efeito de hover
+            this.backButton.on('pointerover', () => {
+                this.backButton.setScale(1.1);
+            });
+
+            this.backButton.on('pointerout', () => {
+                this.backButton.setScale(1);
+            });
+        }
     }
-}
 
     createNavigationArrows() {
         // Seta esquerda
@@ -593,14 +632,14 @@ export default class GameScene extends Phaser.Scene {
                     }
                 }
 
-                
+
 
                 layer.objects.forEach(obj => {
                     console.log(`- Objeto: ${obj.name} em (${obj.x},${obj.y})`); // Debug
 
                     if (mapKey === 'pedras') {
-                        if (layer.name === 'Pedra1' || layer.name === 'Pedra2' || 
-                            layer.name === 'Pedra3' || layer.name === 'Pedra4' || 
+                        if (layer.name === 'Pedra1' || layer.name === 'Pedra2' ||
+                            layer.name === 'Pedra3' || layer.name === 'Pedra4' ||
                             layer.name === 'Pedra5') {
                             layer.objects.forEach(obj => {
                                 this.createPedraIndividual(obj);
@@ -608,7 +647,7 @@ export default class GameScene extends Phaser.Scene {
                             return;
                         }
                     }
-                
+
                     if (obj.name === 'Chave de Apartamento') { // Modifiquei a condição
                         this.createChave(obj);
                     }
@@ -648,66 +687,66 @@ export default class GameScene extends Phaser.Scene {
             }
         });
     }
-    
+
     createPedraIndividual(obj) {
-    // Determina qual textura usar baseado no nome da pedra
-    let imgKey;
-    switch(obj.name) {
-        case "28/12/98": 
-        case "24/05/98": 
-        case "12/03/98": 
-        case "07/11/99": 
-        case "03/04/99":
-            imgKey = 'pedra'; // Usa a mesma textura para todas ou pode criar variações
-            break;
-        default:
-            imgKey = 'pedra';
+        // Determina qual textura usar baseado no nome da pedra
+        let imgKey;
+        switch (obj.name) {
+            case "28/12/98":
+            case "24/05/98":
+            case "12/03/98":
+            case "07/11/99":
+            case "03/04/99":
+                imgKey = 'pedra'; // Usa a mesma textura para todas ou pode criar variações
+                break;
+            default:
+                imgKey = 'pedra';
+        }
+
+        // Cria o sprite da pedra
+        const sprite = this.add.image(
+            obj.x + obj.width / 2,
+            obj.y + obj.height / 2,
+            imgKey
+        )
+            .setDisplaySize(obj.width, obj.height)
+            .setOrigin(0.5)
+            .setDepth(10);
+
+        // Cria a zona interativa
+        const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
+            .setOrigin(0)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerover', () => this.showTooltip(obj))
+            .on('pointerout', () => this.tooltip.setVisible(false))
+            .on('pointerdown', () => this.handlePedraClick(obj));
+
+        // Armazena a referência
+        this.pedrasSprites.push({
+            sprite: sprite,
+            zone: zone,
+            originalObj: obj
+        });
+
+        this.roomManager.interactiveZones.push(zone);
     }
 
-    // Cria o sprite da pedra
-    const sprite = this.add.image(
-        obj.x + obj.width / 2,
-        obj.y + obj.height / 2,
-        imgKey
-    )
-    .setDisplaySize(obj.width, obj.height)
-    .setOrigin(0.5)
-    .setDepth(10);
+    // Método para lidar com o clique nas pedras
+    handlePedraClick(obj) {
+        console.log(`Pedra clicada: ${obj.name}`);
 
-    // Cria a zona interativa
-    const zone = this.add.zone(obj.x, obj.y, obj.width, obj.height)
-        .setOrigin(0)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => this.showTooltip(obj))
-        .on('pointerout', () => this.tooltip.setVisible(false))
-        .on('pointerdown', () => this.handlePedraClick(obj));
+        // Mensagens específicas para cada pedra
+        const messages = {
+            "28/12/98": "Esta veio da praia onde fizemos uma viagem de fim de semana, será que ele se lembra do pôr do sol?",
+            "24/05/98": "...Que dia maldito...",
+            "12/03/98": "Essa aqui a gente achou enquanto andava pelas ruas depois do meu aniversário, você me deu esta pedra dizendo que eu era especial...",
+            "07/11/99": "Nesse dia a gente matou aula pela última vez, a gente tava tão feliz, eu não sabia que nosso caminho se separava em breve",
+            "03/04/99": "Ele me deu essa pedra por pena, foi quando eu quebrei um braço escorregando em uma casca de banana igual uma idiota"
+        };
 
-    // Armazena a referência
-    this.pedrasSprites.push({
-        sprite: sprite,
-        zone: zone,
-        originalObj: obj
-    });
-
-    this.roomManager.interactiveZones.push(zone);
-}
-
-// Método para lidar com o clique nas pedras
-handlePedraClick(obj) {
-    console.log(`Pedra clicada: ${obj.name}`);
-    
-    // Mensagens específicas para cada pedra
-    const messages = {
-        "28/12/98": "Esta veio da praia onde fizemos uma viagem de fim de semana, será que ele se lembra do pôr do sol?",
-        "24/05/98": "...Que dia maldito...",
-        "12/03/98": "Essa aqui a gente achou enquanto andava pelas ruas depois do meu aniversário, você me deu esta pedra dizendo que eu era especial...",
-        "07/11/99": "Nesse dia a gente matou aula pela última vez, a gente tava tão feliz, eu não sabia que nosso caminho se separava em breve",
-        "03/04/99": "Ele me deu essa pedra por pena, foi quando eu quebrei um braço escorregando em uma casca de banana igual uma idiota"
-    };
-
-    // Mostra a mensagem correspondente ou uma padrão
-    this.showTextBoxDialogue(messages[obj.name] || `Pedra com a data: ${obj.name}`);
-}
+        // Mostra a mensagem correspondente ou uma padrão
+        this.showTextBoxDialogue(messages[obj.name] || `Pedra com a data: ${obj.name}`);
+    }
 
     createCanetaIndividual(obj) {
         const imgKey = obj.name.includes("Roxa") || obj.name.includes("Rosa") ? 'caneta2' : 'caneta1';
@@ -948,7 +987,7 @@ handlePedraClick(obj) {
         this.roomManager.interactiveZones.push(zone);
     }
 
-    
+
 
     // createCartas(obj) {
     //     const targetWidth = 96;
@@ -1194,8 +1233,8 @@ handlePedraClick(obj) {
         if (obj.name === "Caderno de Escrita") {
             this.inventory.addItem('notebookOpen', () => {
                 // Abre o puzzle do caderno ao clicar no inventário
-                this.cadernoPuzzle.create();
                 this.inventory.toggleInventory();
+                this.cadernoPuzzle.create();
             });
             this.removeHitboxForObject(obj);
             this.NotebookSprite.destroy();
@@ -1257,7 +1296,7 @@ handlePedraClick(obj) {
         if (obj.name === "Gaveta grande") {
             if (this.gameState.mapaAlterado) {
                 // Se o mapa foi alterado, permite abrir a gaveta
-                if(this.isDialogOpen === false){
+                if (this.isDialogOpen === false) {
                     this.showTextBoxWithChoices("Uma gaveta");
                     this.buttonOpen.setVisible(true);
                     this.buttonOpen.setDepth(1000);
@@ -1279,7 +1318,7 @@ handlePedraClick(obj) {
         //=========================================================================================================
 
         if (obj.name === "caixaClara") {
-            if (this.gameState.claraStorylineCompleted){
+            if (this.gameState.claraStorylineCompleted) {
                 this.showTextBoxDialogue("A caixa já está organizada");
             } else {
                 this.showTextBoxWithChoices("Clara. É estranho ainda guardar suas coisas? Parece que se eu me livrar dessas coisas, algum pedaço de mim some junto. Talvez em outro lugar continuamos juntas...");
@@ -1356,7 +1395,7 @@ handlePedraClick(obj) {
             this.gameState.mapaAlterado = true;
 
             // Cutscene especial de mapa alterado
-            this.cutsceneManager.playPuzzleCompleteCutscene(
+            this.cutsceneManager._startPuzzleCutscene(
                 "…Que som foi esse? Parece que uma gaveta se destrancou.",
                 () => {
                     // Callback executado após a cutscene
@@ -1439,48 +1478,48 @@ handlePedraClick(obj) {
 
 
     clearItemSprites() {
-    // Objetos gerais
-    if (this.ChaveSprite) {
-        this.ChaveSprite.destroy();
-        this.ChaveSprite = null;
-    }
-    if (this.MapaSprite) {
-        this.MapaSprite.destroy();
-        this.MapaSprite = null;
-    }
-    if (this.FotografiaSprite) {
-        this.FotografiaSprite.destroy();
-        this.FotografiaSprite = null;
-    }
-    if (this.PedraSprite) {
-        this.PedraSprite.destroy();
-        this.PedraSprite = null;
-    }
-    if (this.NotebookSprite) {
-        this.NotebookSprite.destroy();
-        this.NotebookSprite = null;
-    }
-    if (this.CameraSprite) {
-        this.CameraSprite.destroy();
-        this.CameraSprite = null;
-    }
-    if (this.CanetasSprite) {
-        this.CanetasSprite.destroy();
-        this.CanetasSprite = null;
-    }
-    if (this.MarcaPaginasSprite) {
-        this.MarcaPaginasSprite.destroy();
-        this.MarcaPaginasSprite = null;
-    }
+        // Objetos gerais
+        if (this.ChaveSprite) {
+            this.ChaveSprite.destroy();
+            this.ChaveSprite = null;
+        }
+        if (this.MapaSprite) {
+            this.MapaSprite.destroy();
+            this.MapaSprite = null;
+        }
+        if (this.FotografiaSprite) {
+            this.FotografiaSprite.destroy();
+            this.FotografiaSprite = null;
+        }
+        if (this.PedraSprite) {
+            this.PedraSprite.destroy();
+            this.PedraSprite = null;
+        }
+        if (this.NotebookSprite) {
+            this.NotebookSprite.destroy();
+            this.NotebookSprite = null;
+        }
+        if (this.CameraSprite) {
+            this.CameraSprite.destroy();
+            this.CameraSprite = null;
+        }
+        if (this.CanetasSprite) {
+            this.CanetasSprite.destroy();
+            this.CanetasSprite = null;
+        }
+        if (this.MarcaPaginasSprite) {
+            this.MarcaPaginasSprite.destroy();
+            this.MarcaPaginasSprite = null;
+        }
 
-    // Limpa canetas individuais
-    this.clearCanetas();
-    
-    // Limpa marcadores individuais
-    this.clearMarcadores();
+        // Limpa canetas individuais
+        this.clearCanetas();
 
-    this.clearPedras();
-}
+        // Limpa marcadores individuais
+        this.clearMarcadores();
+
+        this.clearPedras();
+    }
 
     clearPedras() {
         if (this.pedrasSprites && this.pedrasSprites.length > 0) {
@@ -1502,42 +1541,42 @@ handlePedraClick(obj) {
     }
 
     clearCanetas() {
-    if (this.canetasSprites && this.canetasSprites.length > 0) {
-        this.canetasSprites.forEach(caneta => {
-            if (caneta.sprite) {
-                caneta.sprite.destroy();
-            }
-            if (caneta.zone) {
-                // Remove da lista de zonas interativas primeiro
-                const zoneIndex = this.roomManager.interactiveZones.indexOf(caneta.zone);
-                if (zoneIndex !== -1) {
-                    this.roomManager.interactiveZones.splice(zoneIndex, 1);
+        if (this.canetasSprites && this.canetasSprites.length > 0) {
+            this.canetasSprites.forEach(caneta => {
+                if (caneta.sprite) {
+                    caneta.sprite.destroy();
                 }
-                caneta.zone.destroy();
-            }
-        });
-        this.canetasSprites = [];
+                if (caneta.zone) {
+                    // Remove da lista de zonas interativas primeiro
+                    const zoneIndex = this.roomManager.interactiveZones.indexOf(caneta.zone);
+                    if (zoneIndex !== -1) {
+                        this.roomManager.interactiveZones.splice(zoneIndex, 1);
+                    }
+                    caneta.zone.destroy();
+                }
+            });
+            this.canetasSprites = [];
+        }
     }
-}
 
-clearMarcadores() {
-    if (this.marcadoresSprites && this.marcadoresSprites.length > 0) {
-        this.marcadoresSprites.forEach(marcador => {
-            if (marcador.sprite) {
-                marcador.sprite.destroy();
-            }
-            if (marcador.zone) {
-                // Remove da lista de zonas interativas primeiro
-                const zoneIndex = this.roomManager.interactiveZones.indexOf(marcador.zone);
-                if (zoneIndex !== -1) {
-                    this.roomManager.interactiveZones.splice(zoneIndex, 1);
+    clearMarcadores() {
+        if (this.marcadoresSprites && this.marcadoresSprites.length > 0) {
+            this.marcadoresSprites.forEach(marcador => {
+                if (marcador.sprite) {
+                    marcador.sprite.destroy();
                 }
-                marcador.zone.destroy();
-            }
-        });
-        this.marcadoresSprites = [];
+                if (marcador.zone) {
+                    // Remove da lista de zonas interativas primeiro
+                    const zoneIndex = this.roomManager.interactiveZones.indexOf(marcador.zone);
+                    if (zoneIndex !== -1) {
+                        this.roomManager.interactiveZones.splice(zoneIndex, 1);
+                    }
+                    marcador.zone.destroy();
+                }
+            });
+            this.marcadoresSprites = [];
+        }
     }
-}
 
     removeHitboxForObject(obj) {
         // Encontra a zona correspondente ao objeto clicado

@@ -1,8 +1,11 @@
 import { sizes } from '../constants.js';
+import MusicManager from '../managers/MusicManager.js';
 
 export default class MenuScene extends Phaser.Scene {
     constructor() {
         super("scene-menu");
+        this.musicManager = null;
+        this.muteButton = null;
     }
 
     preload() {
@@ -12,10 +15,13 @@ export default class MenuScene extends Phaser.Scene {
             frameHeight: 240,
             endFrame: 30
         });
+        this.load.image('icon-sound', './assets/icons/sound.png');
+        this.load.image('icon-mute', './assets/icons/mute.png');
     }
 
     create() {
-        // Cria textura branca para o fade
+        // Cria textura branca para o 
+        this.musicManager = new MusicManager(this);
         this._createWhiteTexture();
 
         // Cria a animação de fundo
@@ -31,6 +37,8 @@ export default class MenuScene extends Phaser.Scene {
             .setDisplaySize(sizes.width, sizes.height)
             .setOrigin(0.5)
             .play('menu-loop');
+
+            
 
         // Adiciona o botão de iniciar
         const startButton = this.add.image(109, 182)
@@ -54,7 +62,9 @@ export default class MenuScene extends Phaser.Scene {
                     alpha: 1,
                     duration: 2000,
                     ease: 'Linear',
-                    onComplete: () => this.scene.start("scene-game")
+                    onComplete: () => {
+                        this.scene.start("scene-game");
+                    }
                 });
             });
     }

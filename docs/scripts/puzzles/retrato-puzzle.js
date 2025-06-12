@@ -11,6 +11,9 @@ export default class RetratoPuzzle {
         // Impede interações com o jogo principal
         this.scene.setInteractionsEnabled(false);
 
+        this.scene.arrows.left.setVisible(false);
+        this.scene.arrows.right.setVisible(false);
+
         // Cria overlay escuro (depth 1000)
         this.overlay = this.scene.add.rectangle(
             0, 0,
@@ -104,7 +107,7 @@ export default class RetratoPuzzle {
         // Botão para aumentar
         const upButton = this.scene.add.text(0, -35, '+', {
             fontFamily: '"Press Start 2P"',
-            fontSize: '20px',
+            fontSize: '16px',
             color: '#FFFFFF',
             backgroundColor: '#333333',
             padding: { x: 15, y: 5 }
@@ -118,7 +121,7 @@ export default class RetratoPuzzle {
         // Botão para diminuir
         const downButton = this.scene.add.text(0, 50, '-', {
             fontFamily: '"Press Start 2P"',
-            fontSize: '20px',
+            fontSize: '16px',
             color: '#FFFFFF',
             backgroundColor: '#333333',
             padding: { x: 15, y: 5 }
@@ -164,7 +167,7 @@ export default class RetratoPuzzle {
 
     checkAnswer() {
     if (this.selectedDate === this.correctDate) {
-        this.scene.cutsceneManager.playStorylineCompleteCutscene('Tentando congelar seus tempos de ouros, encontrou memórias que doem como gelo queimando a pele.',);
+        this.scene.cutsceneManager._startStorylineCutscene('Tentando congelar seus tempos de ouros, encontrou memórias que doem como gelo queimando a pele.',);
         this.scene.gameState.retratoCompleted = true;
         this.close();
         
@@ -193,6 +196,9 @@ export default class RetratoPuzzle {
             this.overlay.destroy();
         }
         
+        this.scene.arrows.left.setVisible(true);
+        this.scene.arrows.right.setVisible(true);
+
         this.active = false;
         this.scene.setInteractionsEnabled(true);
     }
