@@ -35,16 +35,16 @@ export default class CutsceneManager {
     }
 
     _cutsceneComplete(callback) {
-    // Limpa o estado atual
-    this.currentCutscene = null;
-    
-    // Executa o callback da cutscene
+    // Executa o callback da cutscene primeiro
     if (callback) {
         console.log("Executing cutscene callback");
         callback();
     } else {
         console.log("No cutscene callback");
     }
+    
+    // Limpa o estado atual
+    this.currentCutscene = null;
     
     // Garante que as interações estão ativadas
     this.scene.setInteractionsEnabled(true);

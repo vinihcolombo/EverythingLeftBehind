@@ -223,29 +223,37 @@ export default class GameScene extends Phaser.Scene {
                     }
                     else if (this.lastClickedObject.name === "Caixa da Mãe") {
                         this.loadCustomMap('fim', 'imagemFinal');
-                        this.inventory.hideAndDisable();
-                        this.inventory.destroyToggleButton();
                         this.hideTextBox();
-                        // Usando o sistema de fila corretamente
+                        this.inventory.hideAndDisable();
+                        
+                        // Enfileira todas as cutscenes sequencialmente
                         this.cutsceneManager.queueCutscene('puzzle', 
-                            "Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",
-                            () => {
-                                console.log("Primeira cutscene terminada");
-                                // Sequência de diálogos
-                                this.cutsceneManager.queueCutscene('storyline', "Ao abrir essa última caixa, você entende.");
-                                this.cutsceneManager.queueCutscene('storyline', "Não era só sobre memórias. Era sobre cuidado. Sobre continuar te segurando, mesmo depois de partir.");
-                                this.cutsceneManager.queueCutscene('storyline', "Cada caixa que você abriu até aqui te lembrou de quem esteve com você. Essa... só te lembra de quem você é.");
-                                this.cutsceneManager.queueCutscene('storyline', "Você não está mais perdida. Você só estava voltando pra casa.");
-                                this.cutsceneManager.queueCutscene('storyline', "A Helena me ensinou a acreditar em si mesma, mesmo quando ninguém mais via.");
-                                this.cutsceneManager.queueCutscene('storyline', "A Clara te mostrou que o amor verdadeiro também pode seguir caminhos diferentes.");
-                                this.cutsceneManager.queueCutscene('storyline', "O Rafael foi o amor que ficou em silêncio, mas nunca deixou de doer.");
-                                this.cutsceneManager.queueCutscene('storyline', "E minha mãe... foi o lar que sempre esteve esperando eu voltar, guardando cada parte da  minha vida, cada memória...");
-                                this.cutsceneManager.queueCutscene('storyline', "Algumas memórias pesam. Outras sustentam. E entre o peso e o sustento... ...você escreve o que vem depois.");
-                            }
-                        );
-                        // this.cutsceneManager.playStorylineCompleteCutscene("Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",);
+                            "Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...");
+                            
+                            
+                            // Sequência de diálogos principais
+
+                            this.cutsceneManager.queueCutscene('storyline', "Ao abrir essa última caixa, você entende.");
+                            this.inventory.hideAndDisable();
+                            this.cutsceneManager.queueCutscene('storyline', "Não era só sobre memórias. Era sobre cuidado. Sobre continuar te segurando, mesmo depois de partir.");
+                            this.inventory.hideAndDisable();
+                            this.cutsceneManager.queueCutscene('storyline', "Cada caixa que você abriu até aqui te lembrou de quem esteve com você. Essa... só te lembra de quem você é.");
+                            this.inventory.hideAndDisable();
+                            this.cutsceneManager.queueCutscene('storyline', "Você não está mais perdida. Você só estava voltando pra casa.");
+                            this.inventory.hideAndDisable();
+                            this.cutsceneManager.queueCutscene('storyline', "A Helena me ensinou a acreditar em si mesma, mesmo quando ninguém mais via.");
+                            this.inventory.hideAndDisable();
+                            this.cutsceneManager.queueCutscene('storyline', "A Clara te mostrou que o amor verdadeiro também pode seguir caminhos diferentes.");
+                            this.inventory.hideAndDisable();
+                            this.cutsceneManager.queueCutscene('storyline', "O Rafael foi o amor que ficou em silêncio, mas nunca deixou de doer.");
+                            this.inventory.hideAndDisable();
+                            this.cutsceneManager.queueCutscene('storyline', "E minha mãe... foi o lar que sempre esteve esperando eu voltar, guardando cada parte da minha vida, cada memória...");
+                            this.inventory.hideAndDisable();
+                            this.cutsceneManager.queueCutscene('storyline', "Algumas memórias pesam. Outras sustentam. E entre o peso e o sustento... ...você escreve o que vem depois.", () => {
+                                this.inventory.destroyToggleButton();
+                            });
+                        }
                     }
-                }
                 this.hideTextBox(); // Esta linha garante que a caixa será fechada
             })
             
@@ -380,6 +388,10 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     setInteractionsEnabled(state) {
+        if (this.inventory && !this.inventory.toggleButton?.destroyed) {
+            this.inventory.toggleButton.setInteractive(true);
+        }
+
     // Se estiver em zoom ou em qualquer puzzle, desativa interações normais
     const isAnyPuzzleActive = (this.retratoPuzzle && this.retratoPuzzle.active) || 
                             (this.cadernoPuzzle && this.cadernoPuzzle.active) ||
