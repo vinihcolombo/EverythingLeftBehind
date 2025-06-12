@@ -35,15 +35,23 @@ export default class CutsceneManager {
     }
 
     _cutsceneComplete(callback) {
-        // Limpa o estado atual
-        this.currentCutscene = null;
-        
-        // Executa o callback da cutscene
-        if (callback) callback();
-        
-        // Processa a próxima cutscene na fila
-        this._processQueue();
+    // Limpa o estado atual
+    this.currentCutscene = null;
+    
+    // Executa o callback da cutscene
+    if (callback) {
+        console.log("Executing cutscene callback");
+        callback();
+    } else {
+        console.log("No cutscene callback");
     }
+    
+    // Garante que as interações estão ativadas
+    this.scene.setInteractionsEnabled(true);
+    
+    // Processa a próxima cutscene na fila
+    this._processQueue();
+}
 
     _startPuzzleCutscene(message, callback) {
         this._createFadeEffect(() => {
@@ -155,19 +163,20 @@ export default class CutsceneManager {
     }
 
     _endCutscene(callback) {
-        this.scene.tweens.add({
-            targets: this.cutsceneFade,
-            alpha: 0,
-            duration: 1000,
-            onComplete: () => {
-                if (this.cutsceneFade) {
-                    this.cutsceneFade.destroy();
-                    this.cutsceneFade = null;
-                }
-                if (callback) callback();
-                this.scene.setInteractionsEnabled(true);
-                this.musicManager.playDefaultMusic();
+    this.scene.tweens.add({
+        targets: this.cutsceneFade,
+        alpha: 0,
+        duration: 1000,
+        onComplete: () => {
+            if (this.cutsceneFade) {
+                this.cutsceneFade.destroy();
+                this.cutsceneFade = null;
             }
-        });
-    }
+            if (callback) callback();
+            this.scene.setInteractionsEnabled(true);
+            // Toca a música padrão imediatamente após o fade
+            this.musicManager.playDefaultMusic();
+        }
+    });
+}
 }
