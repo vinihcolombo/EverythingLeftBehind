@@ -7,6 +7,7 @@ export default class CadernoPuzzle {
         this.placedPieces = new Map();
         this.snapThreshold = 60;
         this.snapDuration = 250;
+        this.active = false;
 
         this.correctPositions = new Map([
             ["Escrita rosa", 0],
@@ -17,7 +18,11 @@ export default class CadernoPuzzle {
     }
 
     create() {
+        this.active = true; // Já existe no seu código
         this.scene.setInteractionsEnabled(false);
+
+        this.scene.arrows.left.setVisible(false);
+        this.scene.arrows.right.setVisible(false);
 
         // Dark overlay with slight transparency
         this.overlay = this.scene.add.rectangle(0, 0,
@@ -31,6 +36,8 @@ export default class CadernoPuzzle {
         this.scene.load.once('complete', this.createPuzzleElements, this);
         this.scene.load.image('papelRasgado', './assets/images/objects/papelRasgado.png');
         this.scene.load.start();
+
+        this.active = true;
     }
 
     createPuzzleElements() {
@@ -344,6 +351,13 @@ export default class CadernoPuzzle {
         if (this.onCompleteCallback) {
             this.onCompleteCallback();
         }
+        this.scene.arrows.left.setVisible(true);
+        this.scene.arrows.right.setVisible(true);
+
+        this.active = false;
+    
+        // Re-enable interactions
+        this.scene.setInteractionsEnabled(true);
         }
     }
 }

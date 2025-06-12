@@ -11,6 +11,9 @@ export default class RetratoPuzzle {
         // Impede interações com o jogo principal
         this.scene.setInteractionsEnabled(false);
 
+        this.scene.arrows.left.setVisible(false);
+        this.scene.arrows.right.setVisible(false);
+
         // Cria overlay escuro (depth 1000)
         this.overlay = this.scene.add.rectangle(
             0, 0,
@@ -193,6 +196,9 @@ export default class RetratoPuzzle {
             this.overlay.destroy();
         }
         
+        this.scene.arrows.left.setVisible(true);
+        this.scene.arrows.right.setVisible(true);
+
         this.active = false;
         this.scene.setInteractionsEnabled(true);
     }

@@ -370,26 +370,36 @@ export default class GameScene extends Phaser.Scene {
     //=========================================================================================================
 
     setInteractionsEnabled(state) {
-        // Se estiver em zoom, sempre desativa interações normais
-        if (this.zoomView.active) state = false;
-
-        // Ativa/desativa todas as zonas interativas
-        this.roomManager.interactiveZones.forEach(zone => {
-            zone.input.enabled = state;
-        });
-
-        // Ativa/desativa as setas
-        this.arrows.left.setInteractive({ enabled: state });
-        this.arrows.right.setInteractive({ enabled: state });
-
-        // Tooltip só aparece se interações estiverem ativas
-        this.tooltip.setVisible(false);
-
-        // Ativa/desativa o inventário (exceto se estiver em zoom)
-        if (this.inventory) {
-            this.inventory.toggleButton.setInteractive({ enabled: !this.zoomView.active });
-        }
+    // Se estiver em zoom ou em qualquer puzzle, desativa interações normais
+    const isAnyPuzzleActive = (this.retratoPuzzle && this.retratoPuzzle.active) || 
+                            (this.cadernoPuzzle && this.cadernoPuzzle.active) ||
+                            (this.cameraPuzzle && this.cameraPuzzle.active);
+    
+    if (this.zoomView.active || isAnyPuzzleActive) {
+        state = false;
     }
+
+    // Ativa/desativa todas as zonas interativas
+    this.roomManager.interactiveZones.forEach(zone => {
+        zone.input.enabled = state;
+    });
+
+    // Ativa/desativa as setas (considerando o estado do puzzle)
+    const arrowsVisible = state && this.isStandardRoom() && !isAnyPuzzleActive;
+    
+    this.arrows.left.setVisible(arrowsVisible);
+    this.arrows.right.setVisible(arrowsVisible);
+
+    // Tooltip só aparece se interações estiverem ativas
+    this.tooltip.setVisible(false);
+
+    // Ativa/desativa o inventário (exceto se estiver em zoom ou no puzzle)
+    if (this.inventory) {
+        this.inventory.toggleButton.setInteractive({ 
+            enabled: !this.zoomView.active && !isAnyPuzzleActive
+        });
+    }
+}
 
     //=========================================================================================================
 
@@ -1217,8 +1227,8 @@ export default class GameScene extends Phaser.Scene {
         if (obj.name === "Caderno de Escrita") {
             this.inventory.addItem('notebookOpen', () => {
                 // Abre o puzzle do caderno ao clicar no inventário
-                this.cadernoPuzzle.create();
                 this.inventory.toggleInventory();
+                this.cadernoPuzzle.create();
             });
             this.removeHitboxForObject(obj);
             this.NotebookSprite.destroy();
