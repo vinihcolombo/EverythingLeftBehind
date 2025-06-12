@@ -63,13 +63,12 @@ export default class CutsceneManager {
     }
 
     _startStorylineCutscene(message, callback) {
-    // Verifica se estamos no mapa final E se a música de cutscene já está tocando
+    // Se já estiver processando, ignora chamadas duplicadas
+    if (this.currentCutscene) return;
+    
     const isFinalMap = this.scene.currentMapKey === 'fim';
     const isCutsceneMusicPlaying = this.musicManager.isPlayingCutsceneMusic();
     
-    // Só toca música de cutscene se:
-    // 1. NÃO for o mapa final
-    // 2. E a música de cutscene já não estiver tocando
     if (!isFinalMap && !isCutsceneMusicPlaying) {
         this.musicManager.playCutsceneMusic();
     }

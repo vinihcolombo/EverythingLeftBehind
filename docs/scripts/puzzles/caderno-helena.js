@@ -8,6 +8,7 @@ export default class CadernoPuzzle {
         this.snapThreshold = 60;
         this.snapDuration = 250;
         this.active = false;
+        this.completed = false;
 
         this.correctPositions = new Map([
             ["Escrita rosa", 0],
@@ -20,6 +21,13 @@ export default class CadernoPuzzle {
     
 
     create() {
+        if (this.active) {
+        console.warn('Tentativa de criar puzzle já ativo');
+        this.closePuzzle();  // Fecha qualquer instância anterior
+    }
+    
+    this.active = true; 
+
         this.active = true; // Já existe no seu código
         this.scene.setInteractionsEnabled(false);
 
@@ -272,6 +280,9 @@ checkOrder() {
 }
 
 checkPuzzleComplete() {
+    // Verifica se já está completo para evitar duplicação
+    if (this.completed) return;
+    
     let allCorrect = true;
     for (const [pieceName, correctPageIndex] of this.correctPositions) {
         if (this.placedPieces.get(pieceName) !== correctPageIndex) {
@@ -281,21 +292,17 @@ checkPuzzleComplete() {
     }
 
     if (allCorrect) {
+        this.completed = true; // Marca como completo
+        
         // Remove notebook from inventory
-        if (this.scene.inventory) {
-            this.scene.inventory.removeItem(this.itemKey);
-        }
+        this.scene.inventory?.removeItem(this.itemKey);
 
         if (this.scene.cutsceneManager) {
             this.scene.cutsceneManager._startStorylineCutscene(
                 'Ela guardou tudo que podia me lembrar que eu era mais do que diziam ser.',
-                () => {
-                    // Fecha o puzzle depois da cutscene
-                    this.closePuzzle();
-                }
+                () => this.closePuzzle()
             );
         } else {
-            // Se não tiver cutscene, fecha imediatamente
             this.closePuzzle();
         }
 
@@ -361,50 +368,66 @@ checkPuzzleComplete() {
     }
 
    closePuzzle() {
-    // Remove todos os elementos independentemente do estado de conclusão
-    
-    // 1. Remove o overlay
-    if (this.overlay && this.overlay.destroy) this.overlay.destroy();
-    
-    // 2. Remove o botão de fechar
-    if (this.closeButton && this.closeButton.destroy) this.closeButton.destroy();
-    
-    // 3. Remove o texto de conclusão se existir
-    if (this.completeText && this.completeText.destroy) this.completeText.destroy();
-    
-    // 4. Remove todas as peças
+    // 1. Marca como inativo imediatamente
+    this.active = false;
+    this.completed = true;
+
+    // 2. Remove todos os listeners primeiro
     this.pieces.forEach(piece => {
-        if (piece.sprite && piece.sprite.destroy) piece.sprite.destroy();
-        if (piece.label && piece.label.destroy) piece.label.destroy();
+        piece.sprite?.removeAllListeners();
+        piece.sprite?.disableInteractive();
     });
-    
-    // 5. Remove todas as páginas e elementos visuais
-    this.pageZones.forEach(zone => {
-        if (zone.visualElements) {
-            zone.visualElements.forEach(element => {
-                if (element && element.destroy) element.destroy();
-            });
+
+    // 3. Destrói elementos na ordem CORRETA (do mais profundo ao menos profundo)
+    // Primeiro os elementos "por cima" (com maior depth)
+    if (this.closeButton) {
+        this.closeButton.destroy();
+        this.closeButton = null;
+    }
+
+    // Destrói labels das peças (depth 1004)
+    this.pieces.forEach(piece => {
+        if (piece.label) {
+            piece.label.destroy();
+            piece.label = null;
         }
     });
-    
-    // 6. Limpa todos os arrays
+
+    // Destrói as peças (sprites, depth 1003)
+    this.pieces.forEach(piece => {
+        if (piece.sprite) {
+            piece.sprite.destroy();
+            piece.sprite = null;
+        }
+    });
+
+    // Destrói os elementos das páginas (labels e backgrounds)
+    this.pageZones.forEach(zone => {
+        // Destrói na ordem inversa (maior depth primeiro)
+        [...zone.visualElements].reverse().forEach(element => {
+            element?.destroy();
+        });
+        zone.visualElements = [];
+    });
+
+    // Por último o overlay (depth 1000)
+    if (this.overlay) {
+        this.overlay.destroy();
+        this.overlay = null;
+    }
+
+    // 4. Limpa todas as referências
     this.pieces = [];
     this.pageZones = [];
     this.placedPieces.clear();
-    
-    // 7. Reativa interações e setas
+
+    // 5. Restaura a cena principal
+    this.scene.children.depthSort();
     this.scene.setInteractionsEnabled(true);
+    
     if (this.scene.isStandardRoom()) {
-        this.scene.arrows.left.setVisible(true);
-        this.scene.arrows.right.setVisible(true);
-    }
-    
-    // 8. Atualiza estado
-    this.active = false;
-    
-    // 9. Chama callback se existir
-    if (this.onCompleteCallback) {
-        this.onCompleteCallback();
+        this.scene.arrows.left?.setVisible(true);
+        this.scene.arrows.right?.setVisible(true);
     }
 }
 }
