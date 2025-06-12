@@ -503,7 +503,7 @@ export default class GameScene extends Phaser.Scene {
 
                 console.log("Carregando mapa final");
                 // Mostra mensagem de conclusão
-                this.showTextBoxDialogue("Todas as histórias foram reveladas... Algo novo se abre!");
+                this.showTextBoxDialogue("Parece que terminei quase tudo aqui... Mas ainda resta algo...");
 
                 // Aguarda um pouco antes de carregar o mapa final
                 this.time.delayedCall(5000, () => {
@@ -1145,7 +1145,7 @@ export default class GameScene extends Phaser.Scene {
             this.showTextBoxDialogue("Tô surpresa que não tem mais dessas por esse porão velho.");
 
         if (obj.name === "Quadro Mamae")
-            this.showTextBoxDialogue("É um quadro da mamãe de quando ela era mais nova, ele fico perfeito nessa parede.");
+            this.showTextBoxDialogue("É um quadro da mamãe de quando ela era mais nova, ele ficou perfeito nessa parede.");
 
         if (obj.name === "Prateleiras")
             this.showTextBoxDialogue("Algumas prateleiras com objetos que achei nas caixas antes de redecorar esse lugar todo.");
@@ -1166,7 +1166,7 @@ export default class GameScene extends Phaser.Scene {
             this.showTextBoxDialogue("Que medonho. Não me lembro de ter visto isso aqui antes. Talvez a escuridão do porão esteja me deixando doida.");
 
         if (obj.name === "Quadro da lua")
-            this.showTextBoxDialogue("Não via esse quadro faz tanto tempo...");
+            this.showTextBoxDialogue("Muitas pessoas devem estar contemplando a lua nesse momento...");
 
         if (obj.name === "Escada")
             this.showTextBoxDialogue("Ainda não terminei aqui dentro.");
@@ -1179,7 +1179,7 @@ export default class GameScene extends Phaser.Scene {
         if (obj.name === "24/05/98")
             this.showTextBoxDialogue("...Que dia maldito...");
         if (obj.name === "12/03/98")
-            this.showTextBoxDialogue("Essa aqui achamos enquanto andavamos pelas ruas depois do meu aniversário, você me deu esta pedra dizendo que eu era.. especial...");
+            this.showTextBoxDialogue("Essa aqui achamos enquanto andavamos pelas ruas depois do meu aniversário, você me deu esta pedra dizendo que eu era especial...");
         if (obj.name === "07/11/99")
             this.showTextBoxDialogue("Nesse dia a gente matou aula pela última vez, a gente tava tão feliz, eu não sabia que nosso caminho se separava em breve");
         if (obj.name === "03/04/99")
@@ -1302,7 +1302,7 @@ export default class GameScene extends Phaser.Scene {
             if (this.gameState.mapaAlterado) {
                 // Se o mapa foi alterado, permite abrir a gaveta
                 if (this.isDialogOpen === false) {
-                    this.showTextBoxWithChoices("Uma gaveta");
+                    this.showTextBoxWithChoices("O que será que eu tinha deixado aqui?");
                     this.buttonOpen.setVisible(true);
                     this.buttonOpen.setDepth(1000);
                 }
@@ -1332,7 +1332,7 @@ export default class GameScene extends Phaser.Scene {
         }
 
         if (obj.name === "Quadro frutas") {
-            this.showTextBoxWithChoices("A helena odiava maçãs. Mas eu adoro elas até hoje.");
+            this.showTextBoxWithChoices("A Helena odiava maçãs. Mas eu adoro elas até hoje.");
             return;
         }
 
@@ -1365,13 +1365,13 @@ export default class GameScene extends Phaser.Scene {
             if (this.gameState.rafaelStorylineCompleted) {
                 this.showTextBoxDialogue("Essa caixa já está organizada");
             } else {
-                this.showTextBoxWithChoices("Rafael. Meu melhor amigo... se ao menos eu tivesse corajem de fala, talvez as coisas seriam diferentes. O que será que sobrou aqui dentro?");
+                this.showTextBoxWithChoices("Rafael. Meu melhor amigo... se ao menos eu tivesse coragem de falar algo, talvez as coisas seriam diferentes. O que será que sobrou aqui dentro?");
                 return;
             }
         }
 
         if (obj.name === "Quadro") {
-            this.showTextBoxWithChoices("Mapa-mundi");
+            this.showTextBoxWithChoices("Vamos dar uma olhada no mundo");
             return;
         }
 
