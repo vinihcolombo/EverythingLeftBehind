@@ -229,7 +229,7 @@ export default class PuzzleGame {
 
             this.scene.time.delayedCall(1000, () => {
                 if (this.scene.cutsceneManager) {
-                    this.scene.cutsceneManager._startPuzzleCutscene(
+                    this.scene.cutsceneManager.playPuzzleCompleteCutscene(
                         "A parte rasgada do mapa... Faz tanto tempo que não vejo ele inteiro. Será que ainda dá pra consertar?",
                         () => {
                             if (this.onCompleteCallback) {
