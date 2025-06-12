@@ -64,7 +64,6 @@ export default class CutsceneManager {
 
     _startStorylineCutscene(message, callback) {
     // Se já estiver processando, ignora chamadas duplicadas
-    if (this.currentCutscene) return;
     
     const isFinalMap = this.scene.currentMapKey === 'fim';
     const isCutsceneMusicPlaying = this.musicManager.isPlayingCutsceneMusic();

@@ -6,6 +6,7 @@ export default class CadernoPuzzle {
         this.pageZones = [];
         this.placedPieces = new Map();
         this.snapThreshold = 60;
+        this.resetPuzzle();
         this.snapDuration = 250;
         this.active = false;
         this.completed = false;
@@ -18,16 +19,19 @@ export default class CadernoPuzzle {
         ]);
     }
 
-    
+    resetPuzzle() {
+        this.pieces = [];
+        this.pageZones = [];
+        this.placedPieces = new Map();
+        this.active = false;
+        this.completed = false;
+    }    
 
     create() {
         if (this.active) {
         console.warn('Tentativa de criar puzzle já ativo');
         this.closePuzzle();  // Fecha qualquer instância anterior
     }
-    
-    this.active = true; 
-
         this.active = true; // Já existe no seu código
         this.scene.setInteractionsEnabled(false);
 
@@ -46,8 +50,6 @@ export default class CadernoPuzzle {
         this.scene.load.once('complete', this.createPuzzleElements, this);
         this.scene.load.image('papelRasgado', './assets/images/objects/papelRasgado.png');
         this.scene.load.start();
-
-        this.active = true;
     }
 
     createPuzzleElements() {
@@ -317,7 +319,6 @@ checkPuzzleComplete() {
     cleanupAllElements() {
         // Remove all visual elements
         this.overlay.destroy();
-        this.title.destroy();
         this.closeButton.destroy();
 
         if (this.completeText) {
@@ -368,9 +369,9 @@ checkPuzzleComplete() {
     }
 
    closePuzzle() {
+    if (!this.active) return;
     // 1. Marca como inativo imediatamente
     this.active = false;
-    this.completed = true;
 
     // 2. Remove todos os listeners primeiro
     this.pieces.forEach(piece => {

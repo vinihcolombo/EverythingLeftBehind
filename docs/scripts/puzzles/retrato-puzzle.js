@@ -175,6 +175,7 @@ export default class RetratoPuzzle {
         // Emite um evento específico para a conclusão do puzzle do retrato
         this.scene.events.emit('retratoPuzzleCompleted');
     } else {
+        this.close();
         this.scene.showTextBoxDialogue("Não foi nessa data... Eu preciso achar algo que me lembre disso.");
     }
 }

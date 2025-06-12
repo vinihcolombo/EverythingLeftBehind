@@ -25,6 +25,12 @@ export default class Inventory {
 
     //=========================================================================================================
 
+    hasItem(itemKey) {
+    return this.slots.some(slot => 
+        slot.item && slot.item.texture && slot.item.texture.key === itemKey
+    );
+}
+
     isInventoryActive() {
         return this.inventory.isVisible;
     }

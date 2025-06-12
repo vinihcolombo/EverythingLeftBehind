@@ -123,6 +123,10 @@ export default class GameScene extends Phaser.Scene {
     create() {
         // Inicie a música padrão
         this.cutsceneManager = new CutsceneManager(this, this.musicManager);
+        this.events.on('cutsceneComplete', () => {
+            console.log("Cutscene completa - processando próximo da fila");
+            this.cutsceneManager._processQueue();
+        });
         
         this.lastClickedObject = null;
         this.navigationHistory = [];
@@ -506,7 +510,7 @@ export default class GameScene extends Phaser.Scene {
                 this.showTextBoxDialogue("Parece que terminei quase tudo aqui... Mas ainda resta algo...");
 
                 // Aguarda um pouco antes de carregar o mapa final
-                this.time.delayedCall(5000, () => {
+                this.time.delayedCall(10000, () => {
                     // Carrega o mapa especial de conclusão
                     this.loadCustomMap('caixaMae', 'bg-caixaMae');
 
@@ -1332,8 +1336,12 @@ export default class GameScene extends Phaser.Scene {
         }
 
         if (obj.name === "Quadro frutas") {
-            this.showTextBoxWithChoices("A Helena odiava maçãs. Mas eu adoro elas até hoje.");
-            return;
+            if (this.inventory.hasItem('polaroid'))
+                this.showTextBoxWithChoices("Parece que realmente tinha algo aqui!");
+            else {
+                this.showTextBoxDialogue("A Helena odiava maçãs. Mas eu adoro elas até hoje.");
+                return;
+            }
         }
 
         if (obj.name === "PrateleiraArmario") {
@@ -1720,7 +1728,7 @@ export default class GameScene extends Phaser.Scene {
             '[Fechar]',
             {
                 fontFamily: '"Press Start 2P", monospace',
-                fontSize: '12px',
+                fontSize: '8px',
                 color: '#ff0000',
                 backgroundColor: '#000000',
                 padding: { x: 10, y: 5 },
@@ -1770,7 +1778,7 @@ export default class GameScene extends Phaser.Scene {
             text,
             {
                 fontFamily: '"Press Start 2P", monospace',
-                fontSize: '10px',
+                fontSize: '8px',
                 color: '#ffffff',
                 backgroundColor: '#000000',
                 padding: { x: 15, y: 10 },
