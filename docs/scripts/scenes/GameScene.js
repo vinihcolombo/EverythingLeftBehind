@@ -212,12 +212,24 @@ export default class GameScene extends Phaser.Scene {
                         this.loadCustomMap('mapa', 'mapa');
                     }
                     else if (this.lastClickedObject.name === "Caixa da Mãe") {
-                        this.loadCustomMap('fim', 'imagemFinal');
-                        this.inventory.hideAndDisable();
-                        this.hideTextBox();
-                        this.cutsceneManager.MaeDialogue("Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",'',6000);
-                        // this.cutsceneManager.playStorylineCompleteCutscene("Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",);
-                    }
+    this.loadCustomMap('fim', 'imagemFinal');
+    this.inventory.hideAndDisable();
+    this.hideTextBox();
+    
+    // Usando o sistema de fila corretamente
+    this.cutsceneManager.queueCutscene('puzzle', 
+        "Sua mãe guardou tudo que você fazia, cartas, desenhos, contos, gravações... Ela nunca deixou que você esquecesse quem você era...",
+        () => {
+            console.log("Primeira cutscene terminada");
+            
+            // Sequência de diálogos
+            this.cutsceneManager.queueCutscene('storyline', "Ao abrir essa última caixa, você entende.");
+            this.cutsceneManager.queueCutscene('storyline', "Não era só sobre memórias. Era sobre cuidado. Sobre continuar te segurando, mesmo depois de partir.");
+            this.cutsceneManager.queueCutscene('storyline', "Cada caixa que você abriu até aqui te lembrou de quem esteve com você. Essa... só te lembra de quem você é.");
+            this.cutsceneManager.queueCutscene('storyline', "Você não está mais perdida. Você só estava voltando pra casa.");
+        }
+    );
+}
                 }
                 this.hideTextBox(); // Esta linha garante que a caixa será fechada
             })
@@ -303,9 +315,23 @@ export default class GameScene extends Phaser.Scene {
             console.log("RafaelStoryline: ", this.gameState.rafaelStorylineCompleted);
             console.log("ClaraStoryline: ", this.gameState.claraStorylineCompleted);
             console.log("HelenaStoryline: ", this.gameState.helenaStorylineCompleted);
+            this.inventory.addItem('camera', () => {
+                if (!this.cameraPuzzle) {
+                    this.cameraPuzzle = new CameraPuzzle(this);
+                }
+                this.cameraPuzzle.open();
+            });
+
         })
     }
 
+esperar(condicao) {
+    if (condicao) {
+        console.log("Esperar");
+        this.sleep(2000).then(() => { this.esperar(); });         
+        return;
+    }
+}
 
     update() {
         // Verificação de consistência
@@ -504,7 +530,7 @@ export default class GameScene extends Phaser.Scene {
 
     if (hasBackButton) {
         // Cria a imagem da seta de voltar
-        this.backButton = this.add.image(50, 50, 'seta')
+        this.backButton = this.add.image(20, 20, 'seta')
             .setAngle(180)
             .setInteractive({ useHandCursor: true })
             .setDepth(100)
@@ -1350,7 +1376,7 @@ handlePedraClick(obj) {
             this.gameState.mapaAlterado = true;
 
             // Cutscene especial de mapa alterado
-            this.cutsceneManager.playPuzzleCompleteCutscene(
+            this.cutsceneManager._startPuzzleCutscene(
                 "…Que som foi esse? Parece que uma gaveta se destrancou.",
                 () => {
                     // Callback executado após a cutscene
