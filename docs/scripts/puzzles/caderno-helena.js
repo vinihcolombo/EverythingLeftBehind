@@ -16,9 +16,15 @@ export default class CadernoPuzzle {
         ]);
     }
 
+    
+
     create() {
         this.scene.setInteractionsEnabled(false);
 
+        this.originalArrowsVisible = this.scene.arrows?.visible; // Verifica se existe
+        if (this.scene.arrows) {
+            this.scene.arrows.setVisible(false);
+        }
         // Dark overlay with slight transparency
         this.overlay = this.scene.add.rectangle(0, 0,
             this.scene.cameras.main.width,
@@ -37,13 +43,14 @@ export default class CadernoPuzzle {
         const mapData = this.scene.cache.json.get('cadernoPuzzle');
         this.createPages(mapData);
         this.createPieces(mapData);
-        this.createCloseButton();
     }
 
     createPages(mapData) {
         const pagesLayer = mapData.layers.find(l => l.name === "Páginas");
         const screenCenterX = this.scene.cameras.main.centerX;
         const screenCenterY = this.scene.cameras.main.centerY;
+        
+        this.createCloseButton();
 
         // Adjusted page positions with more separation
         const pagePositions = [
@@ -193,65 +200,109 @@ export default class CadernoPuzzle {
     }
 
     handlePieceDrop(sprite, pieceName) {
-        const pieceData = this.pieces.find(p => p.name === pieceName);
-        const correctPageIndex = this.correctPositions.get(pieceName);
-        const targetZone = this.pageZones[correctPageIndex];
+    const pieceData = this.pieces.find(p => p.name === pieceName);
+    let closestZone = null;
+    let minDistance = Infinity;
 
-        const dx = targetZone.centerX - sprite.x;
-        const dy = targetZone.centerY - sprite.y;
+    // Encontrar a zona mais próxima dentro do limiar de snap
+    for (const zone of this.pageZones) {
+        const dx = zone.centerX - sprite.x;
+        const dy = zone.centerY - sprite.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < minDistance && distance <= this.snapThreshold) {
+            minDistance = distance;
+            closestZone = zone;
+        }
+    }
 
-        if (distance <= this.snapThreshold && !this.placedPieces.has(pieceName)) {
-            this.scene.tweens.add({
-                targets: [sprite, pieceData.label],
-                x: targetZone.centerX,
-                y: targetZone.centerY,
-                duration: this.snapDuration,
-                ease: 'Back.easeOut',
-                onComplete: () => {
-                    sprite.disableInteractive();
-                    pieceData.label && pieceData.label.destroy();
-                    this.placedPieces.set(pieceName, true);
-                    this.checkPuzzleComplete();
-                }
-            });
+    if (closestZone) {
+        // Se encontrou uma zona próxima, move para ela
+        this.scene.tweens.add({
+            targets: [sprite, pieceData.label],
+            x: closestZone.centerX,
+            y: closestZone.centerY,
+            duration: this.snapDuration,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                // Armazena em qual página a peça foi colocada
+                this.placedPieces.set(pieceName, closestZone.index);
+                // Verifica automaticamente se todos os papéis foram colocados
+                this.checkOrder();
+            }
+        });
+    } else {
+        // Se não encontrou zona próxima, volta para a posição original
+        this.scene.tweens.add({
+            targets: [sprite, pieceData.label],
+            x: pieceData.originalX,
+            y: pieceData.originalY,
+            duration: this.snapDuration,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                // Remove da lista de peças colocadas se estava em alguma página
+                this.placedPieces.delete(pieceName);
+            }
+        });
+    }
+}
+
+checkOrder() {
+    // Verifica se todos os 4 papéis foram colocados
+    if (this.placedPieces.size === this.correctPositions.size) {
+        let isCorrect = true;
+        
+        // Verifica se cada peça está na posição correta
+        for (const [pieceName, correctPageIndex] of this.correctPositions) {
+            if (this.placedPieces.get(pieceName) !== correctPageIndex) {
+                isCorrect = false;
+                break;
+            }
+        }
+
+        if (isCorrect) {
+            console.log("Ordem CORRETA! Todos os papéis estão nas posições certas!");
+            this.checkPuzzleComplete();
         } else {
-            this.scene.tweens.add({
-                targets: [sprite, pieceData.label],
-                x: pieceData.originalX,
-                y: pieceData.originalY,
-                duration: this.snapDuration,
-                ease: 'Back.easeOut'
-            });
+            console.log("Ordem INCORRETA! Os papéis não estão na sequência certa.");
+        }
+    }
+}
+
+checkPuzzleComplete() {
+    // Verifica novamente para garantir (redundância de segurança)
+    let allCorrect = true;
+    for (const [pieceName, correctPageIndex] of this.correctPositions) {
+        if (this.placedPieces.get(pieceName) !== correctPageIndex) {
+            allCorrect = false;
+            break;
         }
     }
 
-    checkPuzzleComplete() {
-        if (this.placedPieces.size === this.correctPositions.size) {
-            // Remove notebook from inventory
-            if (this.scene.inventory) {
-                this.scene.inventory.removeItem(this.itemKey);
-                this.closePuzzle();
-            }
+    if (allCorrect) {
+        // Remove notebook from inventory
+        if (this.scene.inventory) {
+            this.scene.inventory.removeItem(this.itemKey);
+            this.closePuzzle();
+        }
 
-            if (this.scene.cutsceneManager) {
-                // Chama a sua cutscene com uma mensagem mais imersiva
-                this.scene.cutsceneManager.playStorylineCompleteCutscene(
-                    'Ela guardou tudo que podia me lembrar que eu era mais do que diziam ser.',
-                );
-            }
+        if (this.scene.cutsceneManager) {
+            this.scene.cutsceneManager.playStorylineCompleteCutscene(
+                'Ela guardou tudo que podia me lembrar que eu era mais do que diziam ser.',
+            );
+        }
 
-            // Update game state - MARCA A STORYLINE DA HELENA COMO COMPLETA
-            this.scene.gameState.helenaStorylineCompleted = true;
+        // Update game state
+        this.scene.gameState.helenaStorylineCompleted = true;
 
-            // VERIFICA SE TODAS AS STORYLINES ESTÃO COMPLETAS
-            if (this.scene.checkAllStorylinesCompleted()) {
-                this.scene.loadFinalMap();
-                this.scene.clearItemSprites();
-            }
-
+        // Verifica se todas as storylines estão completas
+        if (this.scene.checkAllStorylinesCompleted()) {
+            this.scene.loadFinalMap();
+            this.scene.clearItemSprites();
         }
     }
+}
+
     cleanupAllElements() {
         // Remove all visual elements
         this.overlay.destroy();
@@ -309,6 +360,10 @@ export default class CadernoPuzzle {
         // Remove all elements
         this.overlay.destroy();
         this.closeButton.destroy();
+
+        if (this.scene.arrows && this.originalArrowsVisible !== undefined) {
+            this.scene.arrows.setVisible(this.originalArrowsVisible);
+        }
 
         if (this.completeText) {
             this.completeText.destroy();
