@@ -308,4 +308,11 @@ export default class Inventory {
         }
         return false; // Item não encontrado
     }
+
+    destroyToggleButton() {
+    if (this.toggleButton) {
+        this.toggleButton.destroy();
+        this.toggleButton = null;
+    }
+}
 }

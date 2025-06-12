@@ -224,6 +224,7 @@ export default class GameScene extends Phaser.Scene {
                     else if (this.lastClickedObject.name === "Caixa da Mãe") {
                         this.loadCustomMap('fim', 'imagemFinal');
                         this.inventory.hideAndDisable();
+                        this.inventory.destroyToggleButton();
                         this.hideTextBox();
                         // Usando o sistema de fila corretamente
                         this.cutsceneManager.queueCutscene('puzzle', 
