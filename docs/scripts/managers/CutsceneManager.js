@@ -1,139 +1,145 @@
 export default class CutsceneManager {
     constructor(scene) {
         this.scene = scene;
-        this.cutsceneQueue = [];
-        this.isProcessingQueue = false;
-        this.currentCutscene = null;
-        this.cutsceneFade = null;
+        this.cutsceneActive = false;
+        this.cutsceneFade = null; 
         this.currentCutsceneText = null;
+        this.onClickCallback = null; // Armazenar a função de callback do clique
         this.clickToContinueText = null;
-        this.onClickCallback = null;
     }
 
-    // Método principal para enfileirar cutscenes
-    queueCutscene(type, message, callback) {
-        this.cutsceneQueue.push({ type, message, callback });
-        if (!this.isProcessingQueue) {
-            this._processQueue();
-        }
-    }
-
-    _processQueue() {
-        if (this.cutsceneQueue.length === 0) {
-            this.isProcessingQueue = false;
-            return;
-        }
-
-        this.isProcessingQueue = true;
-        const nextCutscene = this.cutsceneQueue.shift();
-        this.currentCutscene = nextCutscene;
-
-                this._startStorylineCutscene(nextCutscene.message, () => {
-                    this._cutsceneComplete(nextCutscene.callback);
-                });
-    }
-
-    _cutsceneComplete(callback) {
-        // Limpa o estado atual
-        this.currentCutscene = null;
-        
-        // Executa o callback da cutscene
-        if (callback) callback();
-        
-        // Processa a próxima cutscene na fila
-        this._processQueue();
-    }
-
-    _startPuzzleCutscene(message, callback) {
-        this._createFadeEffect(() => {
-            this.scene.showTextBoxDialogue(message);
-            this.scene.time.delayedCall(2000, () => {
-                this._endCutscene(callback);
-            });
-        });
-    }
-
-    _startStorylineCutscene(message, callback) {
-        this._createFadeEffect(() => {
-            this._showDialogue(message, callback);
-        });
-    }
-
-    _showDialogue(message, callback) {
+    CutsceneDialogue(message, callback, duration) {
         const { width, height } = this.scene.cameras.main;
 
-        // Limpa elementos anteriores
-        this._cleanupDialogue();
+        // Destruir texto anterior se existir
+        if (this.currentCutsceneText) {
+            this.currentCutsceneText.destroy();
+        }
 
-        // Cria texto principal
         this.currentCutsceneText = this.scene.add.text(width / 2, height / 2, message, {
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '8px',
+            fontSize: '12px',
             color: '#ffffff',
             padding: { x: 10, y: 5 },
             resolution: 3,
             wordWrap: { width: width * 0.8, useAdvancedWrap: true },
-        }).setOrigin(0.5).setAlpha(0).setDepth(10000);
+        });
+        this.currentCutsceneText.setOrigin(0.5);
+        this.currentCutsceneText.setAlpha(0);
+        this.currentCutsceneText.setDepth(10000);
 
-        // Texto "Clique para continuar"
-        this.clickToContinueText = this.scene.add.text(width / 2, height * 0.7, "Clique para continuar", {
+        this.clickToContinueText = this.scene.add.text(width / 2 - 50, height * 2/3, "Clique para continuar", {
             fontFamily: '"Press Start 2P", monospace',
-            fontSize: '8px',
+            fontSize: '12px',
             color: '#ffffff',
             resolution: 3,
-        }).setOrigin(0.5).setAlpha(0).setDepth(10000);
+            wordWrap: { width: width * 0.8, useAdvancedWrap: true},
+        });
+        this.clickToContinueText.setDepth(10000);
 
-        // Configura callback de clique
+        // Configurar o callback para quando o usuário clicar
         this.onClickCallback = () => {
-            this.scene.input.off('pointerdown', this.onClickCallback);
             this._completeDialogue(callback);
         };
         this.scene.input.once('pointerdown', this.onClickCallback);
 
-        // Animação de entrada
+        // Fade-in do texto
         this.scene.tweens.add({
-            targets: [this.currentCutsceneText, this.clickToContinueText],
+            targets: this.currentCutsceneText,
             alpha: 1,
             duration: 500,
             ease: 'Linear'
         });
     }
 
-    _completeDialogue(callback) {
-        // Animação de saída
+    MaeDialogue(message, callback, duration) {
+        const { width, height } = this.scene.cameras.main;
+
+        // Destruir texto anterior se existir
+        if (this.currentCutsceneText) {
+            this.currentCutsceneText.destroy();
+        }
+
+        this.currentCutsceneText = this.scene.add.text(width / 2, height / 2, message, {
+            fontFamily: '"Press Start 2P", monospace',
+            fontSize: '12px',
+            color: '#000000',
+            padding: { x: 10, y: 5 },
+            resolution: 3,
+            wordWrap: { width: width * 0.8, useAdvancedWrap: true },
+        });
+        this.currentCutsceneText.setOrigin(0.5);
+        this.currentCutsceneText.setAlpha(0);
+        this.currentCutsceneText.setDepth(10000);
+
+        // Configurar o callback para quando o usuário clicar
+        this.onClickCallback = () => {
+            this._completeDialogue(callback);
+        };
+        this.scene.input.once('pointerdown', this.onClickCallback);
+
+        // Fade-in do texto
         this.scene.tweens.add({
-            targets: [this.currentCutsceneText, this.clickToContinueText],
+            targets: this.currentCutsceneText,
+            alpha: 1,
+            duration: 2000,
+            ease: 'Linear'
+        });
+    }
+
+    _completeDialogue(callback) {
+        // Remover o listener de clique para evitar múltiplos triggers
+        if (this.onClickCallback) {
+            this.scene.input.off('pointerdown', this.onClickCallback);
+            this.onClickCallback = null;
+        }
+
+        // Fade-out do texto
+        this.scene.tweens.add({
+            targets: this.currentCutsceneText,
             alpha: 0,
             duration: 500,
             ease: 'Linear',
             onComplete: () => {
-                this._cleanupDialogue();
+                if (this.currentCutsceneText) {
+                    this.currentCutsceneText.destroy();
+                    this.currentCutsceneText = null;
+                }
+                if (this.clickToContinueText) { // Adicione esta verificação
+                this.clickToContinueText.destroy();
+                this.clickToContinueText = null;
+                }
                 this._endCutscene(callback);
             }
         });
     }
 
-    _cleanupDialogue() {
-        if (this.currentCutsceneText) {
-            this.currentCutsceneText.destroy();
-            this.currentCutsceneText = null;
-        }
-        if (this.clickToContinueText) {
-            this.clickToContinueText.destroy();
-            this.clickToContinueText = null;
-        }
-        if (this.onClickCallback) {
-            this.scene.input.off('pointerdown', this.onClickCallback);
-            this.onClickCallback = null;
-        }
+    playPuzzleCompleteCutscene(message, callback) {
+        if (this.cutsceneActive) return;
+        this.cutsceneActive = true;
+
+        // 1. Primeiro: Fade-in
+        this._createFadeEffect(() => {
+            // 2. Depois do fade completo: Mostra diálogo
+            this.scene.showTextBoxDialogue(message);
+
+            // 3. Ao fechar o diálogo: Fade-out e callback
+            this.scene.time.delayedCall(2000, () => {
+                this._endCutscene(callback);
+            });
+        });
     }
 
-    _createFadeEffect(onComplete) {
-        // Limpa fade anterior
-        if (this.cutsceneFade) {
-            this.cutsceneFade.destroy();
-        }
+    playStorylineCompleteCutscene(message, callback) {
+        if (this.cutsceneActive) return;
+        this.cutsceneActive = true;
 
+        this._createFadeEffect(() => {
+            this.CutsceneDialogue(message, callback, 3000);
+        });
+    }
+
+    _createFadeEffect(onFadeComplete) {
         this.cutsceneFade = this.scene.add.rectangle(
             0, 0,
             this.scene.cameras.main.width * 2,
@@ -148,7 +154,7 @@ export default class CutsceneManager {
             targets: this.cutsceneFade,
             alpha: 1,
             duration: 1000,
-            onComplete: onComplete
+            onComplete: onFadeComplete
         });
     }
 
@@ -158,11 +164,9 @@ export default class CutsceneManager {
             alpha: 0,
             duration: 1000,
             onComplete: () => {
-                if (this.cutsceneFade) {
-                    this.cutsceneFade.destroy();
-                    this.cutsceneFade = null;
-                }
+                if (this.cutsceneFade) this.cutsceneFade.destroy();
                 if (callback) callback();
+                this.cutsceneActive = false;
                 this.scene.setInteractionsEnabled(true);
             }
         });

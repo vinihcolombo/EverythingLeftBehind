@@ -88,7 +88,7 @@ export default class CadernoPuzzle {
                 `PÁGINA ${index + 1}`,
                 {
                     fontFamily: '"Press Start 2P"',
-                    fontSize: '8px',
+                    fontSize: '12px',
                     color: '#ffffff',
                     padding: { x: 20, y: 2 },
                     resolution: 3
@@ -236,7 +236,7 @@ export default class CadernoPuzzle {
 
             if (this.scene.cutsceneManager) {
                 // Chama a sua cutscene com uma mensagem mais imersiva
-                this.scene.cutsceneManager._startStorylineCutscene(
+                this.scene.cutsceneManager.playStorylineCompleteCutscene(
                     'Ela guardou tudo que podia me lembrar que eu era mais do que diziam ser.',
                 );
             }
@@ -291,7 +291,7 @@ export default class CadernoPuzzle {
             '[X]',
             {
                 fontFamily: '"Press Start 2P"',
-                fontSize: '8px',
+                fontSize: '12px',
                 color: '#ff0000',
                 backgroundColor: '#000000',
                 padding: { x: 5, y: 5 },

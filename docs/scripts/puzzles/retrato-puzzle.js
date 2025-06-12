@@ -104,7 +104,7 @@ export default class RetratoPuzzle {
         // Botão para aumentar
         const upButton = this.scene.add.text(0, -35, '+', {
             fontFamily: '"Press Start 2P"',
-            fontSize: '16px',
+            fontSize: '20px',
             color: '#FFFFFF',
             backgroundColor: '#333333',
             padding: { x: 15, y: 5 }
@@ -164,7 +164,7 @@ export default class RetratoPuzzle {
 
     checkAnswer() {
     if (this.selectedDate === this.correctDate) {
-        this.scene.cutsceneManager._startStorylineCutscene('Tentando congelar seus tempos de ouros, encontrou memórias que doem como gelo queimando a pele.',);
+        this.scene.cutsceneManager.playStorylineCompleteCutscene('Tentando congelar seus tempos de ouros, encontrou memórias que doem como gelo queimando a pele.',);
         this.scene.gameState.retratoCompleted = true;
         this.close();
         

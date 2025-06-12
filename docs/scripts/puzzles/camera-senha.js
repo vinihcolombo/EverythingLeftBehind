@@ -79,7 +79,7 @@ export default class CameraPuzzle {
 
         // Botão de submit minimalista
         const submitBtn = this.scene.add.text(
-            0, 100,  // Posição mais alta
+            0, 110,  // Posição mais alta
             'TENTAR',
             {
                 fontFamily: '"Press Start 2P", monospace',
@@ -95,7 +95,7 @@ export default class CameraPuzzle {
 
         // Mensagem compacta
         this.messageText = this.scene.add.text(
-            0, -90,  // Posição mais alta
+            0, 120,  // Posição mais alta
             '',
             {
                 fontFamily: '"Press Start 2P", monospace',
@@ -201,7 +201,7 @@ export default class CameraPuzzle {
             this.scene.time.delayedCall(1500, () => {
                 this.close();
                 // Dispara a cutscene diretamente
-                this.scene.cutsceneManager._startStorylineCutscene(
+                this.scene.cutsceneManager.playStorylineCompleteCutscene(
                     "Cada memória dela documenta um amor que não sobreviveu ao tempo.",
                     () => {
                         // Callback pós-cutscene
