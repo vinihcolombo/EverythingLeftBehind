@@ -63,11 +63,20 @@ export default class CutsceneManager {
     }
 
     _startStorylineCutscene(message, callback) {
+    // Se já estiver processando, ignora chamadas duplicadas
+    if (this.currentCutscene) return;
+    
+    const isFinalMap = this.scene.currentMapKey === 'fim';
+    const isCutsceneMusicPlaying = this.musicManager.isPlayingCutsceneMusic();
+    
+    if (!isFinalMap && !isCutsceneMusicPlaying) {
         this.musicManager.playCutsceneMusic();
-        this._createFadeEffect(() => {
-            this._showDialogue(message, callback);
-        });
     }
+    
+    this._createFadeEffect(() => {
+        this._showDialogue(message, callback);
+    });
+}
 
     _showDialogue(message, callback) {
         const { width, height } = this.scene.cameras.main;
@@ -172,10 +181,14 @@ export default class CutsceneManager {
                 this.cutsceneFade.destroy();
                 this.cutsceneFade = null;
             }
+            
+            // Só toca música padrão se não for uma cutscene encadeada
+            if (!this.isProcessingQueue) {
+                this.musicManager.playDefaultMusic();
+            }
+            
             if (callback) callback();
             this.scene.setInteractionsEnabled(true);
-            // Toca a música padrão imediatamente após o fade
-            this.musicManager.playDefaultMusic();
         }
     });
 }

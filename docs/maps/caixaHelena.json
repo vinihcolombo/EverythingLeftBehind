@@ -330,7 +330,7 @@
                 {
                  "height":52.6291079812207,
                  "id":2,
-                 "name":"Marcas-página",
+                 "name":"Marcas-p\u00e1gina",
                  "rotation":0,
                  "type":"",
                  "visible":true,
@@ -343,7 +343,7 @@
          "visible":true,
          "x":0,
          "y":0
-        },
+        }, 
         {
          "draworder":"topdown",
          "id":5,
@@ -357,8 +357,8 @@
                  "type":"",
                  "visible":true,
                  "width":17.125,
-                 "x":-0.125,
-                 "y":0
+                 "x":-0.791666666666666,
+                 "y":-26.3333333333333
                 }],
          "opacity":1,
          "type":"objectgroup",

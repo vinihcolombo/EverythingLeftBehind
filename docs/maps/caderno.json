@@ -112,29 +112,7 @@
          "draworder":"topdown",
          "id":5,
          "name":"Caderno",
-         "objects":[
-                {
-                 "height":65.5,
-                 "id":5,
-                 "name":"",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":98.5,
-                 "x":45.5,
-                 "y":199
-                }, 
-                {
-                 "height":67.5,
-                 "id":6,
-                 "name":"",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":102.5,
-                 "x":49,
-                 "y":-39
-                }],
+         "objects":[],
          "opacity":1,
          "type":"objectgroup",
          "visible":true,
@@ -154,8 +132,8 @@
                  "type":"",
                  "visible":true,
                  "width":35,
-                 "x":324,
-                 "y":130.5
+                 "x":314.5,
+                 "y":60
                 }, 
                 {
                  "height":35,
@@ -176,8 +154,8 @@
                  "type":"",
                  "visible":true,
                  "width":34.5,
-                 "x":324,
-                 "y":57
+                 "x":253,
+                 "y":84
                 }, 
                 {
                  "height":35,
@@ -187,8 +165,8 @@
                  "type":"",
                  "visible":true,
                  "width":34.5,
-                 "x":252.5,
-                 "y":93
+                 "x":315.5,
+                 "y":142
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -228,7 +206,7 @@
  "nextobjectid":11,
  "orientation":"orthogonal",
  "renderorder":"right-down",
- "tiledversion":"1.11.1-99-gec89c545",
+ "tiledversion":"1.11.2",
  "tileheight":6,
  "tilesets":[],
  "tilewidth":6,

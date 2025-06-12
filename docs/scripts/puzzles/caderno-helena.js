@@ -8,6 +8,7 @@ export default class CadernoPuzzle {
         this.snapThreshold = 60;
         this.snapDuration = 250;
         this.active = false;
+        this.completed = false;
 
         this.correctPositions = new Map([
             ["Escrita rosa", 0],
@@ -17,7 +18,16 @@ export default class CadernoPuzzle {
         ]);
     }
 
+    
+
     create() {
+        if (this.active) {
+        console.warn('Tentativa de criar puzzle já ativo');
+        this.closePuzzle();  // Fecha qualquer instância anterior
+    }
+    
+    this.active = true; 
+
         this.active = true; // Já existe no seu código
         this.scene.setInteractionsEnabled(false);
 
@@ -200,65 +210,110 @@ export default class CadernoPuzzle {
     }
 
     handlePieceDrop(sprite, pieceName) {
-        const pieceData = this.pieces.find(p => p.name === pieceName);
-        const correctPageIndex = this.correctPositions.get(pieceName);
-        const targetZone = this.pageZones[correctPageIndex];
+    const pieceData = this.pieces.find(p => p.name === pieceName);
+    let closestZone = null;
+    let minDistance = Infinity;
 
-        const dx = targetZone.centerX - sprite.x;
-        const dy = targetZone.centerY - sprite.y;
+    // Encontrar a zona mais próxima dentro do limiar de snap
+    for (const zone of this.pageZones) {
+        const dx = zone.centerX - sprite.x;
+        const dy = zone.centerY - sprite.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < minDistance && distance <= this.snapThreshold) {
+            minDistance = distance;
+            closestZone = zone;
+        }
+    }
 
-        if (distance <= this.snapThreshold && !this.placedPieces.has(pieceName)) {
-            this.scene.tweens.add({
-                targets: [sprite, pieceData.label],
-                x: targetZone.centerX,
-                y: targetZone.centerY,
-                duration: this.snapDuration,
-                ease: 'Back.easeOut',
-                onComplete: () => {
-                    sprite.disableInteractive();
-                    pieceData.label && pieceData.label.destroy();
-                    this.placedPieces.set(pieceName, true);
-                    this.checkPuzzleComplete();
-                }
-            });
+    if (closestZone) {
+        // Se encontrou uma zona próxima, move para ela
+        this.scene.tweens.add({
+            targets: [sprite, pieceData.label],
+            x: closestZone.centerX,
+            y: closestZone.centerY,
+            duration: this.snapDuration,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                // Armazena em qual página a peça foi colocada
+                this.placedPieces.set(pieceName, closestZone.index);
+                // Verifica automaticamente se todos os papéis foram colocados
+                this.checkOrder();
+            }
+        });
+    } else {
+        // Se não encontrou zona próxima, volta para a posição original
+        this.scene.tweens.add({
+            targets: [sprite, pieceData.label],
+            x: pieceData.originalX,
+            y: pieceData.originalY,
+            duration: this.snapDuration,
+            ease: 'Back.easeOut',
+            onComplete: () => {
+                // Remove da lista de peças colocadas se estava em alguma página
+                this.placedPieces.delete(pieceName);
+            }
+        });
+    }
+}
+
+checkOrder() {
+    // Verifica se todos os 4 papéis foram colocados
+    if (this.placedPieces.size === this.correctPositions.size) {
+        let isCorrect = true;
+        
+        // Verifica se cada peça está na posição correta
+        for (const [pieceName, correctPageIndex] of this.correctPositions) {
+            if (this.placedPieces.get(pieceName) !== correctPageIndex) {
+                isCorrect = false;
+                break;
+            }
+        }
+
+        if (isCorrect) {
+            console.log("Ordem CORRETA! Todos os papéis estão nas posições certas!");
+            this.checkPuzzleComplete();
         } else {
-            this.scene.tweens.add({
-                targets: [sprite, pieceData.label],
-                x: pieceData.originalX,
-                y: pieceData.originalY,
-                duration: this.snapDuration,
-                ease: 'Back.easeOut'
-            });
+            console.log("Ordem INCORRETA! Os papéis não estão na sequência certa.");
+        }
+    }
+}
+
+checkPuzzleComplete() {
+    // Verifica se já está completo para evitar duplicação
+    if (this.completed) return;
+    
+    let allCorrect = true;
+    for (const [pieceName, correctPageIndex] of this.correctPositions) {
+        if (this.placedPieces.get(pieceName) !== correctPageIndex) {
+            allCorrect = false;
+            break;
         }
     }
 
-    checkPuzzleComplete() {
-        if (this.placedPieces.size === this.correctPositions.size) {
-            // Remove notebook from inventory
-            if (this.scene.inventory) {
-                this.scene.inventory.removeItem(this.itemKey);
-                this.closePuzzle();
-            }
+    if (allCorrect) {
+        this.completed = true; // Marca como completo
+        
+        // Remove notebook from inventory
+        this.scene.inventory?.removeItem(this.itemKey);
 
-            if (this.scene.cutsceneManager) {
-                // Chama a sua cutscene com uma mensagem mais imersiva
-                this.scene.cutsceneManager._startStorylineCutscene(
-                    'Ela guardou tudo que podia me lembrar que eu era mais do que diziam ser.',
-                );
-            }
+        if (this.scene.cutsceneManager) {
+            this.scene.cutsceneManager._startStorylineCutscene(
+                'Ela guardou tudo que podia me lembrar que eu era mais do que diziam ser.',
+                () => this.closePuzzle()
+            );
+        } else {
+            this.closePuzzle();
+        }
 
-            // Update game state - MARCA A STORYLINE DA HELENA COMO COMPLETA
-            this.scene.gameState.helenaStorylineCompleted = true;
-
-            // VERIFICA SE TODAS AS STORYLINES ESTÃO COMPLETAS
-            if (this.scene.checkAllStorylinesCompleted()) {
-                this.scene.loadFinalMap();
-                this.scene.clearItemSprites();
-            }
-
+        this.scene.gameState.helenaStorylineCompleted = true;
+        
+        if (this.scene.checkAllStorylinesCompleted()) {
+            this.scene.loadFinalMap();
         }
     }
+}
+
     cleanupAllElements() {
         // Remove all visual elements
         this.overlay.destroy();
@@ -312,52 +367,67 @@ export default class CadernoPuzzle {
             });
     }
 
-    closePuzzle() {
-        // Remove all elements
-        this.overlay.destroy();
+   closePuzzle() {
+    // 1. Marca como inativo imediatamente
+    this.active = false;
+    this.completed = true;
 
-        if (this.placedPieces.size === this.correctPositions.size)
-            this.closeButton.destroy();
-        else{
-            this.closeButton.destroy();
-            
-            if (this.completeText) {
-                this.completeText.destroy();
-            }
-            
-            if (this.continueButton) {
-                this.continueButton.destroy();
-            }
-            
-            // Remove all pieces
-            this.pieces.forEach(piece => {
-                piece.sprite.destroy();
-            if (piece.label) piece.label.destroy();
-        });
-        
-        // Remove all page visuals
-        this.pageZones.forEach(zone => {
-            if (zone.visualElements) {
-                zone.visualElements.forEach(element => {
-                    if (element.destroy) element.destroy();
-                });
-            }
-        });
+    // 2. Remove todos os listeners primeiro
+    this.pieces.forEach(piece => {
+        piece.sprite?.removeAllListeners();
+        piece.sprite?.disableInteractive();
+    });
 
-        // Re-enable interactions
-        this.scene.setInteractionsEnabled(true);
-
-        // Optional: trigger any completion callback
-        if (this.onCompleteCallback) {
-            this.onCompleteCallback();
-        }
-        this.scene.arrows.left.setVisible(true);
-        this.scene.arrows.right.setVisible(true);
-
-        this.active = false;
-    
-        // Re-enable interactions
-        this.scene.setInteractionsEnabled(true);
-        }
+    // 3. Destrói elementos na ordem CORRETA (do mais profundo ao menos profundo)
+    // Primeiro os elementos "por cima" (com maior depth)
+    if (this.closeButton) {
+        this.closeButton.destroy();
+        this.closeButton = null;
     }
+
+    // Destrói labels das peças (depth 1004)
+    this.pieces.forEach(piece => {
+        if (piece.label) {
+            piece.label.destroy();
+            piece.label = null;
+        }
+    });
+
+    // Destrói as peças (sprites, depth 1003)
+    this.pieces.forEach(piece => {
+        if (piece.sprite) {
+            piece.sprite.destroy();
+            piece.sprite = null;
+        }
+    });
+
+    // Destrói os elementos das páginas (labels e backgrounds)
+    this.pageZones.forEach(zone => {
+        // Destrói na ordem inversa (maior depth primeiro)
+        [...zone.visualElements].reverse().forEach(element => {
+            element?.destroy();
+        });
+        zone.visualElements = [];
+    });
+
+    // Por último o overlay (depth 1000)
+    if (this.overlay) {
+        this.overlay.destroy();
+        this.overlay = null;
+    }
+
+    // 4. Limpa todas as referências
+    this.pieces = [];
+    this.pageZones = [];
+    this.placedPieces.clear();
+
+    // 5. Restaura a cena principal
+    this.scene.children.depthSort();
+    this.scene.setInteractionsEnabled(true);
+    
+    if (this.scene.isStandardRoom()) {
+        this.scene.arrows.left?.setVisible(true);
+        this.scene.arrows.right?.setVisible(true);
+    }
+}
 }

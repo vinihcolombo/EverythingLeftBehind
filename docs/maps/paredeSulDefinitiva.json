@@ -346,17 +346,6 @@
                  "width":99.0884549722583,
                  "x":32.2155356380708,
                  "y":85.424882629108
-                }, 
-                {
-                 "height":40,
-                 "id":3,
-                 "name":"Teia",
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":56.5,
-                 "x":364,
-                 "y":-1
                 }],
          "opacity":1,
          "type":"objectgroup",

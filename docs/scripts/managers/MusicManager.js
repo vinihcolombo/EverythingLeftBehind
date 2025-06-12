@@ -47,29 +47,55 @@ export default class MusicManager {
         this._playMusic(this.musicTracks.capa);
     }
 
+    isPlayingCutsceneMusic() {
+    return this.currentTrack === this.musicTracks.lembra;
+}
+
+isPlayingDefaultMusic() {
+    return this.currentTrack === this.musicTracks.default;
+}
+
     _playMusic(trackKey) {
-        // Se já está tocando a música solicitada, não faz nada
-        if (this.currentTrack === trackKey) return;
+    // Se já está tocando a música solicitada, não faz nada
+    if (this.currentTrack === trackKey) return;
 
-        // Para a música atual com fade out
-        this._stopCurrentMusic(() => {
-            // Inicia a nova música com fade in
-            const music = this.scene.sound.add(trackKey, {
-                loop: true,
-                volume: 0
-            });
-            
-            music.play();
-            this.currentTrack = trackKey;
-
-            this.scene.tweens.add({
-                targets: music,
-                volume: this.isMuted ? 0 : this.volume,
-     
-                ease: 'Linear'
-            });
+    // Para todas as instâncias da música atual primeiro
+    this.scene.sound.stopByKey(this.currentTrack);
+    
+    // Para a música atual com fade out (se existir)
+    const currentMusic = this.scene.sound.get(this.currentTrack);
+    if (currentMusic) {
+        this.scene.tweens.add({
+            targets: currentMusic,
+            volume: 0,
+            duration: 500,
+            ease: 'Linear',
+            onComplete: () => {
+                currentMusic.stop();
+                this.startNewTrack(trackKey);
+            }
         });
+    } else {
+        this.startNewTrack(trackKey);
     }
+}
+
+    startNewTrack(trackKey) {
+    const music = this.scene.sound.add(trackKey, {
+        loop: true,
+        volume: 0
+    });
+    
+    music.play();
+    this.currentTrack = trackKey;
+
+    this.scene.tweens.add({
+        targets: music,
+        volume: this.isMuted ? 0 : this.volume,
+        duration: 1000,
+        ease: 'Linear'
+    });
+}
 
     _stopCurrentMusic(onComplete) {
         if (!this.currentTrack) {
